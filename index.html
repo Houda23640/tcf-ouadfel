@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCF Ouadfel Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root { --gold: #d4af37; }
+        .active-modal { display: flex !important; }
+        .wrong-ans { background-color: #ef4444 !important; color: white !important; }
+        .correct-ans { background-color: #22c55e !important; color: white !important; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+
+    <header class="bg-white shadow-sm sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <span class="text-2xl font-black text-blue-600 tracking-wider">TCF <span class="text-yellow-500">OUADFEL</span></span>
+            </div>
+            
+            <nav class="hidden md:flex space-x-6 font-semibold">
+                <a href="#exams-section" class="hover:text-blue-600" data-i18n="nav_exams">Examens</a>
+                <a href="#offers-section" class="hover:text-blue-600" data-i18n="nav_offers">Nos Offres</a>
+                <a href="#courses-section" class="hover:text-blue-600" data-i18n="nav_courses">Cours</a>
+            </nav>
+
+            <div class="flex items-center space-x-3">
+                <select id="langSelect" onchange="changeLang(this.value)" class="border rounded p-1 text-sm bg-gray-50 font-medium">
+                    <option value="fr">Français</option>
+                    <option value="ar">العربية</option>
+                </select>
+
+                <div id="headerAuthBtns" class="flex space-x-2">
+                    <button onclick="openModal('loginModal')" class="px-3 py-1.5 text-sm font-semibold text-blue-600" data-i18n="btn_login">Connexion</button>
+                    <button onclick="openModal('registerModal')" class="px-3 py-1.5 text-sm font-semibold bg-blue-600 text-white rounded-lg shadow" data-i18n="btn_register">Créer un compte</button>
+                    <button onclick="openModal('adminLoginModal')" class="px-2 py-1.5 text-xs bg-gray-800 text-gray-200 rounded">Mme Houda</button>
+                </div>
+                
+                <div id="headerUserInfo" class="hidden items-center space-x-3">
+                    <span id="headerUserName" class="font-bold text-blue-700">Student</span>
+                    <button onclick="doLogout()" class="text-sm text-red-600 underline font-medium" data-i18n="btn_logout">Déconnexion</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="trialCountdownBanner" class="hidden bg-blue-50 border-y border-blue-200 py-2 text-center text-sm font-bold text-gray-700">
+            <span data-i18n="trial_banner_text">Période d'essai gratuite active</span>
+            <span id="trialClock" class="text-red-600 font-mono text-base ml-2">72:00:00</span>
+        </div>
+    </header>
+
+    <section class="py-16 bg-gradient-to-br from-blue-600 to-indigo-800 text-white text-center px-4">
+        <h1 class="text-4xl md:text-5xl font-extrabold max-w-3xl mx-auto leading-tight" data-i18n="hero_title">Réussissez votre TCF avec confiance</h1>
+        <p class="mt-4 text-lg text-blue-100 max-w-xl mx-auto" data-i18n="hero_desc">La plateforme d'entraînement complète pour le TCF Canada, TCF SO et TCF DAP.</p>
+        <div class="mt-8 flex justify-center space-x-4">
+            <button onclick="openModal('registerModal')" class="px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold rounded-xl shadow-lg" data-i18n="cta_free_trial">Essai gratuit 3 jours</button>
+            <a href="#exams-section" class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl border border-white/20" data-i18n="cta_discover">Découvrir les examens</a>
+        </div>
+    </section>
+
+    <section id="exams-section" class="container mx-auto px-4 py-16">
+        <div class="text-center mb-12">
+            <span class="text-blue-600 font-bold uppercase tracking-widest text-sm" data-i18n="tag_exams">Nos Examens</span>
+            <h2 class="text-3xl font-black mt-1 text-gray-900" data-i18n="exams_title">Choisissez votre parcours</h2>
+        </div>
+
+        <div id="examsLockedMsg" class="max-w-md mx-auto text-center bg-white p-8 rounded-2xl shadow-md border">
+            <div class="text-4xl mb-3">🔒</div>
+            <h3 class="text-xl font-bold text-gray-800" data-i18n="locked_title">Accès réservé aux membres</h3>
+            <p class="text-gray-500 text-sm mt-1 mb-6" data-i18n="locked_desc">Créez votre compte gratuit ou connectez-vous pour y accéder.</p>
+            <button onclick="openModal('registerModal')" class="w-full py-2.5 bg-blue-600 text-white font-bold rounded-xl shadow">S'inscrire gratuitement</button>
+        </div>
+
+        <div id="examsGrid" class="hidden grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md transition">
+                <div class="w-12 h-12 bg-red-100 text-red-600 font-black rounded-xl flex items-center justify-center mb-4 text-lg">CA</div>
+                <h3 class="text-xl font-bold text-gray-900">TCF Canada</h3>
+                <p class="text-gray-500 text-xs mt-1">Immigration, citoyenneté et accès aux dossiers express.</p>
+                <div class="mt-6 space-y-2">
+                    <button onclick="startExamEngine('TCF Canada', 'Final')" class="w-full py-2 bg-red-600 text-white font-bold rounded-lg text-sm shadow">Examen Complet</button>
+                    <button onclick="startExamEngine('TCF Canada', 'Annales')" class="w-full py-2 bg-gray-100 text-gray-700 font-semibold rounded-lg text-sm hover:bg-gray-200">Annales</button>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md transition">
+                <div class="w-12 h-12 bg-blue-100 text-blue-600 font-black rounded-xl flex items-center justify-center mb-4 text-lg">SO</div>
+                <h3 class="text-xl font-bold text-gray-900">TCF Tout Public (SO)</h3>
+                <p class="text-gray-500 text-xs mt-1">Évaluation linguistique globale sur ordinateur.</p>
+                <div class="mt-6 space-y-2">
+                    <button onclick="startExamEngine('TCF SO', 'Final')" class="w-full py-2 bg-blue-600 text-white font-bold rounded-lg text-sm shadow">Examen Complet</button>
+                    <button onclick="startExamEngine('TCF SO', 'Annales')" class="w-full py-2 bg-gray-100 text-gray-700 font-semibold rounded-lg text-sm hover:bg-gray-200">Annales</button>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md transition">
+                <div class="w-12 h-12 bg-purple-100 text-purple-600 font-black rounded-xl flex items-center justify-center mb-4 text-lg">DP</div>
+                <h3 class="text-xl font-bold text-gray-900">TCF DAP</h3>
+                <p class="text-gray-500 text-xs mt-1">Demande d'admission préalable (Universités).</p>
+                <div class="mt-6 space-y-2">
+                    <button onclick="startExamEngine('TCF DAP', 'Final')" class="w-full py-2 bg-purple-600 text-white font-bold rounded-lg text-sm shadow">Examen Complet</button>
+                    <button onclick="startExamEngine('TCF DAP', 'Annales')" class="w-full py-2 bg-gray-100 text-gray-700 font-semibold rounded-lg text-sm hover:bg-gray-200">Annales</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="offers-section" class="bg-gray-100 py-16 border-t border-b">
+        <div class="container mx-auto px-4 max-w-5xl">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-black text-gray-900" data-i18n="offers_title">Nos Offres</h2>
+                <p class="text-gray-500 mt-1" data-i18n="offers_subtitle">Choisissez l'offre qui correspond à votre préparation</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border text-center flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800">Pack Bronze</h3>
+                        <div class="text-3xl font-black text-blue-600 my-4">3000 DA <span class="text-xs text-gray-400 font-normal">/ 1 Mois</span></div>
+                        <ul class="text-sm text-gray-500 space-y-2 text-left mb-6">
+                            <li>✔ Accès aux examens complets</li>
+                            <li>✔ Correction automatique</li>
+                        </ul>
+                    </div>
+                    <button onclick="requestPayment('Pack Bronze')" class="w-full py-2.5 bg-gray-900 text-white font-bold rounded-xl text-sm shadow">Acheter ce Pack</button>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-md border-2 border-yellow-500 text-center relative flex flex-col justify-between">
+                    <div class="absolute top-0 right-0 bg-yellow-500 text-gray-950 font-black text-[10px] px-3 py-1 uppercase rounded-bl-xl">Recommandé</div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800">Pack Gold</h3>
+                        <div class="text-3xl font-black text-yellow-600 my-4">5000 DA <span class="text-xs text-gray-400 font-normal">/ 2 Mois</span></div>
+                        <ul class="text-sm text-gray-500 space-y-2 text-left mb-6">
+                            <li>✔ Accès complet + Section Annales</li>
+                            <li>✔ Supports et documents pédagogiques</li>
+                        </ul>
+                    </div>
+                    <button onclick="requestPayment('Pack Gold')" class="w-full py-2.5 bg-yellow-500 text-gray-950 font-bold rounded-xl text-sm shadow">Acheter ce Pack</button>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border text-center flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800">Pack VIP</h3>
+                        <div class="text-3xl font-black text-blue-600 my-4">7000 DA <span class="text-xs text-gray-400 font-normal">/ 3 Mois</span></div>
+                        <ul class="text-sm text-gray-500 space-y-2 text-left mb-6">
+                            <li>✔ Tout le contenu en illimité</li>
+                            <li>✔ Suivi direct par Mme Houda</li>
+                        </ul>
+                    </div>
+                    <button onclick="requestPayment('Pack VIP')" class="w-full py-2.5 bg-gray-900 text-white font-bold rounded-xl text-sm shadow">Acheter ce Pack</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="courses-section" class="container mx-auto px-4 py-16 max-w-5xl">
+        <div class="text-center mb-10">
+            <h2 class="text-2xl font-black text-gray-900">Cours & Documents</h2>
+            <p class="text-gray-500 text-sm mt-1">Consultez les supports pédagogiques mis en ligne</p>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <button onclick="loadSkillCours('CO')" class="p-4 bg-white border rounded-xl shadow-sm text-center font-bold hover:border-blue-500 transition">Compréhension Orale</button>
+            <button onclick="loadSkillCours('CE')" class="p-4 bg-white border rounded-xl shadow-sm text-center font-bold hover:border-blue-500 transition">Compréhension Écrite</button>
+            <button onclick="loadSkillCours('SL')" class="p-4 bg-white border rounded-xl shadow-sm text-center font-bold hover:border-blue-500 transition">Structure de la langue</button>
+            <button onclick="loadSkillCours('EE')" class="p-4 bg-white border rounded-xl shadow-sm text-center font-bold hover:border-blue-500 transition">Expression Écrite</button>
+            <button onclick="loadSkillCours('EO')" class="p-4 bg-white border rounded-xl shadow-sm text-center font-bold hover:border-blue-500 transition">Expression Orale</button>
+        </div>
+        <div id="skillsCoursContainer" class="mt-6 bg-white p-4 rounded-xl border hidden shadow-sm">
+            <h4 class="font-bold text-blue-600 mb-3" id="selectedSkillTitle">Leçons :</h4>
+            <ul id="coursItemsList" class="space-y-2 text-sm text-gray-600"></ul>
+        </div>
+    </section>
+
+    <div id="quizContainerArea" class="fixed inset-0 bg-gray-900/90 z-50 hidden justify-center items-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl w-full max-w-3xl shadow-2xl p-6 relative">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <div>
+                    <span id="quizBadgeType" class="bg-blue-600 text-white font-black text-xs px-3 py-1 rounded-full">TCF CANADA</span>
+                    <span id="quizBadgeSection" class="bg-gray-100 text-gray-700 font-bold text-xs px-3 py-1 rounded-full ml-2">Section</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div>
+                        <small class="text-gray-400 block text-[10px] uppercase font-bold">Temps Global</small>
+                        <span id="globalTimerClock" class="font-mono font-bold text-blue-600 text-lg">80:00</span>
+                    </div>
+                    <div class="bg-red-50 px-3 py-1.5 rounded-xl border border-red-200 text-center">
+                        <small class="text-red-400 block text-[9px] uppercase font-bold">Question</small>
+                        <span id="questionTimerClock" class="font-mono font-black text-red-600 text-xl">60</span>
+                    </div>
+                </div>
+            </div>
+            <div id="questionBodyDisplay" class="min-h-[200px] text-lg font-medium text-gray-800"></div>
+            <div id="qcmOptionsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6"></div>
+            <div id="expressionAreaFields" class="mt-4 hidden">
+                <textarea id="studentExpressionInput" class="w-full border rounded-xl p-3 text-sm h-32 outline-none" placeholder="Écrivez votre réponse ici..."></textarea>
+                <button onclick="saveAndNextQuestion(true)" class="mt-3 w-full py-2 bg-green-600 text-white font-bold rounded-xl text-sm">Sauvegarder</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="resultsModal" class="fixed inset-0 bg-black/70 z-50 hidden justify-center items-center p-4">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-2xl">
+            <div class="text-5xl mb-2">🎉</div>
+            <h3 class="text-2xl font-black text-gray-900">Examen Terminé !</h3>
+            <div class="grid grid-cols-3 gap-2 my-6">
+                <div class="bg-green-50 p-3 rounded-xl border"><span id="resCorrectCount" class="block font-black text-green-600 text-xl">0</span><small class="text-gray-400 text-[10px]">Correctes</small></div>
+                <div class="bg-red-50 p-3 rounded-xl border"><span id="resWrongCount" class="block font-black text-red-600 text-xl">0</span><small class="text-gray-400 text-[10px]">Fausses</small></div>
+                <div class="bg-gray-50 p-3 rounded-xl border"><span id="resSkippedCount" class="block font-black text-gray-600 text-xl">0</span><small class="text-gray-400 text-[10px]">Passées</small></div>
+            </div>
+            <div class="bg-blue-600 text-white p-4 rounded-2xl mb-6">
+                <small class="text-blue-200 text-xs block">Niveau Estimé</small>
+                <span id="resCalculatedLevel" class="text-4xl font-black">B2</span>
+            </div>
+            <button onclick="closeModal('resultsModal'); document.getElementById('quizContainerArea').style.display='none';" class="w-full py-2.5 bg-gray-900 text-white font-bold rounded-xl">Retour</button>
+        </div>
+    </div>
+
+    <div id="adminDashboardArea" class="fixed inset-0 bg-gray-100 z-50 hidden flex-col overflow-y-auto">
+        <header class="bg-gray-900 text-white p-4 flex justify-between items-center shadow-md">
+            <span class="text-xl font-black text-yellow-500">Welcome Mme Houda ✨ (لوحة السحابة المركزية)</span>
+            <button onclick="document.getElementById('adminDashboardArea').style.display='none'" class="bg-red-600 px-4 py-1.5 rounded font-bold text-sm">Quitter</button>
+        </header>
+        <main class="container mx-auto p-4 max-w-6xl space-y-8 my-6">
+            <div class="bg-white p-6 rounded-2xl border shadow-sm">
+                <h3 class="text-lg font-black text-gray-900 border-b pb-2 mb-4">🛠️ إضافة الأسئلة السحابية المباشرة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">نوع الامتحان</label>
+                        <select id="admExamType" class="w-full border rounded-lg p-2 text-sm bg-gray-50">
+                            <option value="TCF Canada">TCF Canada</option>
+                            <option value="TCF SO">TCF SO</option>
+                            <option value="TCF DAP">TCF DAP</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">القسم</label>
+                        <select id="admSortingType" class="w-full border rounded-lg p-2 text-sm bg-gray-50">
+                            <option value="Final">Exam Complet (Final)</option>
+                            <option value="Annales">Annales (الأسئلة الأخيرة)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">المهارة</label>
+                        <select id="admSkillType" class="w-full border rounded-lg p-2 text-sm bg-gray-50">
+                            <option value="CE">Compréhension Écrite</option>
+                            <option value="CO">Compréhension Orale</option>
+                            <option value="SL">Structures de la langue</option>
+                            <option value="EE">Expression Écrite</option>
+                            <option value="EO">Expression Orale</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-gray-50 rounded-xl border">
+                    <div class="space-y-3">
+                        <input id="admQNumber" type="number" value="1" placeholder="رقم السؤال" class="border rounded p-2 text-sm w-full">
+                        <input id="admAudioUrl" type="text" placeholder="رابط الملف الصوتي (اختياري)" class="w-full border rounded p-2 text-sm">
+                        <textarea id="admLongText" rows="4" class="w-full border rounded p-2 text-sm" placeholder="نص السؤال أو التوجيهات بالفرنسية..."></textarea>
+                    </div>
+                    <div class="space-y-2">
+                        <input id="admOptA" type="text" placeholder="Option A" class="w-full border rounded p-2 text-sm">
+                        <input id="admOptB" type="text" placeholder="Option B" class="w-full border rounded p-2 text-sm">
+                        <input id="admOptC" type="text" placeholder="Option C" class="w-full border rounded p-2 text-sm">
+                        <input id="admOptD" type="text" placeholder="Option D" class="w-full border rounded p-2 text-sm">
+                        <select id="admCorrectOpt" class="w-full border rounded p-2 text-sm font-bold bg-white">
+                            <option value="A">الإجابة الصحيحة هي: A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                        </select>
+                    </div>
+                </div>
+                <button onclick="saveQuestionFromAdmin()" class="w-full mt-4 py-3 bg-blue-600 text-white font-black rounded-xl">حفظ وحقن السؤال في السحابة فوراً 💾</button>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border shadow-sm">
+                <h3 class="text-lg font-black text-gray-900 border-b pb-2 mb-4">👥 لوحة إدارة واشتراكات الطلاب (بيانات حية)</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100 text-gray-600 text-xs border-b">
+                                <th class="p-3">الطالب</th>
+                                <th class="p-3">البريد الإلكتروني</th>
+                                <th class="p-3">الحالة</th>
+                                <th class="p-3">تاريخ انتهاء الصلاحية</th>
+                                <th class="p-3">وصل الدفع المرفوع</th>
+                                <th class="p-3">الإجراءات والتحكم</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border shadow-sm">
+                <h3 class="text-lg font-black text-gray-900 border-b pb-2 mb-3">📚 إدارة قسم الدروس والوثائق للمهارات</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <select id="admLessonSkill" class="border rounded p-2 text-sm">
+                        <option value="CO">Compréhension Orale</option>
+                        <option value="CE">Compréhension Écrite</option>
+                        <option value="SL">Structure de la langue</option>
+                    </select>
+                    <input id="admLessonTitle" type="text" placeholder="عنوان الدرس" class="border rounded p-2 text-sm">
+                    <input id="admLessonUrl" type="text" placeholder="رابط المستند (PDF أو فيديو)" class="border rounded p-2 text-sm">
+                </div>
+                <button onclick="saveLessonFromAdmin()" class="w-full mt-3 py-2 bg-gray-900 text-white font-bold text-sm rounded-lg">نشر الدرس فوراً للطلاب</button>
+            </div>
+        </main>
+    </div>
+
+    <div id="loginModal" class="fixed inset-0 bg-black/60 z-50 hidden justify-center items-center p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-sm text-center">
+            <h3 class="text-xl font-bold text-gray-900 mb-4">Connexion</h3>
+            <input id="loginEmail" type="email" placeholder="Email" class="w-full border rounded-xl p-2.5 mb-3 text-sm outline-none">
+            <input id="loginPass" type="password" placeholder="Mot de passe" class="w-full border rounded-xl p-2.5 mb-4 text-sm outline-none">
+            <button onclick="doLogin()" class="w-full py-2.5 bg-blue-600 text-white font-bold rounded-xl shadow mb-3">Se connecter</button>
+            <button onclick="closeModal('loginModal')" class="text-xs text-gray-400 underline">Fermer</button>
+        </div>
+    </div>
+
+    <div id="registerModal" class="fixed inset-0 bg-black/60 z-50 hidden justify-center items-center p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-sm text-center">
+            <h3 class="text-xl font-bold text-gray-900 mb-4">Créer un compte</h3>
+            <input id="regName" type="text" placeholder="Nom Complet" class="w-full border rounded-xl p-2.5 mb-3 text-sm outline-none">
+            <input id="regEmail" type="email" placeholder="Email" class="w-full border rounded-xl p-2.5 mb-3 text-sm outline-none">
+            <input id="regPass" type="password" placeholder="Mot de passe" class="w-full border rounded-xl p-2.5 mb-4 text-sm outline-none">
+            <button onclick="doRegister()" class="w-full py-2.5 bg-blue-600 text-white font-bold rounded-xl shadow mb-3">S'inscrire</button>
+            <button onclick="closeModal('registerModal')" class="text-xs text-gray-400 underline">Fermer</button>
+        </div>
+    </div>
+
+    <div id="adminLoginModal" class="fixed inset-0 bg-black/60 z-50 hidden justify-center items-center p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-sm text-center">
+            <h3 class="text-lg font-black text-gray-900 mb-2">تسجيل دخول الإدارة</h3>
+            <input id="admUser" type="text" placeholder="اسم المستخدم" class="w-full border rounded-xl p-2.5 mb-3 text-sm outline-none">
+            <input id="admPass" type="password" placeholder="كلمة المرور" class="w-full border rounded-xl p-2.5 mb-4 text-sm outline-none">
+            <button onclick="doAdminLogin()" class="w-full py-2.5 bg-gray-900 text-white font-bold rounded-xl shadow">دخول</button>
+        </div>
+    </div>
+
+    <div id="paymentModal" class="fixed inset-0 bg-black/60 z-50 hidden justify-center items-center p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-sm text-center">
+            <h3 class="text-lg font-bold text-gray-900 mb-1">تأكيد طلب الاشتراك</h3>
+            <span id="chosenOffer" class="block bg-yellow-50 text-yellow-700 font-bold p-2 text-xs rounded-xl border mb-4">Pack Gold</span>
+            <input id="receiptFileBase64" type="file" accept="image/*" class="w-full text-xs border rounded p-2 mb-4">
+            <button onclick="submitPayment()" class="w-full py-2.5 bg-green-600 text-white font-bold rounded-xl">إرسال الوصل للمديرة هدى ✉</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // إعدادات الـ Firebase الحقيقية الخاصة بمشروعك المستخرجة من الصورة
+        const firebaseConfig = {
+            apiKey: "AIzaSyA5AIEwQnsWUHaYhGSojffXFU-w6fl-_PM",
+            authDomain: "tcf-ouadfel-platform-bfe92.firebaseapp.com",
+            projectId: "tcf-ouadfel-platform-bfe92",
+            storageBucket: "tcf-ouadfel-platform-bfe92.firebasestorage.app",
+            messagingSenderId: "211361242155",
+            appId: "1:211361242155:web:937ebaa9436a4439fbde6e",
+            measurementId: "G-EYSX72Q8L6"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // متغيرات الجلسة والامتحان الحالية
+        let currentUser = null;
+        let activeExamQuestions = [];
+        let currentQuestionIndex = 0;
+        let globalTimerInterval = null;
+        let questionTimerInterval = null;
+        let questionTimeLeft = 60;
+        let examResultsData = { correct: 0, wrong: 0, skipped: 0 };
+
+        // جعل الدوال متاحة للواجهات الأمامية
+        window.openModal = (id) => document.getElementById(id).classList.add('active-modal');
+        window.closeModal = (id) => document.getElementById(id).classList.remove('active-modal');
+
+        // مراجعة الجلسة عند فتح الموقع
+        async function checkSession() {
+            const saved = localStorage.getItem('tcf_logged_user');
+            if (saved) {
+                const localUser = JSON.parse(saved);
+                const docSnap = await getDoc(doc(db, "users", localUser.email));
+                if (docSnap.exists()) {
+                    currentUser = docSnap.data();
+                    localStorage.setItem('tcf_logged_user', JSON.stringify(currentUser));
+                    updateUIForUser();
+                }
+            }
+        }
+        checkSession();
+
+        function updateUIForUser() {
+            if (currentUser) {
+                document.getElementById('headerAuthBtns').classList.add('hidden');
+                document.getElementById('headerUserInfo').classList.remove('hidden');
+                document.getElementById('headerUserName').innerText = currentUser.name;
+                document.getElementById('examsLockedMsg').classList.add('hidden');
+                document.getElementById('examsGrid').classList.remove('hidden');
+                
+                // حساب وقت الفترة التجريبية المتبقية
+                const now = Date.now();
+                if (currentUser.status === 'free' && currentUser.trialExpires > now) {
+                    document.getElementById('trialCountdownBanner').classList.remove('hidden');
+                    startTrialClock(currentUser.trialExpires);
+                } else {
+                    document.getElementById('trialCountdownBanner').classList.add('hidden');
+                }
+            }
+        }
+
+        function startTrialClock(expiry) {
+            setInterval(() => {
+                const diff = expiry - Date.now();
+                if (diff <= 0) {
+                    document.getElementById('trialClock').innerText = "Expiré";
+                    return;
+                }
+                const hrs = Math.floor(diff / 3600000);
+                const mins = Math.floor((diff % 3600000) / 60000);
+                const secs = Math.floor((diff % 60000) / 1000);
+                document.getElementById('trialClock').innerText = `${hrs}:${mins}:${secs}`;
+            }, 1000);
+        }
+
+        // تسجيل طالب جديد سحابياً
+        window.doRegister = async () => {
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.toLowerCase().trim();
+            const pass = document.getElementById('regPass').value.trim();
+
+            if(!name || !email || !pass) return alert("Veuillez remplir tous les champs");
+
+            const userDocRef = doc(db, "users", email);
+            const userSnap = await getDoc(userDocRef);
+
+            if (userSnap.exists()) {
+                return alert("Cet email est déjà enregistré !");
+            }
+
+            const newUser = {
+                name,
+                email,
+                password: pass,
+                status: 'free',
+                trialExpires: Date.now() + (3 * 24 * 60 * 60 * 1000), // 3 أيام مجانية
+                createdAt: Date.now(),
+                receipt: null
+            };
+
+            await setDoc(userDocRef, newUser);
+            currentUser = newUser;
+            localStorage.setItem('tcf_logged_user', JSON.stringify(newUser));
+            closeModal('registerModal');
+            updateUIForUser();
+            alert("Compte créé avec succès ! 🎉");
+        };
+
+        // تسجيل دخول الطالب
+        window.doLogin = async () => {
+            const email = document.getElementById('loginEmail').value.toLowerCase().trim();
+            const pass = document.getElementById('loginPass').value.trim();
+
+            const userSnap = await getDoc(doc(db, "users", email));
+            if (userSnap.exists() && userSnap.data().password === pass) {
+                currentUser = userSnap.data();
+                localStorage.setItem('tcf_logged_user', JSON.stringify(currentUser));
+                closeModal('loginModal');
+                updateUIForUser();
+            } else {
+                alert("Email ou mot de passe incorrect !");
+            }
+        };
+
+        window.doLogout = () => {
+            localStorage.removeItem('tcf_logged_user');
+            location.reload();
+        };
+
+        // طلب الاشتراك ورفع الوصل سحابياً
+        window.requestPayment = (packName) => {
+            if(!currentUser) return openModal('registerModal');
+            document.getElementById('chosenOffer').innerText = packName;
+            openModal('paymentModal');
+        };
+
+        window.submitPayment = async () => {
+            const fileInput = document.getElementById('receiptFileBase64');
+            if (fileInput.files.length === 0) return alert("Veuillez choisir une image du reçu");
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onloadend = async () => {
+                const base64String = reader.result;
+                await updateDoc(doc(db, "users", currentUser.email), {
+                    receipt: base64String,
+                    requestedPack: document.getElementById('chosenOffer').innerText
+                });
+                closeModal('paymentModal');
+                alert("Reçu envoyé ! En attente de validation par Mme Houda.");
+            };
+            reader.readAsDataURL(file);
+        };
+
+        // تسجيل دخول المديرة هدى واستماع فوري للبيانات
+        window.doAdminLogin = () => {
+            const user = document.getElementById('admUser').value;
+            const pass = document.getElementById('admPass').value;
+
+            if (user === "houda" && pass === "houda2026") {
+                closeModal('adminLoginModal');
+                document.getElementById('adminDashboardArea').style.display = 'flex';
+                listenToStudentsCloud();
+            } else {
+                alert("Identifiants incorrects !");
+            }
+        };
+
+        function listenToStudentsCloud() {
+            onSnapshot(collection(db, "users"), (snapshot) => {
+                const tbody = document.getElementById('studentsTableBody');
+                tbody.innerHTML = "";
+                snapshot.forEach((docSnap) => {
+                    const student = docSnap.data();
+                    const expiryDate = new Date(student.trialExpires).toLocaleDateString();
+                    tbody.innerHTML += `
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="p-3 font-bold">${student.name}</td>
+                            <td class="p-3">${student.email}</td>
+                            <td class="p-3"><span class="px-2 py-0.5 rounded text-xs ${student.status === 'VIP' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${student.status}</span></td>
+                            <td class="p-3 text-xs">${expiryDate}</td>
+                            <td class="p-3">${student.receipt ? `<a href="${student.receipt}" target="_blank" class="text-blue-600 underline text-xs">Voir Reçu</a>` : 'Aucun'}</td>
+                            <td class="p-3"><button onclick="activateStudentVIP('${student.email}')" class="bg-green-600 text-white px-2 py-1 rounded text-xs font-bold">Activer VIP</button></td>
+                        </tr>
+                    `;
+                });
+            });
+        }
+
+        window.activateStudentVIP = async (email) => {
+            const months = prompt("مدد التفعيل بالشهور (مثال: 1 أو 2):", "1");
+            if (!months) return;
+            const extraTime = parseInt(months) * 30 * 24 * 60 * 60 * 1000;
+            await updateDoc(doc(db, "users", email), {
+                status: 'VIP',
+                trialExpires: Date.now() + extraTime,
+                receipt: null
+            });
+            alert("Compte activé avec succès !");
+        };
+
+        // حفظ الأسئلة سحابياً من طرف السيدة هدى
+        window.saveQuestionFromAdmin = async () => {
+            const examType = document.getElementById('admExamType').value;
+            const sortingType = document.getElementById('admSortingType').value;
+            const skillType = document.getElementById('admSkillType').value;
+            const qNum = document.getElementById('admQNumber').value;
+            const audioUrl = document.getElementById('admAudioUrl').value;
+            const longText = document.getElementById('admLongText').value;
+            const optA = document.getElementById('admOptA').value;
+            const optB = document.getElementById('admOptB').value;
+            const optC = document.getElementById('admOptC').value;
+            const optD = document.getElementById('admOptD').value;
+            const correctOpt = document.getElementById('admCorrectOpt').value;
+
+            const qId = `q_${examType}_${sortingType}_${skillType}_${Date.now()}`;
+            const questionData = {
+                examType, sortingType, skillType, qNum, audioUrl, longText, optA, optB, optC, optD, correctOpt
+            };
+
+            await setDoc(doc(db, "questions", qId), questionData);
+            alert("Question enregistrée dans le Cloud ! 💾");
+        };
+
+        // محرك الامتحانات السحابي
+        window.startExamEngine = async (examType, sortingType) => {
+            const now = Date.now();
+            if (currentUser.status === 'free' && currentUser.trialExpires < now) {
+                return alert("Votre période d'essai a expiré. Veuillez acheter un Pack pour continuer.");
+            }
+
+            // جلب الأسئلة المخصصة من السحابة
+            const querySnapshot = await getDocs(collection(db, "questions"));
+            activeExamQuestions = [];
+            querySnapshot.forEach((doc) => {
+                const q = doc.data();
+                if (q.examType === examType && q.sortingType === sortingType) {
+                    activeExamQuestions.push(q);
+                }
+            });
+
+            if (activeExamQuestions.length === 0) {
+                return alert("Aucune question disponible pour ce parcours actuellement.");
+            }
+
+            // ترتيب الأسئلة حسب الرقم
+            activeExamQuestions.sort((a, b) => a.qNum - b.qNum);
+
+            // تشغيل محرك الاختبار
+            currentQuestionIndex = 0;
+            examResultsData = { correct: 0, wrong: 0, skipped: 0 };
+            document.getElementById('quizContainerArea').style.display = 'flex';
+            document.getElementById('quizBadgeType').innerText = examType.toUpperCase();
+            renderQuestion();
+            startTimers();
+        };
+
+        function renderQuestion() {
+            clearInterval(questionTimerInterval);
+            questionTimeLeft = 60;
+            document.getElementById('questionTimerClock').innerText = questionTimeLeft;
+
+            const q = activeExamQuestions[currentQuestionIndex];
+            document.getElementById('quizBadgeSection').innerText = `Compétence: ${q.skillType} | ${currentQuestionIndex + 1}/${activeExamQuestions.length}`;
+            
+            let htmlBody = "";
+            if (q.audioUrl) {
+                htmlBody += `<audio src="${q.audioUrl}" controls autoplay class="w-full mb-4"></audio>`;
+            }
+            htmlBody += `<p class="whitespace-pre-line">${q.longText}</p>`;
+            document.getElementById('questionBodyDisplay').innerHTML = htmlBody;
+
+            // خيارات الـ QCM
+            const optionsGrid = document.getElementById('qcmOptionsGrid');
+            optionsGrid.innerHTML = `
+                <button onclick="handleAnswer('A')" class="p-4 bg-gray-50 border rounded-2xl font-semibold hover:bg-blue-50 text-left">A. ${q.optA}</button>
+                <button onclick="handleAnswer('B')" class="p-4 bg-gray-50 border rounded-2xl font-semibold hover:bg-blue-50 text-left">B. ${q.optB}</button>
+                <button onclick="handleAnswer('C')" class="p-4 bg-gray-50 border rounded-2xl font-semibold hover:bg-blue-50 text-left">C. ${q.optC}</button>
+                <button onclick="handleAnswer('D')" class="p-4 bg-gray-50 border rounded-2xl font-semibold hover:bg-blue-50 text-left">D. ${q.optD}</button>
+            `;
+
+            // موقت تنازلي لكل سؤال
+            questionTimerInterval = setInterval(() => {
+                questionTimeLeft--;
+                document.getElementById('questionTimerClock').innerText = questionTimeLeft;
+                if (questionTimeLeft <= 0) {
+                    examResultsData.skipped++;
+                    nextQuestion();
+                }
+            }, 1000);
+        }
+
+        window.handleAnswer = (selected) => {
+            clearInterval(questionTimerInterval);
+            const q = activeExamQuestions[currentQuestionIndex];
+            if (selected === q.correctOpt) {
+                examResultsData.correct++;
+            } else {
+                examResultsData.wrong++;
+            }
+            nextQuestion();
+        };
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < activeExamQuestions.length) {
+                renderQuestion();
+            } else {
+                endExam();
+            }
+        }
+
+        function startTimers() {
+            let totalSeconds = 80 * 60;
+            globalTimerInterval = setInterval(() => {
+                totalSeconds--;
+                const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+                const s = (totalSeconds % 60).toString().padStart(2, '0');
+                document.getElementById('globalTimerClock').innerText = `${m}:${s}`;
+                if (totalSeconds <= 0) endExam();
+            }, 1000);
+        }
+
+        function endExam() {
+            clearInterval(globalTimerInterval);
+            clearInterval(questionTimerInterval);
+            
+            document.getElementById('resCorrectCount').innerText = examResultsData.correct;
+            document.getElementById('resWrongCount').innerText = examResultsData.wrong;
+            document.getElementById('resSkippedCount').innerText = examResultsData.skipped;
+
+            // حساب المستوى التقريبي تلقائياً
+            let lvl = "A1";
+            const score = examResultsData.correct;
+            if(score > 5) lvl = "A2";
+            if(score > 12) lvl = "B1";
+            if(score > 22) lvl = "B2";
+            if(score > 32) lvl = "C1";
+            if(score > 42) lvl = "C2";
+            document.getElementById('resCalculatedLevel').innerText = lvl;
+
+            openModal('resultsModal');
+        }
+
+        // إدارة قسم الوثائق
+        window.saveLessonFromAdmin = async () => {
+            const skill = document.getElementById('admLessonSkill').value;
+            const title = document.getElementById('admLessonTitle').value;
+            const url = document.getElementById('admLessonUrl').value;
+            const id = `l_${skill}_${Date.now()}`;
+            await setDoc(doc(db, "lessons", id), { skill, title, url });
+            alert("Document publié !");
+        };
+
+        window.loadSkillCours = async (skill) => {
+            document.getElementById('skillsCoursContainer').classList.remove('hidden');
+            document.getElementById('selectedSkillTitle').innerText = `Leçons pour ${skill} :`;
+            const querySnapshot = await getDocs(collection(db, "lessons"));
+            const list = document.getElementById('coursItemsList');
+            list.innerHTML = "";
+            let count = 0;
+            querySnapshot.forEach((doc) => {
+                const l = doc.data();
+                if (l.skill === skill) {
+                    count++;
+                    list.innerHTML += `<li class="p-2 bg-gray-50 rounded flex justify-between"><span>📄 ${l.title}</span> <a href="${l.url}" target="_blank" class="text-blue-600 underline font-bold">Ouvrir</a></li>`;
+                }
+            });
+            if(count === 0) list.innerHTML = "<li class='p-2 text-gray-400'>Aucun document disponible.</li>";
+        };
+    </script>
+</body>
+</html>
