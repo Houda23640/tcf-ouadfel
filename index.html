@@ -21,9 +21,9 @@
             </div>
             
             <nav class="hidden md:flex space-x-6 font-semibold">
-                <a href="#exams-section" class="hover:text-blue-600" data-i18n="nav_exams">Examens</a>
-                <a href="#offers-section" class="hover:text-blue-600" data-i18n="nav_offers">Nos Offres</a>
-                <a href="#courses-section" class="hover:text-blue-600" data-i18n="nav_courses">Cours</a>
+                <a href="#exams-section" class="hover:text-blue-600">Examens</a>
+                <a href="#offers-section" class="hover:text-blue-600">Nos Offres</a>
+                <a href="#courses-section" class="hover:text-blue-600">Cours</a>
             </nav>
 
             <div class="flex items-center space-x-3">
@@ -33,43 +33,43 @@
                 </select>
 
                 <div id="headerAuthBtns" class="flex space-x-2">
-                    <button onclick="openModal('loginModal')" class="px-3 py-1.5 text-sm font-semibold text-blue-600" data-i18n="btn_login">Connexion</button>
-                    <button onclick="openModal('registerModal')" class="px-3 py-1.5 text-sm font-semibold bg-blue-600 text-white rounded-lg shadow" data-i18n="btn_register">Créer un compte</button>
+                    <button onclick="openModal('loginModal')" class="px-3 py-1.5 text-sm font-semibold text-blue-600">Connexion</button>
+                    <button onclick="openModal('registerModal')" class="px-3 py-1.5 text-sm font-semibold bg-blue-600 text-white rounded-lg shadow">Créer un compte</button>
                     <button onclick="openModal('adminLoginModal')" class="px-2 py-1.5 text-xs bg-gray-800 text-gray-200 rounded">Mme Houda</button>
                 </div>
                 
                 <div id="headerUserInfo" class="hidden items-center space-x-3">
                     <span id="headerUserName" class="font-bold text-blue-700">Student</span>
-                    <button onclick="doLogout()" class="text-sm text-red-600 underline font-medium" data-i18n="btn_logout">Déconnexion</button>
+                    <button onclick="doLogout()" class="text-sm text-red-600 underline font-medium">Déconnexion</button>
                 </div>
             </div>
         </div>
         
         <div id="trialCountdownBanner" class="hidden bg-blue-50 border-y border-blue-200 py-2 text-center text-sm font-bold text-gray-700">
-            <span data-i18n="trial_banner_text">Période d'essai gratuite active</span>
+            <span>Période d'essai gratuite active</span>
             <span id="trialClock" class="text-red-600 font-mono text-base ml-2">72:00:00</span>
         </div>
     </header>
 
     <section class="py-16 bg-gradient-to-br from-blue-600 to-indigo-800 text-white text-center px-4">
-        <h1 class="text-4xl md:text-5xl font-extrabold max-w-3xl mx-auto leading-tight" data-i18n="hero_title">Réussissez votre TCF avec confiance</h1>
-        <p class="mt-4 text-lg text-blue-100 max-w-xl mx-auto" data-i18n="hero_desc">La plateforme d'entraînement complète pour le TCF Canada, TCF SO et TCF DAP.</p>
+        <h1 class="text-4xl md:text-5xl font-extrabold max-w-3xl mx-auto leading-tight">Réussissez votre TCF avec confiance</h1>
+        <p class="mt-4 text-lg text-blue-100 max-w-xl mx-auto">La plateforme d'entraînement complète pour le TCF Canada, TCF SO et TCF DAP.</p>
         <div class="mt-8 flex justify-center space-x-4">
-            <button onclick="openModal('registerModal')" class="px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold rounded-xl shadow-lg" data-i18n="cta_free_trial">Essai gratuit 3 jours</button>
-            <a href="#exams-section" class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl border border-white/20" data-i18n="cta_discover">Découvrir les examens</a>
+            <button onclick="openModal('registerModal')" class="px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold rounded-xl shadow-lg">Essai gratuit 3 jours</button>
+            <a href="#exams-section" class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl border border-white/20">Découvrir les examens</a>
         </div>
     </section>
 
     <section id="exams-section" class="container mx-auto px-4 py-16">
         <div class="text-center mb-12">
-            <span class="text-blue-600 font-bold uppercase tracking-widest text-sm" data-i18n="tag_exams">Nos Examens</span>
-            <h2 class="text-3xl font-black mt-1 text-gray-900" data-i18n="exams_title">Choisissez votre parcours</h2>
+            <span class="text-blue-600 font-bold uppercase tracking-widest text-sm">Nos Examens</span>
+            <h2 class="text-3xl font-black mt-1 text-gray-900">Choisissez votre parcours</h2>
         </div>
 
         <div id="examsLockedMsg" class="max-w-md mx-auto text-center bg-white p-8 rounded-2xl shadow-md border">
             <div class="text-4xl mb-3">🔒</div>
-            <h3 class="text-xl font-bold text-gray-800" data-i18n="locked_title">Accès réservé aux membres</h3>
-            <p class="text-gray-500 text-sm mt-1 mb-6" data-i18n="locked_desc">Créez votre compte gratuit ou connectez-vous pour y accéder.</p>
+            <h3 class="text-xl font-bold text-gray-800">Accès réservé aux membres</h3>
+            <p class="text-gray-500 text-sm mt-1 mb-6">Créez votre compte gratuit ou connectez-vous pour y accéder.</p>
             <button onclick="openModal('registerModal')" class="w-full py-2.5 bg-blue-600 text-white font-bold rounded-xl shadow">S'inscrire gratuitement</button>
         </div>
 
@@ -107,63 +107,37 @@
     <section id="offers-section" class="bg-gray-100 py-16 border-t border-b">
         <div class="container mx-auto px-4 max-w-5xl">
             <div class="text-center mb-12">
-                <h2 class="text-3xl font-black text-gray-900" data-i18n="offers_title">Nos Offres</h2>
-                <p class="text-gray-500 mt-1" data-i18n="offers_subtitle">Choisissez l'offre qui correspond à votre préparation</p>
+                <h2 class="text-3xl font-black text-gray-900">Nos Offres</h2>
+                <p class="text-gray-500 mt-1">Choisissez l'offre qui correspond à votre préparation</p>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border text-center flex flex-col justify-between">
-                    <div>
-                        <h3 class="text-lg font-bold text-gray-800">Pack Bronze</h3>
-                        <div class="text-3xl font-black text-blue-600 my-4">3000 DA <span class="text-xs text-gray-400 font-normal">/ 1 Mois</span></div>
-                        <ul class="text-sm text-gray-500 space-y-2 text-left mb-6">
-                            <li>✔ Accès aux examens complets</li>
-                            <li>✔ Correction automatique</li>
-                        </ul>
-                    </div>
-                    <button onclick="requestPayment('Pack Bronze')" class="w-full py-2.5 bg-gray-900 text-white font-bold rounded-xl text-sm shadow">Acheter ce Pack</button>
+            <div id="offersDynamicGrid" class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 </div>
-                <div class="bg-white p-6 rounded-2xl shadow-md border-2 border-yellow-500 text-center relative flex flex-col justify-between">
-                    <div class="absolute top-0 right-0 bg-yellow-500 text-gray-950 font-black text-[10px] px-3 py-1 uppercase rounded-bl-xl">Recommandé</div>
-                    <div>
-                        <h3 class="text-lg font-bold text-gray-800">Pack Gold</h3>
-                        <div class="text-3xl font-black text-yellow-600 my-4">5000 DA <span class="text-xs text-gray-400 font-normal">/ 2 Mois</span></div>
-                        <ul class="text-sm text-gray-500 space-y-2 text-left mb-6">
-                            <li>✔ Accès complet + Section Annales</li>
-                            <li>✔ Supports et documents pédagogiques</li>
-                        </ul>
-                    </div>
-                    <button onclick="requestPayment('Pack Gold')" class="w-full py-2.5 bg-yellow-500 text-gray-950 font-bold rounded-xl text-sm shadow">Acheter ce Pack</button>
-                </div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border text-center flex flex-col justify-between">
-                    <div>
-                        <h3 class="text-lg font-bold text-gray-800">Pack VIP</h3>
-                        <div class="text-3xl font-black text-blue-600 my-4">7000 DA <span class="text-xs text-gray-400 font-normal">/ 3 Mois</span></div>
-                        <ul class="text-sm text-gray-500 space-y-2 text-left mb-6">
-                            <li>✔ Tout le contenu en illimité</li>
-                            <li>✔ Suivi direct par Mme Houda</li>
-                        </ul>
-                    </div>
-                    <button onclick="requestPayment('Pack VIP')" class="w-full py-2.5 bg-gray-900 text-white font-bold rounded-xl text-sm shadow">Acheter ce Pack</button>
-                </div>
-            </div>
         </div>
     </section>
 
     <section id="courses-section" class="container mx-auto px-4 py-16 max-w-5xl">
         <div class="text-center mb-10">
             <h2 class="text-2xl font-black text-gray-900">Cours & Documents</h2>
-            <p class="text-gray-500 text-sm mt-1">Consultez les supports pédagogiques mis en ligne</p>
+            <p class="text-gray-500 text-sm mt-1">Consultez les supports pédagogiques</p>
         </div>
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <button onclick="loadSkillCours('CO')" class="p-4 bg-white border rounded-xl shadow-sm text-center font-bold hover:border-blue-500 transition">Compréhension Orale</button>
-            <button onclick="loadSkillCours('CE')" class="p-4 bg-white border rounded-xl shadow-sm text-center font-bold hover:border-blue-500 transition">Compréhension Écrite</button>
-            <button onclick="loadSkillCours('SL')" class="p-4 bg-white border rounded-xl shadow-sm text-center font-bold hover:border-blue-500 transition">Structure de la langue</button>
-            <button onclick="loadSkillCours('EE')" class="p-4 bg-white border rounded-xl shadow-sm text-center font-bold hover:border-blue-500 transition">Expression Écrite</button>
-            <button onclick="loadSkillCours('EO')" class="p-4 bg-white border rounded-xl shadow-sm text-center font-bold hover:border-blue-500 transition">Expression Orale</button>
+        
+        <div id="coursesLockedContainer" class="text-center bg-white border p-8 rounded-xl shadow-sm">
+            <span class="text-3xl">🔒</span>
+            <h4 class="font-bold text-gray-700 mt-2">قسم الدروس متاح فقط للمشتركين والطلاب في الفترة التجريبية</h4>
         </div>
-        <div id="skillsCoursContainer" class="mt-6 bg-white p-4 rounded-xl border hidden shadow-sm">
-            <h4 class="font-bold text-blue-600 mb-3" id="selectedSkillTitle">Leçons :</h4>
-            <ul id="coursItemsList" class="space-y-2 text-sm text-gray-600"></ul>
+
+        <div id="coursesAllowedContainer" class="hidden">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <button onclick="loadSkillCours('CO')" class="p-4 bg-white border rounded-xl shadow-sm text-center font-bold hover:border-blue-500 transition">Compréhension Orale</button>
+                <button onclick="loadSkillCours('CE')" class="p-4 bg-white border rounded-xl shadow-sm text-center font-bold hover:border-blue-500 transition">Compréhension Écrite</button>
+                <button onclick="loadSkillCours('SL')" class="p-4 bg-white border rounded-xl shadow-sm text-center font-bold hover:border-blue-500 transition">Structure de la langue</button>
+                <button onclick="loadSkillCours('EE')" class="p-4 bg-white border rounded-xl shadow-sm text-center font-bold hover:border-blue-500 transition">Expression Écrite</button>
+                <button onclick="loadSkillCours('EO')" class="p-4 bg-white border rounded-xl shadow-sm text-center font-bold hover:border-blue-500 transition">Expression Orale</button>
+            </div>
+            <div id="skillsCoursContainer" class="mt-6 bg-white p-4 rounded-xl border hidden shadow-sm">
+                <h4 class="font-bold text-blue-600 mb-3" id="selectedSkillTitle">Leçons :</h4>
+                <ul id="coursItemsList" class="space-y-2 text-sm text-gray-600"></ul>
+            </div>
         </div>
     </section>
 
@@ -185,41 +159,32 @@
                     </div>
                 </div>
             </div>
-            <div id="questionBodyDisplay" class="min-h-[200px] text-lg font-medium text-gray-800"></div>
-            <div id="qcmOptionsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6"></div>
-            <div id="expressionAreaFields" class="mt-4 hidden">
-                <textarea id="studentExpressionInput" class="w-full border rounded-xl p-3 text-sm h-32 outline-none" placeholder="Écrivez votre réponse ici..."></textarea>
-                <button onclick="saveAndNextQuestion(true)" class="mt-3 w-full py-2 bg-green-600 text-white font-bold rounded-xl text-sm">Sauvegarder</button>
-            </div>
-        </div>
-    </div>
+            
+            <div id="quizMediaDisplayArea" class="mb-4 flex flex-col items-center justify-center"></div>
+            <div id="quizTextDisplayArea" class="mb-4 p-4 bg-gray-50 border rounded-xl text-sm overflow-y-auto max-h-48 hidden"></div>
 
-    <div id="resultsModal" class="fixed inset-0 bg-black/70 z-50 hidden justify-center items-center p-4">
-        <div class="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-2xl">
-            <div class="text-5xl mb-2">🎉</div>
-            <h3 class="text-2xl font-black text-gray-900">Examen Terminé !</h3>
-            <div class="grid grid-cols-3 gap-2 my-6">
-                <div class="bg-green-50 p-3 rounded-xl border"><span id="resCorrectCount" class="block font-black text-green-600 text-xl">0</span><small class="text-gray-400 text-[10px]">Correctes</small></div>
-                <div class="bg-red-50 p-3 rounded-xl border"><span id="resWrongCount" class="block font-black text-red-600 text-xl">0</span><small class="text-gray-400 text-[10px]">Fausses</small></div>
-                <div class="bg-gray-50 p-3 rounded-xl border"><span id="resSkippedCount" class="block font-black text-gray-600 text-xl">0</span><small class="text-gray-400 text-[10px]">Passées</small></div>
+            <div id="questionBodyDisplay" class="min-h-[60px] text-lg font-medium text-gray-800"></div>
+            <div id="qcmOptionsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6"></div>
+            
+            <div id="expressionAreaFields" class="mt-4 hidden">
+                <div id="quizSampleAnswerBox" class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-xl text-sm hidden"></div>
+                <textarea id="studentExpressionInput" class="w-full border rounded-xl p-3 text-sm h-32 outline-none" placeholder="Écrivez votre réponse ici..."></textarea>
+                <button onclick="saveAndNextQuestion(true)" class="mt-3 w-full py-2 bg-green-600 text-white font-bold rounded-xl text-sm">Sauvegarder & Suivant</button>
             </div>
-            <div class="bg-blue-600 text-white p-4 rounded-2xl mb-6">
-                <small class="text-blue-200 text-xs block">Niveau Estimé</small>
-                <span id="resCalculatedLevel" class="text-4xl font-black">B2</span>
-            </div>
-            <button onclick="closeModal('resultsModal'); document.getElementById('quizContainerArea').style.display='none';" class="w-full py-2.5 bg-gray-900 text-white font-bold rounded-xl">Retour</button>
         </div>
     </div>
 
     <div id="adminDashboardArea" class="fixed inset-0 bg-gray-100 z-50 hidden flex-col overflow-y-auto">
         <header class="bg-gray-900 text-white p-4 flex justify-between items-center shadow-md">
-            <span class="text-xl font-black text-yellow-500">Welcome Mme Houda ✨ (لوحة السحابة المركزية)</span>
+            <span class="text-xl font-black text-yellow-500">لوحة تحكم الأستاذة هدى ⚙️ (إدارة كاملة للمحتوى والاشتراكات)</span>
             <button onclick="document.getElementById('adminDashboardArea').style.display='none'" class="bg-red-600 px-4 py-1.5 rounded font-bold text-sm">Quitter</button>
         </header>
+        
         <main class="container mx-auto p-4 max-w-6xl space-y-8 my-6">
+            
             <div class="bg-white p-6 rounded-2xl border shadow-sm">
-                <h3 class="text-lg font-black text-gray-900 border-b pb-2 mb-4">🛠️ إضافة الأسئلة السحابية المباشرة</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <h3 class="text-lg font-black text-gray-900 border-b pb-2 mb-4">🛠️ إضافة وتعديل الأسئلة حركياً</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1">نوع الامتحان</label>
                         <select id="admExamType" class="w-full border rounded-lg p-2 text-sm bg-gray-50">
@@ -236,28 +201,92 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">المهارة</label>
-                        <select id="admSkillType" class="w-full border rounded-lg p-2 text-sm bg-gray-50">
-                            <option value="CE">Compréhension Écrite</option>
-                            <option value="CO">Compréhension Orale</option>
-                            <option value="SL">Structures de la langue</option>
-                            <option value="EE">Expression Écrite</option>
-                            <option value="EO">Expression Orale</option>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">المهارة اللغوية</label>
+                        <select id="admSkillType" onchange="toggleAdminSkillFields(this.value)" class="w-full border rounded-lg p-2 text-sm bg-blue-50 font-bold text-blue-800">
+                            <option value="CO">Compréhension Orale (شفهي)</option>
+                            <option value="CE">Compréhension Écrite (كتابي)</option>
+                            <option value="SL">Structures de la langue (قواعد)</option>
+                            <option value="EE">Expression Écrite (تعبير كتابي)</option>
+                            <option value="EO">Expression Orale (تعبير شفهي)</option>
                         </select>
                     </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-gray-50 rounded-xl border">
-                    <div class="space-y-3">
-                        <input id="admQNumber" type="number" value="1" placeholder="رقم السؤال" class="border rounded p-2 text-sm w-full">
-                        <input id="admAudioUrl" type="text" placeholder="رابط الملف الصوتي (اختياري)" class="w-full border rounded p-2 text-sm">
-                        <textarea id="admLongText" rows="4" class="w-full border rounded p-2 text-sm" placeholder="نص السؤال أو التوجيهات بالفرنسية..."></textarea>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">رقم السؤال / المهمة</label>
+                        <input id="admQNumber" type="number" value="1" class="border rounded p-2 text-sm w-full bg-gray-50">
                     </div>
-                    <div class="space-y-2">
-                        <input id="admOptA" type="text" placeholder="Option A" class="w-full border rounded p-2 text-sm">
-                        <input id="admOptB" type="text" placeholder="Option B" class="w-full border rounded p-2 text-sm">
-                        <input id="admOptC" type="text" placeholder="Option C" class="w-full border rounded p-2 text-sm">
-                        <input id="admOptD" type="text" placeholder="Option D" class="w-full border rounded p-2 text-sm">
-                        <select id="admCorrectOpt" class="w-full border rounded p-2 text-sm font-bold bg-white">
+                </div>
+
+                <div class="p-4 bg-gray-50 rounded-xl border space-y-4">
+                    
+                    <div id="rowExpressionTasks" class="hidden grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">اختر المهمة (Tâche)</label>
+                            <select id="admExpressionTaskNum" class="w-full border rounded p-2 text-sm bg-white font-bold">
+                                <option value="1">Tâche 1</option>
+                                <option value="2">Tâche 2</option>
+                                <option value="3">Tâche 3</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">التعليمات (Consigne)</label>
+                            <textarea id="admExpressionConsigne" rows="2" class="w-full border rounded p-2 text-sm bg-white" placeholder="اكتب الـ Consigne هنا..."></textarea>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">نموذج الإجابة نصياً (Exemple de réponse - Optionnel)</label>
+                            <textarea id="admExpressionTextSample" rows="3" class="w-full border rounded p-2 text-sm bg-white" placeholder="اكتب نموذج الإجابة المقترح هنا..."></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">أو ارفعي صورة النموذج جاهزة</label>
+                            <label class="flex items-center justify-between border border-dashed border-purple-300 bg-purple-50 hover:bg-purple-100 rounded-lg p-2.5 cursor-pointer transition">
+                                <span id="sampleImgNameTxt" class="text-xs text-purple-800 font-medium truncate">Choisir une image...</span>
+                                <span class="bg-purple-600 text-white text-[10px] font-bold px-2 py-1 rounded">Parcourir</span>
+                                <input id="admExpressionImgSample" type="file" accept="image/*" class="hidden" onchange="document.getElementById('sampleImgNameTxt').innerText = this.files[0] ? this.files[0].name : 'Choisir une image...'">
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="boxTextComprehension" class="hidden">
+                        <label class="block text-xs font-bold text-gray-600 mb-1">النص المرافق (Texte de compréhension)</label>
+                        <textarea id="admComprehensionText" rows="4" class="w-full border rounded p-2 text-sm bg-white" placeholder="اكتب النص الفرنسي هنا لتتمكن الأستاذة والطلاب من قراءته..."></textarea>
+                    </div>
+
+                    <div id="rowGeneralMediaUploads" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div id="uploadAudioContainer">
+                            <label class="text-[11px] font-bold text-gray-600 block mb-1">🎵 ملف الصوت المرافق (Audio)</label>
+                            <label class="flex items-center justify-between border border-dashed border-blue-300 bg-blue-50 hover:bg-blue-100 rounded-lg p-2 cursor-pointer transition">
+                                <span id="audioFileNameTxt" class="text-xs text-blue-700 font-medium truncate">Choisir un fichier audio...</span>
+                                <span class="bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded">Parcourir</span>
+                                <input id="admAudioFile" type="file" accept="audio/*" class="hidden" onchange="document.getElementById('audioFileNameTxt').innerText = this.files[0] ? this.files[0].name : 'Choisir un fichier audio...'">
+                            </label>
+                        </div>
+                        <div id="uploadImageContainer">
+                            <label class="text-[11px] font-bold text-gray-600 block mb-1">🖼️ صورة توضيحية أو مستند (Image)</label>
+                            <label class="flex items-center justify-between border border-dashed border-yellow-300 bg-yellow-50 hover:bg-yellow-100 rounded-lg p-2 cursor-pointer transition">
+                                <span id="imageFileNameTxt" class="text-xs text-yellow-800 font-medium truncate">Choisir une image...</span>
+                                <span class="bg-yellow-500 text-gray-950 text-[10px] font-bold px-2 py-1 rounded">Parcourir</span>
+                                <input id="admImageFile" type="file" accept="image/*" class="hidden" onchange="document.getElementById('imageFileNameTxt').innerText = this.files[0] ? this.files[0].name : 'Choisir une image...'">
+                            </label>
+                        </div>
+                        <div id="uploadVideoContainer">
+                            <label class="text-[11px] font-bold text-gray-600 block mb-1">🎥 فيديو مرافق إن وجد (Vidéo)</label>
+                            <label class="flex items-center justify-between border border-dashed border-red-300 bg-red-50 hover:bg-red-100 rounded-lg p-2 cursor-pointer transition">
+                                <span id="videoFileNameTxt" class="text-xs text-red-800 font-medium truncate">Choisir un fichier vidéo...</span>
+                                <span class="bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded">Parcourir</span>
+                                <input id="admVideoFile" type="file" accept="video/*" class="hidden" onchange="document.getElementById('videoFileNameTxt').innerText = this.files[0] ? this.files[0].name : 'Choisir un fichier vidéo...'">
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="boxQcmStructure" class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">نص السؤال (Question)</label>
+                            <input id="admQuestionText" type="text" class="w-full border rounded p-2 text-sm bg-white" placeholder="اكتب السؤال المباشر هنا...">
+                        </div>
+                        <input id="admOptA" type="text" placeholder="Option A" class="w-full border rounded p-2 text-sm bg-white">
+                        <input id="admOptB" type="text" placeholder="Option B" class="w-full border rounded p-2 text-sm bg-white">
+                        <input id="admOptC" type="text" placeholder="Option C" class="w-full border rounded p-2 text-sm bg-white">
+                        <input id="admOptD" type="text" placeholder="Option D" class="w-full border rounded p-2 text-sm bg-white">
+                        <select id="admCorrectOpt" class="w-full border rounded p-2 text-sm font-bold bg-white md:col-span-2">
                             <option value="A">الإجابة الصحيحة هي: A</option>
                             <option value="B">B</option>
                             <option value="C">C</option>
@@ -265,11 +294,36 @@
                         </select>
                     </div>
                 </div>
-                <button onclick="saveQuestionFromAdmin()" class="w-full mt-4 py-3 bg-blue-600 text-white font-black rounded-xl">حفظ وحقن السؤال في السحابة فوراً 💾</button>
+                <button id="btnSaveQuestion" onclick="saveQuestionFromAdmin()" class="w-full mt-4 py-3 bg-blue-600 text-white font-black rounded-xl text-sm shadow">نشر وحقن السؤال في السحابة فوراً 💾🚀</button>
             </div>
 
             <div class="bg-white p-6 rounded-2xl border shadow-sm">
-                <h3 class="text-lg font-black text-gray-900 border-b pb-2 mb-4">👥 لوحة إدارة واشتراكات الطلاب (بيانات حية)</h3>
+                <h3 class="text-lg font-black text-gray-900 border-b pb-2 mb-4">💰 إدارة وتعديل عروض وأسعار المنصة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                    <input id="admOfferName" type="text" placeholder="اسم العرض (مثال: Pack Silver)" class="border rounded p-2 text-sm">
+                    <input id="admOfferPrice" type="text" placeholder="السعر بالدينار (مثال: 4000 DA)" class="border rounded p-2 text-sm">
+                    <input id="admOfferDuration" type="text" placeholder="المدة (مثال: 1 Mois)" class="border rounded p-2 text-sm">
+                    <input id="admOfferFeatures" type="text" placeholder="الميزات (افصلي بـ الفاصلة ,)" class="border rounded p-2 text-sm">
+                </div>
+                <button onclick="createNewPlatformOffer()" class="px-4 py-2 bg-yellow-500 text-gray-950 font-bold rounded-xl text-sm shadow">إضافة / تحديث العرض فوراً</button>
+                
+                <div class="mt-4 overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead>
+                            <tr class="bg-gray-50 border-b text-xs text-gray-500">
+                                <th class="p-2">اسم العرض</th>
+                                <th class="p-2">السعر</th>
+                                <th class="p-2">المدة</th>
+                                <th class="p-2">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminOffersTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border shadow-sm">
+                <h3 class="text-lg font-black text-gray-900 border-b pb-2 mb-4">👥 إدارة الطلاب، الاشتراكات وتجميد الحسابات</h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm border-collapse">
                         <thead>
@@ -277,9 +331,10 @@
                                 <th class="p-3">الطالب</th>
                                 <th class="p-3">البريد الإلكتروني</th>
                                 <th class="p-3">الحالة</th>
-                                <th class="p-3">تاريخ انتهاء الصلاحية</th>
-                                <th class="p-3">وصل الدفع المرفوع</th>
-                                <th class="p-3">الإجراءات والتحكم</th>
+                                <th class="p-3">تاريخ الصلاحية</th>
+                                <th class="p-3">حالة الحساب</th>
+                                <th class="p-3">الوصل المرفوع</th>
+                                <th class="p-3">التحكم والإجراءات السحابية</th>
                             </tr>
                         </thead>
                         <tbody id="studentsTableBody"></tbody>
@@ -290,15 +345,17 @@
             <div class="bg-white p-6 rounded-2xl border shadow-sm">
                 <h3 class="text-lg font-black text-gray-900 border-b pb-2 mb-3">📚 إدارة قسم الدروس والوثائق للمهارات</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <select id="admLessonSkill" class="border rounded p-2 text-sm">
+                    <select id="admLessonSkill" class="border rounded p-2 text-sm bg-white">
                         <option value="CO">Compréhension Orale</option>
                         <option value="CE">Compréhension Écrite</option>
                         <option value="SL">Structure de la langue</option>
+                        <option value="EE">Expression Écrite</option>
+                        <option value="EO">Expression Orale</option>
                     </select>
                     <input id="admLessonTitle" type="text" placeholder="عنوان الدرس" class="border rounded p-2 text-sm">
                     <input id="admLessonUrl" type="text" placeholder="رابط المستند (PDF أو فيديو)" class="border rounded p-2 text-sm">
                 </div>
-                <button onclick="saveLessonFromAdmin()" class="w-full mt-3 py-2 bg-gray-900 text-white font-bold text-sm rounded-lg">نشر الدرس فوراً للطلاب</button>
+                <button onclick="saveLessonFromAdmin()" class="w-full mt-3 py-2 bg-gray-900 text-white font-bold text-sm rounded-lg">نشر الدرس فوراً للطلاب المشتركين</button>
             </div>
         </main>
     </div>
@@ -344,9 +401,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // إعدادات الـ Firebase الحقيقية الخاصة بمشروعك المستخرجة من الصورة
         const firebaseConfig = {
             apiKey: "AIzaSyA5AIEwQnsWUHaYhGSojffXFU-w6fl-_PM",
             authDomain: "tcf-ouadfel-platform-bfe92.firebaseapp.com",
@@ -360,7 +416,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // متغيرات الجلسة والامتحان الحالية
         let currentUser = null;
         let activeExamQuestions = [];
         let currentQuestionIndex = 0;
@@ -369,11 +424,26 @@
         let questionTimeLeft = 60;
         let examResultsData = { correct: 0, wrong: 0, skipped: 0 };
 
-        // جعل الدوال متاحة للواجهات الأمامية
         window.openModal = (id) => document.getElementById(id).classList.add('active-modal');
         window.closeModal = (id) => document.getElementById(id).classList.remove('active-modal');
 
-        // مراجعة الجلسة عند فتح الموقع
+        // التبديل الديناميكي بين المهارات في لوحة التحكم لتسهيل العمل
+        window.toggleAdminSkillFields = (skill) => {
+            document.getElementById('rowExpressionTasks').style.display = (skill === 'EE' || skill === 'EO') ? 'grid' : 'none';
+            document.getElementById('boxTextComprehension').style.display = (skill === 'CE') ? 'block' : 'none';
+            document.getElementById('boxQcmStructure').style.display = (skill === 'EE' || skill === 'EO') ? 'none' : 'grid';
+            
+            // تخصيص الميديا حسب الحاجة
+            if (skill === 'SL') {
+                document.getElementById('rowGeneralMediaUploads').style.display = 'none';
+            } else {
+                document.getElementById('rowGeneralMediaUploads').style.display = 'grid';
+                document.getElementById('uploadAudioContainer').style.display = (skill === 'CO' || skill === 'CE') ? 'block' : 'block';
+            }
+        };
+        // تشغيل التهيئة المبدئية لحقول المهارة
+        toggleAdminSkillFields('CO');
+
         async function checkSession() {
             const saved = localStorage.getItem('tcf_logged_user');
             if (saved) {
@@ -381,6 +451,14 @@
                 const docSnap = await getDoc(doc(db, "users", localUser.email));
                 if (docSnap.exists()) {
                     currentUser = docSnap.data();
+                    
+                    // التحقق من الحساب المجمد فوراً وحظر الدخول
+                    if (currentUser.accountLocked) {
+                        alert("⚠️ تم تجميد حسابك الحالي من قبل الإدارة. يرجى مراجعة الأستاذة هدى.");
+                        doLogout();
+                        return;
+                    }
+
                     localStorage.setItem('tcf_logged_user', JSON.stringify(currentUser));
                     updateUIForUser();
                 }
@@ -396,13 +474,24 @@
                 document.getElementById('examsLockedMsg').classList.add('hidden');
                 document.getElementById('examsGrid').classList.remove('hidden');
                 
-                // حساب وقت الفترة التجريبية المتبقية
                 const now = Date.now();
-                if (currentUser.status === 'free' && currentUser.trialExpires > now) {
+                const isTrialActive = (currentUser.status === 'free' && currentUser.trialExpires > now);
+                const isVIPActive = (currentUser.status === 'VIP' && currentUser.trialExpires > now);
+
+                if (isTrialActive) {
                     document.getElementById('trialCountdownBanner').classList.remove('hidden');
                     startTrialClock(currentUser.trialExpires);
                 } else {
                     document.getElementById('trialCountdownBanner').classList.add('hidden');
+                }
+
+                // فتح أو غلق قسم الدروس بناء على حالة العضوية المعتمدة
+                if (isTrialActive || isVIPActive) {
+                    document.getElementById('coursesLockedContainer').classList.add('hidden');
+                    document.getElementById('coursesAllowedContainer').classList.remove('hidden');
+                } else {
+                    document.getElementById('coursesLockedContainer').classList.remove('hidden');
+                    document.getElementById('coursesAllowedContainer').classList.add('hidden');
                 }
             }
         }
@@ -421,7 +510,6 @@
             }, 1000);
         }
 
-        // تسجيل طالب جديد سحابياً
         window.doRegister = async () => {
             const name = document.getElementById('regName').value.trim();
             const email = document.getElementById('regEmail').value.toLowerCase().trim();
@@ -432,18 +520,12 @@
             const userDocRef = doc(db, "users", email);
             const userSnap = await getDoc(userDocRef);
 
-            if (userSnap.exists()) {
-                return alert("Cet email est déjà enregistré !");
-            }
+            if (userSnap.exists()) return alert("Cet email est déjà enregistré !");
 
             const newUser = {
-                name,
-                email,
-                password: pass,
-                status: 'free',
-                trialExpires: Date.now() + (3 * 24 * 60 * 60 * 1000), // 3 أيام مجانية
-                createdAt: Date.now(),
-                receipt: null
+                name, email, password: pass, status: 'free',
+                trialExpires: Date.now() + (3 * 24 * 60 * 60 * 1000),
+                createdAt: Date.now(), receipt: null, accountLocked: false
             };
 
             await setDoc(userDocRef, newUser);
@@ -454,14 +536,16 @@
             alert("Compte créé avec succès ! 🎉");
         };
 
-        // تسجيل دخول الطالب
         window.doLogin = async () => {
             const email = document.getElementById('loginEmail').value.toLowerCase().trim();
             const pass = document.getElementById('loginPass').value.trim();
 
             const userSnap = await getDoc(doc(db, "users", email));
             if (userSnap.exists() && userSnap.data().password === pass) {
-                currentUser = userSnap.data();
+                const data = userSnap.data();
+                if (data.accountLocked) return alert("⚠️ هذا الحساب مجمد حالياً من طرف الإدارة!");
+                
+                currentUser = data;
                 localStorage.setItem('tcf_logged_user', JSON.stringify(currentUser));
                 closeModal('loginModal');
                 updateUIForUser();
@@ -475,7 +559,64 @@
             location.reload();
         };
 
-        // طلب الاشتراك ورفع الوصل سحابياً
+        // إدارة العروض حركياً وجلبها للطلاب
+        onSnapshot(collection(db, "offers"), (snapshot) => {
+            const grid = document.getElementById('offersDynamicGrid');
+            const adminTable = document.getElementById('adminOffersTableBody');
+            if(grid) grid.innerHTML = "";
+            if(adminTable) adminTable.innerHTML = "";
+
+            snapshot.forEach((docSnap) => {
+                const offer = docSnap.data();
+                const id = docSnap.id;
+
+                // عرض العروض للطلاب
+                if(grid) {
+                    const featuresList = offer.features ? offer.features.split(',').map(f => `<li>✔ ${f.trim()}</li>`).join('') : '';
+                    grid.innerHTML += `
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border text-center flex flex-col justify-between">
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-800">${offer.name}</h3>
+                                <div class="text-3xl font-black text-blue-600 my-4">${offer.price} <span class="text-xs text-gray-400 font-normal">/ ${offer.duration}</span></div>
+                                <ul class="text-sm text-gray-500 space-y-2 text-left mb-6">${featuresList}</ul>
+                            </div>
+                            <button onclick="requestPayment('${offer.name}')" class="w-full py-2.5 bg-gray-900 text-white font-bold rounded-xl text-sm shadow">Acheter ce Pack</button>
+                        </div>
+                    `;
+                }
+
+                // لوحة تحكم الإدارة لحذف وتعديل الأسعار
+                if(adminTable) {
+                    adminTable.innerHTML += `
+                        <tr class="border-b hover:bg-gray-50 text-xs">
+                            <td class="p-2 font-bold">${offer.name}</td>
+                            <td class="p-2 text-blue-600 font-bold">${offer.price}</td>
+                            <td class="p-2">${offer.duration}</td>
+                            <td class="p-2"><button onclick="deletePlatformOffer('${id}')" class="text-red-600 font-bold underline">حذف العرض</button></td>
+                        </tr>
+                    `;
+                }
+            });
+        });
+
+        window.createNewPlatformOffer = async () => {
+            const name = document.getElementById('admOfferName').value.trim();
+            const price = document.getElementById('admOfferPrice').value.trim();
+            const duration = document.getElementById('admOfferDuration').value.trim();
+            const features = document.getElementById('admOfferFeatures').value.trim();
+            if(!name || !price) return alert("يرجى ملء البيانات الأساسية للعرض");
+
+            const id = `offer_${Date.now()}`;
+            await setDoc(doc(db, "offers", id), { name, price, duration, features });
+            alert("تم حفظ وتحديث العرض بنجاح!");
+        };
+
+        window.deletePlatformOffer = async (id) => {
+            if(confirm("هل أنت متأكدة من حذف هذا العرض بالكامل من المنصة؟")) {
+                await deleteDoc(doc(db, "offers", id));
+            }
+        };
+
         window.requestPayment = (packName) => {
             if(!currentUser) return openModal('registerModal');
             document.getElementById('chosenOffer').innerText = packName;
@@ -486,26 +627,20 @@
             const fileInput = document.getElementById('receiptFileBase64');
             if (fileInput.files.length === 0) return alert("Veuillez choisir une image du reçu");
 
-            const file = fileInput.files[0];
             const reader = new FileReader();
             reader.onloadend = async () => {
-                const base64String = reader.result;
                 await updateDoc(doc(db, "users", currentUser.email), {
-                    receipt: base64String,
+                    receipt: reader.result,
                     requestedPack: document.getElementById('chosenOffer').innerText
                 });
                 closeModal('paymentModal');
-                alert("Reçu envoyé ! En attente de validation par Mme Houda.");
+                alert("Reçu envoyé avec succès !");
             };
-            reader.readAsDataURL(file);
+            reader.readAsDataURL(fileInput.files[0]);
         };
 
-        // تسجيل دخول المديرة هدى واستماع فوري للبيانات
         window.doAdminLogin = () => {
-            const user = document.getElementById('admUser').value;
-            const pass = document.getElementById('admPass').value;
-
-            if (user === "houda" && pass === "houda2026") {
+            if (document.getElementById('admUser').value === "houda" && document.getElementById('admPass').value === "houda2026") {
                 closeModal('adminLoginModal');
                 document.getElementById('adminDashboardArea').style.display = 'flex';
                 listenToStudentsCloud();
@@ -521,14 +656,22 @@
                 snapshot.forEach((docSnap) => {
                     const student = docSnap.data();
                     const expiryDate = new Date(student.trialExpires).toLocaleDateString();
+                    const isLocked = student.accountLocked || false;
+                    
                     tbody.innerHTML += `
                         <tr class="border-b hover:bg-gray-50">
-                            <td class="p-3 font-bold">${student.name}</td>
-                            <td class="p-3">${student.email}</td>
+                            <td class="p-3 font-bold text-gray-900">${student.name}</td>
+                            <td class="p-3 text-xs">${student.email}</td>
                             <td class="p-3"><span class="px-2 py-0.5 rounded text-xs ${student.status === 'VIP' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${student.status}</span></td>
                             <td class="p-3 text-xs">${expiryDate}</td>
-                            <td class="p-3">${student.receipt ? `<a href="${student.receipt}" target="_blank" class="text-blue-600 underline text-xs">Voir Reçu</a>` : 'Aucun'}</td>
-                            <td class="p-3"><button onclick="activateStudentVIP('${student.email}')" class="bg-green-600 text-white px-2 py-1 rounded text-xs font-bold">Activer VIP</button></td>
+                            <td class="p-3 text-xs font-bold ${isLocked ? 'text-red-600' : 'text-green-600'}">${isLocked ? '🔒 مجمد' : '✅ نشط'}</td>
+                            <td class="p-3">${student.receipt ? `<a href="${student.receipt}" target="_blank" class="text-blue-600 underline text-xs font-bold">عرض الوصل</a>` : 'لا يوجد'}</td>
+                            <td class="p-3 space-x-1 flex">
+                                <button onclick="activateStudentVIP('${student.email}')" class="bg-green-600 text-white px-2 py-1 rounded text-xs font-bold">تفعيل VIP</button>
+                                <button onclick="toggleLockStudent('${student.email}', ${isLocked})" class="${isLocked ? 'bg-blue-600' : 'bg-red-600'} text-white px-2 py-1 rounded text-xs font-bold">
+                                    ${isLocked ? 'فك التجميد' : 'تجميد الحساب'}
+                                </button>
+                            </td>
                         </tr>
                     `;
                 });
@@ -540,44 +683,110 @@
             if (!months) return;
             const extraTime = parseInt(months) * 30 * 24 * 60 * 60 * 1000;
             await updateDoc(doc(db, "users", email), {
-                status: 'VIP',
-                trialExpires: Date.now() + extraTime,
-                receipt: null
+                status: 'VIP', trialExpires: Date.now() + extraTime, receipt: null
             });
-            alert("Compte activé avec succès !");
+            alert("Compte activé VIP !");
         };
 
-        // حفظ الأسئلة سحابياً من طرف السيدة هدى
+        window.toggleLockStudent = async (email, currentStatus) => {
+            if(confirm(`هل تريدين تعديل حالة تجميد الحساب لهذا الطالب؟`)) {
+                await updateDoc(doc(db, "users", email), { accountLocked: !currentStatus });
+                alert("تم تحديث حالة الحساب سحابياً!");
+            }
+        };
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                if (!file) resolve("");
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        // حفظ الأسئلة حسب الهيكلة الجديدة الدقيقة للأستاذة هدى
         window.saveQuestionFromAdmin = async () => {
+            const btn = document.getElementById('btnSaveQuestion');
+            btn.innerText = "Processing Cloud Save... ⏳";
+            btn.disabled = true;
+
             const examType = document.getElementById('admExamType').value;
             const sortingType = document.getElementById('admSortingType').value;
             const skillType = document.getElementById('admSkillType').value;
             const qNum = document.getElementById('admQNumber').value;
-            const audioUrl = document.getElementById('admAudioUrl').value;
-            const longText = document.getElementById('admLongText').value;
+
+            // حقول التعبير
+            const expressionTaskNum = document.getElementById('admExpressionTaskNum').value;
+            const expressionConsigne = document.getElementById('admExpressionConsigne').value;
+            const expressionTextSample = document.getElementById('admExpressionTextSample').value;
+            const expressionImgFile = document.getElementById('admExpressionImgSample').files[0];
+
+            // حقول الفهم والقواعد
+            const comprehensionText = document.getElementById('admComprehensionText').value;
+            const questionText = document.getElementById('admQuestionText').value;
             const optA = document.getElementById('admOptA').value;
             const optB = document.getElementById('admOptB').value;
             const optC = document.getElementById('admOptC').value;
             const optD = document.getElementById('admOptD').value;
             const correctOpt = document.getElementById('admCorrectOpt').value;
 
-            const qId = `q_${examType}_${sortingType}_${skillType}_${Date.now()}`;
-            const questionData = {
-                examType, sortingType, skillType, qNum, audioUrl, longText, optA, optB, optC, optD, correctOpt
-            };
+            const audioFile = document.getElementById('admAudioFile').files[0];
+            const imageFile = document.getElementById('admImageFile').files[0];
+            const videoFile = document.getElementById('admVideoFile').files[0];
 
-            await setDoc(doc(db, "questions", qId), questionData);
-            alert("Question enregistrée dans le Cloud ! 💾");
+            try {
+                const uploadedAudio = audioFile ? await fileToBase64(audioFile) : "";
+                const uploadedImage = imageFile ? await fileToBase64(imageFile) : "";
+                const uploadedVideo = videoFile ? await fileToBase64(videoFile) : "";
+                const uploadedSampleImg = expressionImgFile ? await fileToBase64(expressionImgFile) : "";
+
+                const qId = `q_${examType}_${sortingType}_${skillType}_${Date.now()}`;
+                
+                const questionData = {
+                    examType, sortingType, skillType, qNum,
+                    expressionTaskNum, expressionConsigne, expressionTextSample, uploadedSampleImg,
+                    comprehensionText, questionText, optA, optB, optC, optD, correctOpt,
+                    uploadedAudio, uploadedImage, uploadedVideo
+                };
+
+                await setDoc(doc(db, "questions", qId), questionData);
+                alert("تم حفظ ونشر السؤال السحابي المطور بنجاح! 💾🚀");
+                
+                // تفريغ الحقول وإعادة الكلمات الجمالية للأزرار
+                document.getElementById('admExpressionConsigne').value = "";
+                document.getElementById('admExpressionTextSample').value = "";
+                document.getElementById('admComprehensionText').value = "";
+                document.getElementById('admQuestionText').value = "";
+                document.getElementById('admOptA').value = "";
+                document.getElementById('admOptB').value = "";
+                document.getElementById('admOptC').value = "";
+                document.getElementById('admOptD').value = "";
+                
+                document.getElementById('admAudioFile').value = "";
+                document.getElementById('admImageFile').value = "";
+                document.getElementById('admVideoFile').value = "";
+                document.getElementById('admExpressionImgSample').value = "";
+
+                document.getElementById('audioFileNameTxt').innerText = "Choisir un fichier audio...";
+                document.getElementById('imageFileNameTxt').innerText = "Choisir une image...";
+                document.getElementById('videoFileNameTxt').innerText = "Choisir un fichier vidéo...";
+                document.getElementById('sampleImgNameTxt').innerText = "Choisir une image...";
+                
+            } catch (err) {
+                alert("Erreur: " + err.message);
+            } finally {
+                btn.innerText = "نشر وحقن السؤال في السحابة فوراً 💾🚀";
+                btn.disabled = false;
+            }
         };
 
-        // محرك الامتحانات السحابي
         window.startExamEngine = async (examType, sortingType) => {
             const now = Date.now();
             if (currentUser.status === 'free' && currentUser.trialExpires < now) {
                 return alert("Votre période d'essai a expiré. Veuillez acheter un Pack pour continuer.");
             }
 
-            // جلب الأسئلة المخصصة من السحابة
             const querySnapshot = await getDocs(collection(db, "questions"));
             activeExamQuestions = [];
             querySnapshot.forEach((doc) => {
@@ -587,14 +796,9 @@
                 }
             });
 
-            if (activeExamQuestions.length === 0) {
-                return alert("Aucune question disponible pour ce parcours actuellement.");
-            }
+            if (activeExamQuestions.length === 0) return alert("Aucune question disponible.");
 
-            // ترتيب الأسئلة حسب الرقم
             activeExamQuestions.sort((a, b) => a.qNum - b.qNum);
-
-            // تشغيل محرك الاختبار
             currentQuestionIndex = 0;
             examResultsData = { correct: 0, wrong: 0, skipped: 0 };
             document.getElementById('quizContainerArea').style.display = 'flex';
@@ -609,53 +813,89 @@
             document.getElementById('questionTimerClock').innerText = questionTimeLeft;
 
             const q = activeExamQuestions[currentQuestionIndex];
-            document.getElementById('quizBadgeSection').innerText = `Compétence: ${q.skillType} | ${currentQuestionIndex + 1}/${activeExamQuestions.length}`;
             
-            let htmlBody = "";
-            if (q.audioUrl) {
-                htmlBody += `<audio src="${q.audioUrl}" controls autoplay class="w-full mb-4"></audio>`;
-            }
-            htmlBody += `<p class="whitespace-pre-line">${q.longText}</p>`;
-            document.getElementById('questionBodyDisplay').innerHTML = htmlBody;
+            // تهيئة الحقول وعرض العناوين
+            document.getElementById('quizBadgeSection').innerText = `Compétence: ${q.skillType} | N° ${q.qNum}`;
+            
+            const mediaArea = document.getElementById('quizMediaDisplayArea');
+            const textBox = document.getElementById('quizTextDisplayArea');
+            const sampleBox = document.getElementById('quizSampleAnswerBox');
+            
+            mediaArea.innerHTML = ""; 
+            textBox.classList.add('hidden');
+            sampleBox.classList.add('hidden');
 
-            // خيارات الـ QCM
-            const optionsGrid = document.getElementById('qcmOptionsGrid');
-            optionsGrid.innerHTML = `
-                <button onclick="handleAnswer('A')" class="p-4 bg-gray-50 border rounded-2xl font-semibold hover:bg-blue-50 text-left">A. ${q.optA}</button>
-                <button onclick="handleAnswer('B')" class="p-4 bg-gray-50 border rounded-2xl font-semibold hover:bg-blue-50 text-left">B. ${q.optB}</button>
-                <button onclick="handleAnswer('C')" class="p-4 bg-gray-50 border rounded-2xl font-semibold hover:bg-blue-50 text-left">C. ${q.optC}</button>
-                <button onclick="handleAnswer('D')" class="p-4 bg-gray-50 border rounded-2xl font-semibold hover:bg-blue-50 text-left">D. ${q.optD}</button>
-            `;
+            // تفعيل الميديا إن وجدت
+            if (q.uploadedVideo) mediaArea.innerHTML += `<video src="${q.uploadedVideo}" controls class="w-full max-h-48 rounded-xl bg-black mb-2"></video>`;
+            if (q.uploadedImage) mediaArea.innerHTML += `<img src="${q.uploadedImage}" class="max-w-full max-h-48 object-contain rounded-xl border mb-2">`;
+            if (q.uploadedAudio) mediaArea.innerHTML += `<audio src="${q.uploadedAudio}" controls autoplay class="w-full mb-2"></audio>`;
 
-            // موقت تنازلي لكل سؤال
-            questionTimerInterval = setInterval(() => {
-                questionTimeLeft--;
-                document.getElementById('questionTimerClock').innerText = questionTimeLeft;
-                if (questionTimeLeft <= 0) {
-                    examResultsData.skipped++;
-                    nextQuestion();
+            // معالجة المهارات الخاصة بالتعبير (Tasks)
+            if (q.skillType === 'EE' || q.skillType === 'EO') {
+                document.getElementById('questionBodyDisplay').innerHTML = `
+                    <span class="bg-blue-100 text-blue-800 text-xs px-2.5 py-1 font-bold rounded mb-2 inline-block">Tâche ${q.expressionTaskNum || 1}</span>
+                    <p class="text-base font-bold text-gray-900 mt-1">${q.expressionConsigne || ''}</p>
+                `;
+                document.getElementById('qcmOptionsGrid').innerHTML = "";
+                document.getElementById('expressionAreaFields').classList.remove('hidden');
+
+                // إظهار نموذج الإجابة إن وجد لمساعدة الطالب
+                if (q.expressionTextSample || q.uploadedSampleImg) {
+                    sampleBox.classList.remove('hidden');
+                    sampleBox.innerHTML = `<p class="font-bold text-xs text-yellow-800 mb-1">💡 Exemple de réponse proposé :</p>`;
+                    if (q.expressionTextSample) sampleBox.innerHTML += `<p class="whitespace-pre-line text-xs">${q.expressionTextSample}</p>`;
+                    if (q.uploadedSampleImg) sampleBox.innerHTML += `<img src="${q.uploadedSampleImg}" class="mt-2 max-h-40 object-contain rounded border">`;
                 }
-            }, 1000);
+
+            } else {
+                // مهارات الاختيار المتعدد (QCM) الفهم والقواعد
+                document.getElementById('expressionAreaFields').classList.add('hidden');
+                
+                if (q.skillType === 'CE' && q.comprehensionText) {
+                    textBox.classList.remove('hidden');
+                    textBox.innerHTML = `<p class="whitespace-pre-line text-gray-700 font-mono">${q.comprehensionText}</p>`;
+                }
+
+                document.getElementById('questionBodyDisplay').innerHTML = `<p class="text-base font-bold">${q.questionText || ''}</p>`;
+
+                document.getElementById('qcmOptionsGrid').innerHTML = `
+                    <button onclick="handleAnswer('A')" class="p-3 bg-gray-50 border rounded-xl hover:bg-blue-50 text-left text-sm font-medium">A. ${q.optA || ''}</button>
+                    <button onclick="handleAnswer('B')" class="p-3 bg-gray-50 border rounded-xl hover:bg-blue-50 text-left text-sm font-medium">B. ${q.optB || ''}</button>
+                    <button onclick="handleAnswer('C')" class="p-3 bg-gray-50 border rounded-xl hover:bg-blue-50 text-left text-sm font-medium">C. ${q.optC || ''}</button>
+                    <button onclick="handleAnswer('D')" class="p-3 bg-gray-50 border rounded-xl hover:bg-blue-50 text-left text-sm font-medium">D. ${q.optD || ''}</button>
+                `;
+
+                questionTimerInterval = setInterval(() => {
+                    questionTimeLeft--;
+                    document.getElementById('questionTimerClock').innerText = questionTimeLeft;
+                    if (questionTimeLeft <= 0) {
+                        examResultsData.skipped++;
+                        nextQuestion();
+                    }
+                }, 1000);
+            }
         }
 
         window.handleAnswer = (selected) => {
             clearInterval(questionTimerInterval);
             const q = activeExamQuestions[currentQuestionIndex];
-            if (selected === q.correctOpt) {
-                examResultsData.correct++;
-            } else {
-                examResultsData.wrong++;
+            if (selected === q.correctOpt) examResultsData.correct++;
+            else examResultsData.wrong++;
+            nextQuestion();
+        };
+
+        window.saveAndNextQuestion = (isExpression) => {
+            if(isExpression) {
+                // حفظ التعبيرات المكتوبة من الطلاب ومتابعتها لاحقاً
+                document.getElementById('studentExpressionInput').value = "";
             }
             nextQuestion();
         };
 
         function nextQuestion() {
             currentQuestionIndex++;
-            if (currentQuestionIndex < activeExamQuestions.length) {
-                renderQuestion();
-            } else {
-                endExam();
-            }
+            if (currentQuestionIndex < activeExamQuestions.length) renderQuestion();
+            else endExam();
         }
 
         function startTimers() {
@@ -672,32 +912,20 @@
         function endExam() {
             clearInterval(globalTimerInterval);
             clearInterval(questionTimerInterval);
-            
-            document.getElementById('resCorrectCount').innerText = examResultsData.correct;
-            document.getElementById('resWrongCount').innerText = examResultsData.wrong;
-            document.getElementById('resSkippedCount').innerText = examResultsData.skipped;
-
-            // حساب المستوى التقريبي تلقائياً
-            let lvl = "A1";
-            const score = examResultsData.correct;
-            if(score > 5) lvl = "A2";
-            if(score > 12) lvl = "B1";
-            if(score > 22) lvl = "B2";
-            if(score > 32) lvl = "C1";
-            if(score > 42) lvl = "C2";
-            document.getElementById('resCalculatedLevel').innerText = lvl;
-
-            openModal('resultsModal');
+            document.getElementById('quizContainerArea').style.display = 'none';
+            alert("Examen Terminé ! Merci pour votre participation.");
         }
 
-        // إدارة قسم الوثائق
         window.saveLessonFromAdmin = async () => {
             const skill = document.getElementById('admLessonSkill').value;
             const title = document.getElementById('admLessonTitle').value;
             const url = document.getElementById('admLessonUrl').value;
+            if(!title || !url) return alert("يرجى ملء بيانات المستند");
             const id = `l_${skill}_${Date.now()}`;
             await setDoc(doc(db, "lessons", id), { skill, title, url });
             alert("Document publié !");
+            document.getElementById('admLessonTitle').value = "";
+            document.getElementById('admLessonUrl').value = "";
         };
 
         window.loadSkillCours = async (skill) => {
