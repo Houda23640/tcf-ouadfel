@@ -32,6 +32,13 @@
                 <select id="langSelect" onchange="changeLang(this.value)" class="border rounded p-1 text-sm bg-gray-50 font-medium">
                     <option value="fr">Français</option>
                     <option value="ar">العربية</option>
+                    <option value="dz">الدارجة 🇩🇿</option>
+                    <option value="en">English</option>
+                    <option value="de">Deutsch</option>
+                    <option value="es">Español</option>
+                    <option value="it">Italiano</option>
+                    <option value="ru">Русский</option>
+                    <option value="zh">中文</option>
                 </select>
 
                 <div id="headerAuthBtns" class="flex space-x-2">
@@ -276,7 +283,13 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-500 mb-1">رابط المستند السحابي (PDF أو فيديو أو Drive)</label>
-                        <input id="admLessonUrl" type="text" placeholder="رابط المستند (PDF أو فيديو)" class="border rounded-lg p-2 text-sm w-full">
+                        <input id="admLessonUrl" type="text" placeholder="رابط المستند (PDF أو فيديو)" class="border rounded-lg p-2 text-sm w-full mb-2">
+                        <label class="block text-xs font-bold text-gray-500 mb-1">— أو رفع ملف مباشرة من جهازك —</label>
+                        <label class="flex items-center justify-between border-2 border-dashed border-blue-300 bg-blue-50 hover:bg-blue-100 rounded-lg p-2.5 cursor-pointer transition">
+                            <span id="lessonFileNameTxt" class="text-xs text-blue-800 font-medium truncate">اختر ملف (PDF، صورة، فيديو...)</span>
+                            <span class="bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded">📂 رفع</span>
+                            <input id="admLessonFile" type="file" accept=".pdf,image/*,video/*,audio/*,.doc,.docx,.ppt,.pptx" class="hidden" onchange="document.getElementById('lessonFileNameTxt').innerText = this.files[0] ? this.files[0].name : 'اختر ملف...'">
+                        </label>
                     </div>
                 </div>
                 <button onclick="saveLessonFromAdmin()" class="mt-4 px-6 py-2.5 bg-blue-600 text-white font-bold text-sm rounded-xl shadow">نشر الدرس فوراً للطلاب المشتركين 💾</button>
@@ -452,6 +465,14 @@
                         </select>
                     </div>
                 </div>
+                <div id="smartPublishBanner" class="hidden mt-3 p-3 bg-green-50 border-2 border-green-400 rounded-xl text-sm font-bold text-green-900 text-center space-y-2">
+                    <p id="smartPublishMsg">🎯 وصلتِ للحد الكافي! اختاري أين تنشرين:</p>
+                    <div class="flex flex-wrap gap-2 justify-center">
+                        <button id="btnPublishDAPSO" onclick="publishQuestionsToTargets(['TCF SO','TCF DAP'])" class="hidden px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-xs shadow">✅ نشر الـ 33 في TCF SO + DAP</button>
+                        <button id="btnPublishCanada" onclick="publishQuestionsToTargets(['TCF Canada'])" class="hidden px-4 py-2 bg-red-600 text-white rounded-xl font-bold text-xs shadow">🍁 نشر الـ 40 في TCF Canada أيضاً</button>
+                    </div>
+                    <p class="text-xs text-green-700 font-normal">الأسئلة محفوظة مؤقتاً — لم تُنشر بعد حتى تضغطي على الزر</p>
+                </div>
                 <button id="btnSaveQuestion" onclick="saveQuestionFromAdmin()" class="w-full mt-4 py-3 bg-blue-600 text-white font-black rounded-xl text-sm shadow">نشر وحقن السؤال في السحابة فوراً 💾🚀</button>
             </div>
 
@@ -517,7 +538,16 @@
             <h3 class="text-xl font-bold text-gray-900 mb-4">Créer un compte</h3>
             <input id="regName" type="text" placeholder="Nom Complet" class="w-full border rounded-xl p-2.5 mb-3 text-sm outline-none">
             <input id="regEmail" type="email" placeholder="Email" class="w-full border rounded-xl p-2.5 mb-3 text-sm outline-none">
-            <input id="regPass" type="password" placeholder="Mot de passe" class="w-full border rounded-xl p-2.5 mb-4 text-sm outline-none">
+            <input id="regPass" type="password" placeholder="Mot de passe" class="w-full border rounded-xl p-2.5 mb-3 text-sm outline-none">
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-gray-500 mb-1 text-left">🎯 نوع الامتحان المستهدف (مهم جداً)</label>
+                <select id="regTcfType" class="w-full border-2 border-blue-300 rounded-xl p-2.5 text-sm font-bold bg-blue-50 text-blue-900 outline-none">
+                    <option value="ALL">🌐 Tous les TCF (Accès libre)</option>
+                    <option value="TCF Canada">🍁 TCF Canada (Immigration / Citoyenneté)</option>
+                    <option value="TCF SO">🇫🇷 TCF Tout Public (SO)</option>
+                    <option value="TCF DAP">🎓 TCF DAP (Universités)</option>
+                </select>
+            </div>
             <button onclick="doRegister()" class="w-full py-2.5 bg-blue-600 text-white font-bold rounded-xl shadow mb-3">S'inscrire</button>
             <button onclick="closeModal('registerModal')" class="text-xs text-gray-400 underline">Fermer</button>
         </div>
@@ -614,6 +644,18 @@
                 document.getElementById('examsLockedMsg').classList.add('hidden');
                 document.getElementById('examsGrid').classList.remove('hidden');
                 document.getElementById('exercises-section').classList.remove('hidden');
+                document.getElementById('navProfileBtn').classList.remove('hidden');
+
+                // فلترة بطاقات الامتحانات حسب نوع TCF المختار
+                const tcfType = currentUser.tcfType || 'ALL';
+                if (tcfType !== 'ALL') {
+                    document.querySelectorAll('#examsGrid > div').forEach(card => {
+                        const h3 = card.querySelector('h3');
+                        if (h3 && !h3.innerText.includes(tcfType.replace('TCF ',''))) {
+                            card.style.display = 'none';
+                        }
+                    });
+                }
                 
                 const now = Date.now();
                 const isTrialActive = (currentUser.status === 'free' && currentUser.trialExpires > now);
@@ -654,6 +696,7 @@
             const name = document.getElementById('regName').value.trim();
             const email = document.getElementById('regEmail').value.toLowerCase().trim();
             const pass = document.getElementById('regPass').value.trim();
+            const tcfType = document.getElementById('regTcfType').value;
             if(!name || !email || !pass) return alert("Veuillez remplir tous les champs");
 
             const userDocRef = doc(db, "users", email);
@@ -661,7 +704,7 @@
             if (userSnap.exists()) return alert("Cet email est déjà enregistré !");
 
             const newUser = {
-                name, email, password: pass, status: 'free',
+                name, email, password: pass, status: 'free', tcfType,
                 trialExpires: Date.now() + (3 * 24 * 60 * 60 * 1000),
                 createdAt: Date.now(), receipt: null, accountLocked: false
             };
@@ -1090,6 +1133,29 @@
             }
         };
 
+        // مخزن مؤقت للأسئلة قبل النشر
+        let pendingQuestionsBuffer = [];
+        let pendingSkillType = "";
+        let pendingQCount = 0;
+
+        // نشر الأسئلة المخزنة مؤقتاً في الأنواع المختارة
+        window.publishQuestionsToTargets = async (targets) => {
+            if (pendingQuestionsBuffer.length === 0) return alert("لا توجد أسئلة مخزنة للنشر!");
+            const btn = targets.includes('TCF Canada') ? document.getElementById('btnPublishCanada') : document.getElementById('btnPublishDAPSO');
+            btn.innerText = "⏳ جاري النشر..."; btn.disabled = true;
+            try {
+                for (const q of pendingQuestionsBuffer) {
+                    for (const examType of targets) {
+                        // Expression Écrite تنشر في Canada + DAP معاً دائماً
+                        const qId = `q_${examType}_${q.sortingType}_${q.skillType}_${q.qNum}_${Date.now()}`;
+                        await setDoc(doc(db, "questions", qId), { ...q, examType });
+                    }
+                }
+                alert(`✅ تم نشر ${pendingQuestionsBuffer.length} سؤال في: ${targets.join(' + ')} بنجاح!`);
+                btn.innerText = targets.includes('TCF Canada') ? "✅ تم النشر في Canada" : "✅ تم النشر في SO + DAP";
+            } catch(e) { alert("Erreur: " + e.message); btn.disabled = false; }
+        };
+
         // إضافة وحقن أسئلة الامتحانات الرسمية
         window.saveQuestionFromAdmin = async () => {
             const btn = document.getElementById('btnSaveQuestion');
@@ -1098,7 +1164,7 @@
             const examType = document.getElementById('admExamType').value;
             const sortingType = document.getElementById('admSortingType').value;
             const skillType = document.getElementById('admSkillType').value;
-            const qNum = document.getElementById('admQNumber').value;
+            const qNum = parseInt(document.getElementById('admQNumber').value) || 1;
             const expressionTaskNum = document.getElementById('admExpressionTaskNum').value;
             const expressionConsigne = document.getElementById('admExpressionConsigne').value;
             const expressionTextSample = document.getElementById('admExpressionTextSample').value;
@@ -1121,13 +1187,65 @@
                 const uploadedVideo = videoFile ? await fileToBase64(videoFile) : "";
                 const uploadedSampleImg = expressionImgFile ? await fileToBase64(expressionImgFile) : "";
 
-                const qId = `q_${examType}_${sortingType}_${skillType}_${Date.now()}`;
-                await setDoc(doc(db, "questions", qId), {
-                    examType, sortingType, skillType, qNum, expressionTaskNum, expressionConsigne,
-                    expressionTextSample, uploadedSampleImg, comprehensionText, questionText, optA, optB, optC, optD, correctOpt,
-                    uploadedAudio, uploadedImage, uploadedVideo
-                });
-                alert("تم حفظ ونشر السؤال للامتحان الرسمي بنجاح! 💾🚀");
+                const questionData = {
+                    sortingType, skillType, qNum, expressionTaskNum, expressionConsigne,
+                    expressionTextSample, uploadedSampleImg, comprehensionText, questionText,
+                    optA, optB, optC, optD, correctOpt, uploadedAudio, uploadedImage, uploadedVideo
+                };
+
+                // Expression Écrite تخزّن مؤقتاً وتنشر في Canada + DAP معاً
+                if (skillType === 'EE') {
+                    pendingQuestionsBuffer.push(questionData);
+                    pendingSkillType = skillType;
+                    pendingQCount = qNum;
+                    // نشر فوري في كلا الامتحانين
+                    for (const et of ['TCF Canada', 'TCF DAP']) {
+                        const qId = `q_${et}_${sortingType}_${skillType}_${qNum}_${Date.now()}`;
+                        await setDoc(doc(db, "questions", qId), { ...questionData, examType: et });
+                    }
+                    alert(`✅ تم حفظ Tâche ${expressionTaskNum} ونشرها في TCF Canada + TCF DAP معاً!`);
+                    document.getElementById('admQNumber').value = qNum + 1;
+                    btn.innerText = "نشر وحقن السؤال في السحابة فوراً 💾🚀"; btn.disabled = false;
+                    return;
+                }
+
+                // للأسئلة الأخرى — نشر مباشر في الامتحان المختار
+                const qId = `q_${examType}_${sortingType}_${skillType}_${qNum}_${Date.now()}`;
+                await setDoc(doc(db, "questions", qId), { ...questionData, examType });
+
+                // إدارة العداد الذكي للـ CO و CE
+                if ((skillType === 'CO' || skillType === 'CE') && (examType === 'TCF SO' || examType === 'TCF DAP' || examType === 'TCF Canada')) {
+                    pendingQuestionsBuffer.push({ ...questionData, examType });
+                    pendingQCount = qNum;
+                    
+                    const banner = document.getElementById('smartPublishBanner');
+                    const btnDAPSO = document.getElementById('btnPublishDAPSO');
+                    const btnCanada = document.getElementById('btnPublishCanada');
+                    
+                    if (qNum === 33) {
+                        banner.classList.remove('hidden');
+                        document.getElementById('smartPublishMsg').innerText = `🎯 وصلتِ للسؤال 33! هل تنشرين في TCF SO + DAP الآن؟ يمكنك الاستمرار حتى 40 ثم نشر في Canada`;
+                        btnDAPSO.classList.remove('hidden');
+                        btnCanada.classList.add('hidden');
+                    } else if (qNum === 40) {
+                        banner.classList.remove('hidden');
+                        document.getElementById('smartPublishMsg').innerText = `🏁 وصلتِ للسؤال 40! يمكنك الآن نشرها في TCF Canada أيضاً:`;
+                        btnCanada.classList.remove('hidden');
+                    } else if (qNum > 40) {
+                        banner.classList.add('hidden');
+                    }
+                }
+
+                alert(`✅ تم حفظ السؤال ${qNum} في ${examType} بنجاح!`);
+                // تصاعد تلقائي لرقم السؤال
+                document.getElementById('admQNumber').value = qNum + 1;
+                // تنظيف الحقول
+                document.getElementById('admQuestionText').value = '';
+                document.getElementById('admOptA').value = '';
+                document.getElementById('admOptB').value = '';
+                document.getElementById('admOptC').value = '';
+                document.getElementById('admOptD').value = '';
+
             } catch (err) { alert("Erreur: " + err.message); }
             finally { btn.innerText = "نشر وحقن السؤال في السحابة فوراً 💾🚀"; btn.disabled = false; }
         };
@@ -1204,20 +1322,47 @@
         window.saveLessonFromAdmin = async () => {
             const skill = document.getElementById('admLessonSkill').value;
             const title = document.getElementById('admLessonTitle').value;
-            const url = document.getElementById('admLessonUrl').value;
-            if(!title || !url) return alert("يرجى ملء بيانات المستند");
-            await setDoc(doc(db, "lessons", `l_${skill}_${Date.now()}`), { skill, title, url });
-            alert("Document publié !");
+            let url = document.getElementById('admLessonUrl').value.trim();
+            const fileInput = document.getElementById('admLessonFile');
+            
+            if (!title) return alert("يرجى كتابة عنوان الدرس أولاً");
+            
+            // إذا رُفع ملف مباشرة، نحوّله إلى base64
+            if (fileInput.files[0] && !url) {
+                url = await fileToBase64(fileInput.files[0]);
+            }
+            
+            if (!url) return alert("يرجى إدخال رابط أو رفع ملف");
+            
+            await setDoc(doc(db, "lessons", `l_${skill}_${Date.now()}`), { skill, title, url, isFile: !!fileInput.files[0] });
+            alert("✅ Document publié avec succès !");
+            document.getElementById('admLessonTitle').value = '';
+            document.getElementById('admLessonUrl').value = '';
+            document.getElementById('lessonFileNameTxt').innerText = 'اختر ملف (PDF، صورة، فيديو...)';
         };
 
         window.loadSkillCours = async (skill) => {
             document.getElementById('skillsCoursContainer').classList.remove('hidden');
             const querySnapshot = await getDocs(collection(db, "lessons"));
             const list = document.getElementById('coursItemsList'); list.innerHTML = "";
-            querySnapshot.forEach((doc) => {
-                const l = doc.data();
-                if (l.skill === skill) list.innerHTML += `<li class="p-2 bg-gray-50 rounded flex justify-between"><span>📄 ${l.title}</span> <a href="${l.url}" target="_blank" class="text-blue-600 underline font-bold">Ouvrir</a></li>`;
+            querySnapshot.forEach((docSnap) => {
+                const l = docSnap.data();
+                if (l.skill === skill) {
+                    const isBase64 = l.url && l.url.startsWith('data:');
+                    const isPdf = isBase64 && l.url.includes('application/pdf');
+                    const isImage = isBase64 && l.url.includes('image/');
+                    let linkHtml = '';
+                    if (isPdf) {
+                        linkHtml = `<a href="${l.url}" target="_blank" class="text-blue-600 underline font-bold text-xs">📄 فتح PDF</a>`;
+                    } else if (isImage) {
+                        linkHtml = `<a href="${l.url}" target="_blank" class="text-blue-600 underline font-bold text-xs">🖼 عرض الصورة</a>`;
+                    } else {
+                        linkHtml = `<a href="${l.url}" target="_blank" class="text-blue-600 underline font-bold text-xs">🔗 فتح</a>`;
+                    }
+                    list.innerHTML += `<li class="p-2 bg-gray-50 rounded flex justify-between items-center"><span>📄 ${l.title}</span> ${linkHtml}</li>`;
+                }
             });
+            if (list.innerHTML === "") list.innerHTML = `<p class="text-sm text-gray-400">لا توجد دروس متوفرة لهذه المهارة حالياً.</p>`;
         };
 
         function fileToBase64(file) {
@@ -1227,6 +1372,28 @@
                 reader.onload = () => resolve(reader.result);
             });
         }
+
+        const translations = {
+            fr: { hero: "Réussissez votre TCF avec confiance", sub: "La plateforme d'entraînement complète pour le TCF Canada, TCF SO, TCF DAP et Exercices Proposés.", btn1: "Essai gratuit 3 jours", examsTitle: "Choisissez votre parcours", offersTitle: "Nos Offres", coursTitle: "Cours & Documents" },
+            ar: { hero: "انجح في امتحان TCF بثقة", sub: "منصة التدريب الشاملة لـ TCF Canada و TCF SO و TCF DAP والتمارين المقترحة.", btn1: "تجربة مجانية 3 أيام", examsTitle: "اختر مسارك", offersTitle: "عروضنا", coursTitle: "الدروس والوثائق" },
+            dz: { hero: "نجح في TCF بكل راحة 🇩🇿", sub: "المنصة الكاملة للتحضير لـ TCF Canada و TCF SO و TCF DAP والتمارين.", btn1: "جرب مجاناً 3 أيام", examsTitle: "اختار مسارك", offersTitle: "العروض تاعنا", coursTitle: "الدروس والوثائق" },
+            en: { hero: "Succeed in your TCF with confidence", sub: "The complete training platform for TCF Canada, TCF SO, TCF DAP and Proposed Exercises.", btn1: "Free trial 3 days", examsTitle: "Choose your path", offersTitle: "Our Offers", coursTitle: "Courses & Documents" },
+            de: { hero: "Bestehe deinen TCF mit Zuversicht", sub: "Die komplette Trainingsplattform für TCF Canada, TCF SO, TCF DAP und vorgeschlagene Übungen.", btn1: "3 Tage kostenlos testen", examsTitle: "Wähle deinen Weg", offersTitle: "Unsere Angebote", coursTitle: "Kurse & Dokumente" },
+            es: { hero: "Supera tu TCF con confianza", sub: "La plataforma de entrenamiento completa para TCF Canada, TCF SO, TCF DAP y ejercicios propuestos.", btn1: "Prueba gratuita 3 días", examsTitle: "Elige tu camino", offersTitle: "Nuestras Ofertas", coursTitle: "Cursos & Documentos" },
+            it: { hero: "Supera il tuo TCF con fiducia", sub: "La piattaforma di allenamento completa per TCF Canada, TCF SO, TCF DAP ed esercizi proposti.", btn1: "Prova gratuita 3 giorni", examsTitle: "Scegli il tuo percorso", offersTitle: "Le nostre Offerte", coursTitle: "Corsi & Documenti" },
+            ru: { hero: "Сдай TCF с уверенностью", sub: "Полная платформа для подготовки к TCF Canada, TCF SO, TCF DAP и предложенным упражнениям.", btn1: "Бесплатный пробный период 3 дня", examsTitle: "Выбери свой путь", offersTitle: "Наши предложения", coursTitle: "Курсы и документы" },
+            zh: { hero: "自信通过您的TCF考试", sub: "TCF Canada、TCF SO、TCF DAP及练习题的完整培训平台。", btn1: "免费试用3天", examsTitle: "选择您的学习路径", offersTitle: "我们的方案", coursTitle: "课程与文件" }
+        };
+
+        window.changeLang = (lang) => {
+            const t = translations[lang] || translations['fr'];
+            const heroH1 = document.querySelector('section h1');
+            const heroP = document.querySelector('section p');
+            if (heroH1) heroH1.innerText = t.hero;
+            if (heroP) heroP.innerText = t.sub;
+            document.documentElement.dir = (lang === 'ar' || lang === 'dz') ? 'rtl' : 'ltr';
+            document.documentElement.lang = lang;
+        };
     </script>
 </body>
 </html>
