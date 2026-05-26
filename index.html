@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TCF Ouadfel Platform</title>
+    <title>TCF Ouadfel Platform - Premium V2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root { --gold: #d4af37; }
@@ -22,8 +22,10 @@
             
             <nav class="hidden md:flex space-x-6 font-semibold">
                 <a href="#exams-section" class="hover:text-blue-600">Examens</a>
+                <a href="#exercises-section" class="hover:text-purple-600 font-bold">Exercices Proposés</a>
                 <a href="#offers-section" class="hover:text-blue-600">Nos Offres</a>
                 <a href="#courses-section" class="hover:text-blue-600">Cours</a>
+                <button id="navProfileBtn" onclick="openStudentProfile()" class="hidden text-blue-600 font-bold hover:underline flex items-center">👤 Mon Profil</button>
             </nav>
 
             <div class="flex items-center space-x-3">
@@ -53,7 +55,7 @@
 
     <section class="py-16 bg-gradient-to-br from-blue-600 to-indigo-800 text-white text-center px-4">
         <h1 class="text-4xl md:text-5xl font-extrabold max-w-3xl mx-auto leading-tight">Réussissez votre TCF avec confiance</h1>
-        <p class="mt-4 text-lg text-blue-100 max-w-xl mx-auto">La plateforme d'entraînement complète pour le TCF Canada, TCF SO et TCF DAP.</p>
+        <p class="mt-4 text-lg text-blue-100 max-w-xl mx-auto">La plateforme d'entraînement complète pour le TCF Canada, TCF SO, TCF DAP et Exercices Proposés.</p>
         <div class="mt-8 flex justify-center space-x-4">
             <button onclick="openModal('registerModal')" class="px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold rounded-xl shadow-lg">Essai gratuit 3 jours</button>
             <a href="#exams-section" class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl border border-white/20">Découvrir les examens</a>
@@ -104,14 +106,34 @@
         </div>
     </section>
 
+    <section id="exercises-section" class="bg-purple-50/60 py-16 border-t border-b hidden">
+        <div class="container mx-auto px-4 max-w-4xl">
+            <div class="text-center mb-10">
+                <span class="text-purple-700 font-bold uppercase tracking-widest text-xs">Section Spéciale</span>
+                <h2 class="text-3xl font-black text-gray-900 mt-1">التمارين المقترحة المستهدفة</h2>
+                <p class="text-sm text-gray-500 mt-1">اختر المهارة وتصفح التمارين المحددة والمدعومة بنظام التصحيح</p>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <button onclick="filterExercisesBySkill('CE')" class="py-3 bg-white border border-purple-200 rounded-xl font-bold text-purple-950 hover:bg-purple-600 hover:text-white shadow-sm transition text-sm">Compréhension Écrite</button>
+                <button onclick="filterExercisesBySkill('CO')" class="py-3 bg-white border border-purple-200 rounded-xl font-bold text-purple-950 hover:bg-purple-600 hover:text-white shadow-sm transition text-sm">Compréhension Orale</button>
+                <button onclick="filterExercisesBySkill('EE')" class="py-3 bg-white border border-purple-200 rounded-xl font-bold text-purple-950 hover:bg-purple-600 hover:text-white shadow-sm transition text-sm">Expression Écrite</button>
+                <button onclick="filterExercisesBySkill('EO')" class="py-3 bg-white border border-purple-200 rounded-xl font-bold text-purple-950 hover:bg-purple-600 hover:text-white shadow-sm transition text-sm">Expression Orale</button>
+            </div>
+
+            <div id="exercisesDynamicList" class="space-y-4">
+                <p class="text-center text-sm text-gray-400">اضغط على إحدى المهارات أعلاه لاستعراض التمارين المتاحة بحسابكِ...</p>
+            </div>
+        </div>
+    </section>
+
     <section id="offers-section" class="bg-gray-100 py-16 border-t border-b">
         <div class="container mx-auto px-4 max-w-5xl">
             <div class="text-center mb-12">
                 <h2 class="text-3xl font-black text-gray-900">Nos Offres</h2>
                 <p class="text-gray-500 mt-1">Choisissez l'offre qui correspond à votre préparation</p>
             </div>
-            <div id="offersDynamicGrid" class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                </div>
+            <div id="offersDynamicGrid" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
         </div>
     </section>
 
@@ -168,22 +190,164 @@
             
             <div id="expressionAreaFields" class="mt-4 hidden">
                 <div id="quizSampleAnswerBox" class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-xl text-sm hidden"></div>
-                <textarea id="studentExpressionInput" class="w-full border rounded-xl p-3 text-sm h-32 outline-none" placeholder="Écrivez votre réponse ici..."></textarea>
-                <button onclick="saveAndNextQuestion(true)" class="mt-3 w-full py-2 bg-green-600 text-white font-bold rounded-xl text-sm">Sauvegarder & Suivant</button>
+                <div class="bg-blue-50/70 border border-blue-200 p-3 rounded-xl mb-3">
+                    <label class="block text-xs font-black text-blue-900 mb-1">✍ اكتب إجابتك أو تعبيرك المقترح ليتم إرساله وتصحيحه من طرف الأستاذة هدى مباشرة:</label>
+                    <textarea id="studentExpressionInput" class="w-full border bg-white rounded-xl p-3 text-sm h-32 outline-none" placeholder="Rédigez votre réponse ici..."></textarea>
+                </div>
+                <button onclick="submitStudentExpressionToTeacher()" class="w-full py-2.5 bg-blue-600 text-white font-bold rounded-xl text-sm shadow hover:bg-blue-700">إرسال التعبير للأستاذة هدى للتصحيح والتقييم ✉🚀</button>
+            </div>
+
+            <div class="flex justify-between items-center border-t pt-4 mt-6 text-sm">
+                <span id="quizProgressTxt" class="font-bold text-gray-500">Question 1 / 1</span>
+                <button onclick="closeQuizArea()" class="text-red-600 underline font-bold">Quitter</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="studentProfileModal" class="fixed inset-0 bg-black/60 z-50 hidden justify-center items-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl w-full max-w-2xl p-6 relative space-y-5">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="text-xl font-black text-gray-900">👤 ملف الطالب والمتابعة والتقدم</h3>
+                <button onclick="closeModal('studentProfileModal')" class="text-gray-400 text-2xl">&times;</button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs bg-gray-50 p-4 rounded-xl border">
+                <div>📌 الاسم الكامل: <span id="profName" class="font-bold text-sm text-gray-800"></span></div>
+                <div>📧 البريد الإلكتروني: <span id="profEmail" class="font-bold text-sm text-gray-800"></span></div>
+                <div>💎 عيار الاشتراك: <span id="profStatus" class="font-bold text-blue-600 text-sm"></span></div>
+                <div>⏳ الصلاحية حتى: <span id="profExpiry" class="font-bold text-sm text-gray-800"></span></div>
+            </div>
+
+            <div class="border rounded-xl p-4 bg-indigo-50/50 space-y-2">
+                <h4 class="text-xs font-black text-indigo-900 flex items-center">💬 تواصل مباشر واستفسارات مع المديرة هدى</h4>
+                <div id="studentChatBox" class="bg-white p-3 border rounded-xl h-28 overflow-y-auto text-xs space-y-1"></div>
+                <div class="flex space-x-2">
+                    <input id="studentChatMsgInput" type="text" placeholder="اكتب رسالتك للمديرة هنا..." class="w-full border rounded-xl p-2 text-xs outline-none">
+                    <button onclick="sendMsgToAdminFromStudent()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-4 rounded-xl font-bold">إرسال</button>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <h4 class="text-xs font-black text-gray-700 uppercase tracking-wider">📈 نتائج وتقدم الاختبارات الـ QCM والمحاولات:</h4>
+                <div class="overflow-x-auto text-xs">
+                    <table class="w-full text-left bg-white border rounded-xl">
+                        <thead class="bg-gray-100 border-b"><tr><th class="p-2">نوع التدريب / الامتحان</th><th class="p-2">الحالة والنتيجة الفورية</th><th class="p-2">التاريخ</th></tr></thead>
+                        <tbody id="profQcmScoresBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <h4 class="text-xs font-black text-blue-800 uppercase tracking-wider">✉ رسائل وتصحيحات الأستاذة هدى للـ Expression Écrite:</h4>
+                <div class="overflow-x-auto text-xs">
+                    <table class="w-full text-left bg-white border rounded-xl">
+                        <thead class="bg-blue-50 text-blue-900 border-b"><tr><th class="p-2">التمرين / المهمة</th><th class="p-2">تعبيرك المرسل</th><th class="p-2">تصحيح وملاحظات الأستاذة هدى</th><th class="p-2">التقييم المستحق</th></tr></thead>
+                        <tbody id="profExpressionsCorrectionsBody"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
     <div id="adminDashboardArea" class="fixed inset-0 bg-gray-100 z-50 hidden flex-col overflow-y-auto">
         <header class="bg-gray-900 text-white p-4 flex justify-between items-center shadow-md">
-            <span class="text-xl font-black text-yellow-500">لوحة تحكم الأستاذة هدى ⚙️ (إدارة كاملة للمحتوى والاشتراكات)</span>
+            <span class="text-xl font-black text-yellow-500">لوحة تحكم الأستاذة هدى ⚙️ (إدارة كاملة للمحتوى والاشتراكات والتصحيحات)</span>
             <button onclick="document.getElementById('adminDashboardArea').style.display='none'" class="bg-red-600 px-4 py-1.5 rounded font-bold text-sm">Quitter</button>
         </header>
         
         <main class="container mx-auto p-4 max-w-6xl space-y-8 my-6">
             
             <div class="bg-white p-6 rounded-2xl border shadow-sm">
-                <h3 class="text-lg font-black text-gray-900 border-b pb-2 mb-4">🛠️ إضافة وتعديل الأسئلة حركياً</h3>
+                <h3 class="text-lg font-black text-blue-900 border-b pb-2 mb-4">📚 [1] قسم إضافة الدروس والوثائق للمهارات</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1">المهارة المستهدفة للدرس</label>
+                        <select id="admLessonSkill" class="border rounded-lg p-2 text-sm bg-white w-full">
+                            <option value="CO">Compréhension Orale</option>
+                            <option value="CE">Compréhension Écrite</option>
+                            <option value="SL">Structure de la langue</option>
+                            <option value="EE">Expression Écrite</option>
+                            <option value="EO">Expression Orale</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1">عنوان الدرس</label>
+                        <input id="admLessonTitle" type="text" placeholder="عنوان الدرس" class="border rounded-lg p-2 text-sm w-full">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1">رابط المستند السحابي (PDF أو فيديو أو Drive)</label>
+                        <input id="admLessonUrl" type="text" placeholder="رابط المستند (PDF أو فيديو)" class="border rounded-lg p-2 text-sm w-full">
+                    </div>
+                </div>
+                <button onclick="saveLessonFromAdmin()" class="mt-4 px-6 py-2.5 bg-blue-600 text-white font-bold text-sm rounded-xl shadow">نشر الدرس فوراً للطلاب المشتركين 💾</button>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-4">
+                <h3 class="text-lg font-black text-purple-900 border-b pb-2 mb-2">📝 [2] قسم إضافة وتخصيص "التمارين المقترحة والعناوين"</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1">مهارة التمرين المقترح</label>
+                        <select id="admExSkill" onchange="toggleAdminExerciseFields(this.value)" class="w-full border rounded-lg p-2 text-sm bg-purple-50 font-bold text-purple-900">
+                            <option value="CE">Compréhension Écrite</option>
+                            <option value="CO">Compréhension Orale</option>
+                            <option value="EE">Expression Écrite</option>
+                            <option value="EO">Expression Orale</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-gray-500 mb-1">عنوان التمرين المخصص (مثال: تمارين عن الصفة والموصوف)</label>
+                        <input id="admExTitle" type="text" class="w-full border rounded-lg p-2 text-sm" placeholder="مثال: Exercice sur les Adjectifs">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1">رقم هذا السؤال داخل هذا التمرين</label>
+                        <input id="admExQNum" type="number" value="1" class="w-full border rounded-lg p-2 text-sm bg-gray-50">
+                    </div>
+                </div>
+
+                <div class="p-4 bg-purple-50/40 rounded-xl border space-y-4 text-sm">
+                    <div id="admExTexteBox" class="hidden">
+                        <label class="block font-bold text-gray-600 mb-1">النص المرافق للتمرين (Texte)</label>
+                        <textarea id="admExTexte" rows="3" class="w-full border p-2 rounded-lg bg-white" placeholder="اكتب النص هنا..."></textarea>
+                    </div>
+                    <div id="admExExpressionBox" class="hidden grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block font-bold text-gray-600 mb-1">التعليمات الخاصة بالمهمة (Consigne)</label>
+                            <textarea id="admExConsigne" rows="2" class="w-full border p-2 rounded-lg bg-white" placeholder="Consigne..."></textarea>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-gray-600 mb-1">نموذج الإجابة المقترح (Exemple de réponse)</label>
+                            <textarea id="admExSampleText" rows="2" class="w-full border p-2 rounded-lg bg-white" placeholder="Exemple de réponse textuel..."></textarea>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block font-bold text-gray-600 mb-1">🎵 ملف صوتي مرافق لتمرين الشفهي (إن وجد)</label>
+                            <input id="admExAudioFile" type="file" accept="audio/*" class="w-full border p-1 rounded-lg bg-white text-xs">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-gray-600 mb-1">🖼 صورة مرافقة للمستند أو الإجابة النموذجية للتمارين</label>
+                            <input id="admExImgFile" type="file" accept="image/*" class="w-full border p-1 rounded-lg bg-white text-xs">
+                        </div>
+                    </div>
+                    <div id="admExQcmBox" class="grid grid-cols-1 md:grid-cols-2 gap-3 border-t pt-3">
+                        <div class="md:col-span-2">
+                            <label class="block font-bold text-gray-600 mb-1">نص السؤال المباشر (Question)</label>
+                            <input id="admExQuestion" type="text" class="w-full border p-2 rounded-lg bg-white" placeholder="Question text...">
+                        </div>
+                        <input id="admExOptA" type="text" placeholder="Option A" class="border p-2 rounded-lg bg-white">
+                        <input id="admExOptB" type="text" placeholder="Option B" class="border p-2 rounded-lg bg-white">
+                        <input id="admExOptC" type="text" placeholder="Option C" class="border p-2 rounded-lg bg-white">
+                        <input id="admExOptD" type="text" placeholder="Option D" class="border p-2 rounded-lg bg-white">
+                        <select id="admExCorrectOpt" class="border p-2 rounded-lg bg-white md:col-span-2 font-bold">
+                            <option value="A">الإجابة الصحيحة هي: A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option>
+                        </select>
+                    </div>
+                </div>
+                <button onclick="saveExerciseQuestionFromAdmin()" class="w-full py-2.5 bg-purple-700 text-white font-bold text-sm rounded-xl shadow">حفظ ونشر تمرينكِ المقترح فوراً في السحابة 💾🌟</button>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border shadow-sm">
+                <h3 class="text-lg font-black text-gray-900 border-b pb-2 mb-4">⚙️ [3] قسم إضافة وحقن الأسئلة للامتحانات الرسمية</h3>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1">نوع الامتحان</label>
@@ -217,14 +381,11 @@
                 </div>
 
                 <div class="p-4 bg-gray-50 rounded-xl border space-y-4">
-                    
                     <div id="rowExpressionTasks" class="hidden grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label class="block text-xs font-bold text-gray-600 mb-1">اختر المهمة (Tâche)</label>
                             <select id="admExpressionTaskNum" class="w-full border rounded p-2 text-sm bg-white font-bold">
-                                <option value="1">Tâche 1</option>
-                                <option value="2">Tâche 2</option>
-                                <option value="3">Tâche 3</option>
+                                <option value="1">Tâche 1</option><option value="2">Tâche 2</option><option value="3">Tâche 3</option>
                             </select>
                         </div>
                         <div class="md:col-span-2">
@@ -232,7 +393,7 @@
                             <textarea id="admExpressionConsigne" rows="2" class="w-full border rounded p-2 text-sm bg-white" placeholder="اكتب الـ Consigne هنا..."></textarea>
                         </div>
                         <div class="md:col-span-2">
-                            <label class="block text-xs font-bold text-gray-600 mb-1">نموذج الإجابة نصياً (Exemple de réponse - Optionnel)</label>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">نموذج الإجابة نصياً (Exemple de réponse)</label>
                             <textarea id="admExpressionTextSample" rows="3" class="w-full border rounded p-2 text-sm bg-white" placeholder="اكتب نموذج الإجابة المقترح هنا..."></textarea>
                         </div>
                         <div>
@@ -247,7 +408,7 @@
 
                     <div id="boxTextComprehension" class="hidden">
                         <label class="block text-xs font-bold text-gray-600 mb-1">النص المرافق (Texte de compréhension)</label>
-                        <textarea id="admComprehensionText" rows="4" class="w-full border rounded p-2 text-sm bg-white" placeholder="اكتب النص الفرنسي هنا لتتمكن الأستاذة والطلاب من قراءته..."></textarea>
+                        <textarea id="admComprehensionText" rows="4" class="w-full border rounded p-2 text-sm bg-white" placeholder="اكتب النص الفرنسي هنا..."></textarea>
                     </div>
 
                     <div id="rowGeneralMediaUploads" class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -287,10 +448,7 @@
                         <input id="admOptC" type="text" placeholder="Option C" class="w-full border rounded p-2 text-sm bg-white">
                         <input id="admOptD" type="text" placeholder="Option D" class="w-full border rounded p-2 text-sm bg-white">
                         <select id="admCorrectOpt" class="w-full border rounded p-2 text-sm font-bold bg-white md:col-span-2">
-                            <option value="A">الإجابة الصحيحة هي: A</option>
-                            <option value="B">B</option>
-                            <option value="C">C</option>
-                            <option value="D">D</option>
+                            <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option>
                         </select>
                     </div>
                 </div>
@@ -298,64 +456,48 @@
             </div>
 
             <div class="bg-white p-6 rounded-2xl border shadow-sm">
-                <h3 class="text-lg font-black text-gray-900 border-b pb-2 mb-4">💰 إدارة وتعديل عروض وأسعار المنصة</h3>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                    <input id="admOfferName" type="text" placeholder="اسم العرض (مثال: Pack Silver)" class="border rounded p-2 text-sm">
-                    <input id="admOfferPrice" type="text" placeholder="السعر بالدينار (مثال: 4000 DA)" class="border rounded p-2 text-sm">
-                    <input id="admOfferDuration" type="text" placeholder="المدة (مثال: 1 Mois)" class="border rounded p-2 text-sm">
-                    <input id="admOfferFeatures" type="text" placeholder="الميزات (افصلي بـ الفاصلة ,)" class="border rounded p-2 text-sm">
-                </div>
-                <button onclick="createNewPlatformOffer()" class="px-4 py-2 bg-yellow-500 text-gray-950 font-bold rounded-xl text-sm shadow">إضافة / تحديث العرض فوراً</button>
-                
-                <div class="mt-4 overflow-x-auto">
-                    <table class="w-full text-left text-sm">
-                        <thead>
-                            <tr class="bg-gray-50 border-b text-xs text-gray-500">
-                                <th class="p-2">اسم العرض</th>
-                                <th class="p-2">السعر</th>
-                                <th class="p-2">المدة</th>
-                                <th class="p-2">الإجراءات</th>
+                <h3 class="text-lg font-black text-blue-900 border-b pb-2 mb-4">✉ التعبيرات المستلمة من الطلاب وبحاجة لتصحيحكِ الفوري والتقييم</h3>
+                <div class="overflow-x-auto text-xs">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-50">
+                            <tr class="border-b">
+                                <th class="p-3">الطالب</th>
+                                <th class="p-3">التمرين / المهارة</th>
+                                <th class="p-3">ما كتبه الطالب</th>
+                                <th class="p-3">اكتبي التصحيح والملاحظات هنا</th>
+                                <th class="p-3">اختيار التقييم الفعلي</th>
+                                <th class="p-3">الإجراء</th>
                             </tr>
                         </thead>
-                        <tbody id="adminOffersTableBody"></tbody>
+                        <tbody id="adminExpressionSubmissionsBody"></tbody>
                     </table>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border shadow-sm">
+                <h3 class="text-lg font-black text-indigo-900 border-b pb-2 mb-4">💬 صندوق المحادثات واستفسارات الطلاب الحية</h3>
+                <div id="adminChatListContainer" class="space-y-4 max-h-64 overflow-y-auto p-3 bg-gray-50 rounded-xl border"></div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border shadow-sm">
+                <h3 class="text-lg font-black text-gray-900 border-b pb-2 mb-4">💰 إدارة وتعديل عروض وأسعار المنصة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                    <input id="admOfferName" type="text" placeholder="اسم العرض" class="border rounded p-2 text-sm">
+                    <input id="admOfferPrice" type="text" placeholder="السعر" class="border rounded p-2 text-sm">
+                    <input id="admOfferDuration" type="text" placeholder="المدة" class="border rounded p-2 text-sm">
+                    <input id="admOfferFeatures" type="text" placeholder="الميزات (,)" class="border rounded p-2 text-sm">
+                </div>
+                <button onclick="createNewPlatformOffer()" class="px-4 py-2 bg-yellow-500 text-gray-950 font-bold rounded-xl text-sm shadow">إضافة / تحديث العرض فوراً</button>
+                <div class="mt-4 overflow-x-auto">
+                    <table class="w-full text-left text-sm"><thead><tr class="bg-gray-50 border-b text-xs"><th class="p-2">اسم العرض</th><th class="p-2">السعر</th><th class="p-2">المدة</th><th class="p-2">الإجراءات</th></tr></thead><tbody id="adminOffersTableBody"></tbody></table>
                 </div>
             </div>
 
             <div class="bg-white p-6 rounded-2xl border shadow-sm">
                 <h3 class="text-lg font-black text-gray-900 border-b pb-2 mb-4">👥 إدارة الطلاب، الاشتراكات وتجميد الحسابات</h3>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm border-collapse">
-                        <thead>
-                            <tr class="bg-gray-100 text-gray-600 text-xs border-b">
-                                <th class="p-3">الطالب</th>
-                                <th class="p-3">البريد الإلكتروني</th>
-                                <th class="p-3">الحالة</th>
-                                <th class="p-3">تاريخ الصلاحية</th>
-                                <th class="p-3">حالة الحساب</th>
-                                <th class="p-3">الوصل المرفوع</th>
-                                <th class="p-3">التحكم والإجراءات السحابية</th>
-                            </tr>
-                        </thead>
-                        <tbody id="studentsTableBody"></tbody>
-                    </table>
+                    <table class="w-full text-left text-sm border-collapse"><thead><tr class="bg-gray-100 text-xs border-b"><th class="p-3">الطالب</th><th class="p-3">البريد الإلكتروني</th><th class="p-3">الحالة</th><th class="p-3">تاريخ الصلاحية</th><th class="p-3">حالة الحساب</th><th class="p-3">الوصل</th><th class="p-3">الإجراءات</th></tr></thead><tbody id="studentsTableBody"></tbody></table>
                 </div>
-            </div>
-
-            <div class="bg-white p-6 rounded-2xl border shadow-sm">
-                <h3 class="text-lg font-black text-gray-900 border-b pb-2 mb-3">📚 إدارة قسم الدروس والوثائق للمهارات</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <select id="admLessonSkill" class="border rounded p-2 text-sm bg-white">
-                        <option value="CO">Compréhension Orale</option>
-                        <option value="CE">Compréhension Écrite</option>
-                        <option value="SL">Structure de la langue</option>
-                        <option value="EE">Expression Écrite</option>
-                        <option value="EO">Expression Orale</option>
-                    </select>
-                    <input id="admLessonTitle" type="text" placeholder="عنوان الدرس" class="border rounded p-2 text-sm">
-                    <input id="admLessonUrl" type="text" placeholder="رابط المستند (PDF أو فيديو)" class="border rounded p-2 text-sm">
-                </div>
-                <button onclick="saveLessonFromAdmin()" class="w-full mt-3 py-2 bg-gray-900 text-white font-bold text-sm rounded-lg">نشر الدرس فوراً للطلاب المشتركين</button>
             </div>
         </main>
     </div>
@@ -423,25 +565,26 @@
         let questionTimerInterval = null;
         let questionTimeLeft = 60;
         let examResultsData = { correct: 0, wrong: 0, skipped: 0 };
+        
+        let currentExerciseTitle = "";
+        let currentQuizSkill = "";
 
         window.openModal = (id) => document.getElementById(id).classList.add('active-modal');
         window.closeModal = (id) => document.getElementById(id).classList.remove('active-modal');
 
-        // التبديل الديناميكي بين المهارات في لوحة التحكم لتسهيل العمل
+        window.toggleAdminExerciseFields = (skill) => {
+            document.getElementById('admExTexteBox').style.display = (skill === 'CE') ? 'block' : 'none';
+            document.getElementById('admExExpressionBox').style.display = (skill === 'EE' || skill === 'EO') ? 'grid' : 'none';
+            document.getElementById('admExQcmBox').style.display = (skill === 'EE' || skill === 'EO') ? 'none' : 'grid';
+        };
+        toggleAdminExerciseFields('CE');
+
         window.toggleAdminSkillFields = (skill) => {
             document.getElementById('rowExpressionTasks').style.display = (skill === 'EE' || skill === 'EO') ? 'grid' : 'none';
             document.getElementById('boxTextComprehension').style.display = (skill === 'CE') ? 'block' : 'none';
             document.getElementById('boxQcmStructure').style.display = (skill === 'EE' || skill === 'EO') ? 'none' : 'grid';
-            
-            // تخصيص الميديا حسب الحاجة
-            if (skill === 'SL') {
-                document.getElementById('rowGeneralMediaUploads').style.display = 'none';
-            } else {
-                document.getElementById('rowGeneralMediaUploads').style.display = 'grid';
-                document.getElementById('uploadAudioContainer').style.display = (skill === 'CO' || skill === 'CE') ? 'block' : 'block';
-            }
+            document.getElementById('rowGeneralMediaUploads').style.display = (skill === 'SL') ? 'none' : 'grid';
         };
-        // تشغيل التهيئة المبدئية لحقول المهارة
         toggleAdminSkillFields('CO');
 
         async function checkSession() {
@@ -451,14 +594,11 @@
                 const docSnap = await getDoc(doc(db, "users", localUser.email));
                 if (docSnap.exists()) {
                     currentUser = docSnap.data();
-                    
-                    // التحقق من الحساب المجمد فوراً وحظر الدخول
                     if (currentUser.accountLocked) {
                         alert("⚠️ تم تجميد حسابك الحالي من قبل الإدارة. يرجى مراجعة الأستاذة هدى.");
                         doLogout();
                         return;
                     }
-
                     localStorage.setItem('tcf_logged_user', JSON.stringify(currentUser));
                     updateUIForUser();
                 }
@@ -473,6 +613,7 @@
                 document.getElementById('headerUserName').innerText = currentUser.name;
                 document.getElementById('examsLockedMsg').classList.add('hidden');
                 document.getElementById('examsGrid').classList.remove('hidden');
+                document.getElementById('exercises-section').classList.remove('hidden');
                 
                 const now = Date.now();
                 const isTrialActive = (currentUser.status === 'free' && currentUser.trialExpires > now);
@@ -485,7 +626,6 @@
                     document.getElementById('trialCountdownBanner').classList.add('hidden');
                 }
 
-                // فتح أو غلق قسم الدروس بناء على حالة العضوية المعتمدة
                 if (isTrialActive || isVIPActive) {
                     document.getElementById('coursesLockedContainer').classList.add('hidden');
                     document.getElementById('coursesAllowedContainer').classList.remove('hidden');
@@ -514,12 +654,10 @@
             const name = document.getElementById('regName').value.trim();
             const email = document.getElementById('regEmail').value.toLowerCase().trim();
             const pass = document.getElementById('regPass').value.trim();
-
             if(!name || !email || !pass) return alert("Veuillez remplir tous les champs");
 
             const userDocRef = doc(db, "users", email);
             const userSnap = await getDoc(userDocRef);
-
             if (userSnap.exists()) return alert("Cet email est déjà enregistré !");
 
             const newUser = {
@@ -527,31 +665,24 @@
                 trialExpires: Date.now() + (3 * 24 * 60 * 60 * 1000),
                 createdAt: Date.now(), receipt: null, accountLocked: false
             };
-
             await setDoc(userDocRef, newUser);
             currentUser = newUser;
             localStorage.setItem('tcf_logged_user', JSON.stringify(newUser));
             closeModal('registerModal');
-            updateUIForUser();
-            alert("Compte créé avec succès ! 🎉");
+            location.reload();
         };
 
         window.doLogin = async () => {
             const email = document.getElementById('loginEmail').value.toLowerCase().trim();
             const pass = document.getElementById('loginPass').value.trim();
-
             const userSnap = await getDoc(doc(db, "users", email));
             if (userSnap.exists() && userSnap.data().password === pass) {
-                const data = userSnap.data();
-                if (data.accountLocked) return alert("⚠️ هذا الحساب مجمد حالياً من طرف الإدارة!");
-                
-                currentUser = data;
+                if (userSnap.data().accountLocked) return alert("⚠️ هذا الحساب مجمد حالياً من طرف الإدارة!");
+                currentUser = userSnap.data();
                 localStorage.setItem('tcf_logged_user', JSON.stringify(currentUser));
                 closeModal('loginModal');
-                updateUIForUser();
-            } else {
-                alert("Email ou mot de passe incorrect !");
-            }
+                location.reload();
+            } else alert("Email ou mot de passe incorrect !");
         };
 
         window.doLogout = () => {
@@ -559,18 +690,308 @@
             location.reload();
         };
 
-        // إدارة العروض حركياً وجلبها للطلاب
+        // حفظ ونشر التمارين المقترحة
+        window.saveExerciseQuestionFromAdmin = async () => {
+            const skill = document.getElementById('admExSkill').value;
+            const title = document.getElementById('admExTitle').value.trim();
+            const qNum = parseInt(document.getElementById('admExQNum').value) || 1;
+            if(!title) return alert("يرجى كتابة عنوان للتمرين أولاً!");
+
+            const texte = document.getElementById('admExTexte').value;
+            const consigne = document.getElementById('admExConsigne').value;
+            const sampleText = document.getElementById('admExSampleText').value;
+            const questionText = document.getElementById('admExQuestion').value;
+            const optA = document.getElementById('admExOptA').value;
+            const optB = document.getElementById('admExOptB').value;
+            const optC = document.getElementById('admExOptC').value;
+            const optD = document.getElementById('admExOptD').value;
+            const correctOpt = document.getElementById('admExCorrectOpt').value;
+
+            const audioFile = document.getElementById('admExAudioFile').files[0];
+            const imgFile = document.getElementById('admExImgFile').files[0];
+            const baseAudio = audioFile ? await fileToBase64(audioFile) : "";
+            const baseImg = imgFile ? await fileToBase64(imgFile) : "";
+
+            const id = `ex_${skill}_${title.replace(/\s+/g, '_')}_${qNum}`;
+            await setDoc(doc(db, "exercises", id), {
+                skill, title, qNum, texte, consigne, sampleText, questionText,
+                optA, optB, optC, optD, correctOpt, baseAudio, baseImg
+            });
+
+            alert(`تم حفظ السؤال رقم ${qNum} بنجاح في تمرين: ${title}!`);
+            document.getElementById('admExQNum').value = qNum + 1;
+            document.getElementById('admExQuestion').value = "";
+        };
+
+        // تصفية وعرض التمارين للطلاب
+        window.filterExercisesBySkill = async (skill) => {
+            const snap = await getDocs(collection(db, "exercises"));
+            const listContainer = document.getElementById('exercisesDynamicList');
+            listContainer.innerHTML = "";
+
+            let grouped = {};
+            snap.forEach(d => {
+                const ex = d.data();
+                if(ex.skill === skill) {
+                    if(!grouped[ex.title]) grouped[ex.title] = [];
+                    grouped[ex.title].push(ex);
+                }
+            });
+
+            const keys = Object.keys(grouped);
+            if(keys.length === 0) {
+                listContainer.innerHTML = `<p class="text-center text-sm text-gray-400">لا توجد تمارين مقترحة متوفرة لهذه المهارة حالياً.</p>`;
+                return;
+            }
+
+            keys.forEach(title => {
+                listContainer.innerHTML += `
+                    <div class="bg-white p-5 rounded-2xl border flex justify-between items-center shadow-sm">
+                        <div>
+                            <h4 class="font-bold text-base text-gray-800">📝 العنوان: ${title}</h4>
+                            <p class="text-xs text-purple-600 font-bold mt-1">يحتوي على: ${grouped[title].length} أسئلة مخصصة</p>
+                        </div>
+                        <button onclick="startExerciseEngine('${skill}', '${title}')" class="px-5 py-2 bg-purple-700 text-white text-xs font-bold rounded-xl shadow">ابدأ التمرين الآن 🚀</button>
+                    </div>
+                `;
+            });
+        };
+
+        window.startExerciseEngine = async (skill, title) => {
+            const snap = await getDocs(collection(db, "exercises"));
+            activeExamQuestions = [];
+            currentExerciseTitle = title;
+            currentQuizSkill = skill;
+
+            snap.forEach(d => {
+                const ex = d.data();
+                if(ex.skill === skill && ex.title === title) activeExamQuestions.push(ex);
+            });
+
+            activeExamQuestions.sort((a,b) => a.qNum - b.qNum);
+            currentQuestionIndex = 0;
+
+            document.getElementById('quizContainerArea').style.display = 'flex';
+            document.getElementById('quizBadgeType').innerText = `EXERCICE: ${skill}`;
+            renderQuestionFromExercises();
+        };
+
+        function renderQuestionFromExercises() {
+            const q = activeExamQuestions[currentQuestionIndex];
+            document.getElementById('quizBadgeSection').innerText = `Exercice: ${currentExerciseTitle} | N° ${q.qNum}`;
+            document.getElementById('quizProgressTxt').innerText = `Question ${currentQuestionIndex + 1} / ${activeExamQuestions.length}`;
+            
+            const mediaArea = document.getElementById('quizMediaDisplayArea');
+            const textBox = document.getElementById('quizTextDisplayArea');
+            const sampleBox = document.getElementById('quizSampleAnswerBox');
+            
+            mediaArea.innerHTML = ""; textBox.classList.add('hidden'); sampleBox.classList.add('hidden');
+
+            if(q.baseAudio) mediaArea.innerHTML += `<audio src="${q.baseAudio}" controls autoplay class="w-full mb-2"></audio>`;
+            if(q.baseImg) mediaArea.innerHTML += `<img src="${q.baseImg}" class="max-h-48 object-contain rounded-xl border mb-2">`;
+
+            if(q.skill === 'EE' || q.skill === 'EO') {
+                document.getElementById('questionBodyDisplay').innerHTML = `<p class="text-base font-bold text-gray-900 bg-purple-50 p-3 rounded-xl border">${q.consigne}</p>`;
+                document.getElementById('qcmOptionsGrid').innerHTML = "";
+                document.getElementById('expressionAreaFields').classList.remove('hidden');
+                
+                if(q.sampleText) {
+                    sampleBox.classList.remove('hidden');
+                    sampleBox.innerHTML = `<span class="font-bold text-yellow-800 text-xs block mb-1">💡 Exemple de réponse:</span><p class="text-xs">${q.sampleText}</p>`;
+                }
+            } else {
+                document.getElementById('expressionAreaFields').classList.add('hidden');
+                if(q.skill === 'CE' && q.texte) {
+                    textBox.classList.remove('hidden');
+                    textBox.innerHTML = `<p class="whitespace-pre-line text-sm">${q.texte}</p>`;
+                }
+                document.getElementById('questionBodyDisplay').innerText = q.questionText;
+                document.getElementById('qcmOptionsGrid').innerHTML = `
+                    <button onclick="handleExerciseQcmAnswer('A')" class="p-3 bg-gray-50 border rounded-xl hover:bg-purple-50 text-left text-sm">A. ${q.optA}</button>
+                    <button onclick="handleExerciseQcmAnswer('B')" class="p-3 bg-gray-50 border rounded-xl hover:bg-purple-50 text-left text-sm">B. ${q.optB}</button>
+                    <button onclick="handleExerciseQcmAnswer('C')" class="p-3 bg-gray-50 border rounded-xl hover:bg-purple-50 text-left text-sm">C. ${q.optC}</button>
+                    <button onclick="handleExerciseQcmAnswer('D')" class="p-3 bg-gray-50 border rounded-xl hover:bg-purple-50 text-left text-sm">D. ${q.optD}</button>
+                `;
+            }
+        }
+
+        window.handleExerciseQcmAnswer = async (selected) => {
+            const q = activeExamQuestions[currentQuestionIndex];
+            if(selected === q.correctOpt) alert("Correct ! 🎉"); else alert(`La bonne réponse est ${q.correctOpt}`);
+            
+            if(currentQuestionIndex + 1 === activeExamQuestions.length) {
+                await setDoc(doc(db, "users", currentUser.email, "scores", `score_${Date.now()}`), {
+                    title: currentExerciseTitle, date: new Date().toLocaleDateString()
+                });
+                closeQuizArea();
+                alert("تم إكمال التمرين وحفظ التقدم بنجاح!");
+            } else {
+                currentQuestionIndex++;
+                renderQuestionFromExercises();
+            }
+        };
+
+        // إرسال حلول تعبير الطالب للأستاذة هدى للتقييم والتصحيح المباشر
+        window.submitStudentExpressionToTeacher = async () => {
+            const txt = document.getElementById('studentExpressionInput').value.trim();
+            if(!txt) return alert("يرجى كتابة نص الإجابة أولاً!");
+
+            const subId = `sub_${Date.now()}`;
+            await setDoc(doc(db, "submissions", subId), {
+                studentEmail: currentUser.email,
+                studentName: currentUser.name,
+                title: currentExerciseTitle || "Examen Officiel",
+                skill: currentQuizSkill || "EE/EO",
+                studentText: txt,
+                teacherCorrection: "", rating: "", status: "En attente"
+            });
+
+            alert("✉ تم إرسال تعبيركِ المكتوب للأستاذة هدى! ستتلقى الإشعار والتصحيح والتقييم داخل ملفك الشخصي فوراً.");
+            document.getElementById('studentExpressionInput').value = "";
+            closeQuizArea();
+        };
+
+        // فتح ملف الطالب وجلب البيانات والرسائل الحية والتصحيحات
+        window.openStudentProfile = async () => {
+            if(!currentUser) return;
+            document.getElementById('profName').innerText = currentUser.name;
+            document.getElementById('profEmail').innerText = currentUser.email;
+            document.getElementById('profStatus').innerText = currentUser.status;
+            document.getElementById('profExpiry').innerText = new Date(currentUser.trialExpires).toLocaleDateString();
+
+            const scoreSnap = await getDocs(collection(db, "users", currentUser.email, "scores"));
+            const sBody = document.getElementById('profQcmScoresBody');
+            sBody.innerHTML = "";
+            scoreSnap.forEach(d => {
+                sBody.innerHTML += `<tr><td class="p-2 font-bold">${d.data().title}</td><td class="p-2 text-green-600">Complété ✅</td><td class="p-2">${d.data().date}</td></tr>`;
+            });
+
+            const subSnap = await getDocs(collection(db, "submissions"));
+            const cBody = document.getElementById('profExpressionsCorrectionsBody');
+            cBody.innerHTML = "";
+            subSnap.forEach(d => {
+                const sub = d.data();
+                if(sub.studentEmail === currentUser.email && sub.status === "Corrigé") {
+                    cBody.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-2 font-bold">${sub.title}</td>
+                            <td class="p-2 text-gray-500">${sub.studentText}</td>
+                            <td class="p-2 text-blue-700 font-bold whitespace-pre-line">${sub.teacherCorrection}</td>
+                            <td class="p-2"><span class="bg-blue-600 text-white font-black px-2.5 py-0.5 rounded text-xs">${sub.rating}</span></td>
+                        </tr>
+                    `;
+                }
+            });
+
+            listenToStudentChat();
+            openModal('studentProfileModal');
+        };
+
+        function listenToStudentChat() {
+            onSnapshot(doc(db, "chats", currentUser.email), (d) => {
+                const box = document.getElementById('studentChatBox'); box.innerHTML = "";
+                if(d.exists() && d.data().messages) {
+                    d.data().messages.forEach(m => {
+                        box.innerHTML += `<div class="p-1.5 rounded-lg text-xs ${m.sender === 'admin' ? 'bg-gray-100 text-left' : 'bg-blue-100 text-right'}"><b>${m.sender === 'admin' ? 'Mme Houda' : 'Moi'}:</b> ${m.text}</div>`;
+                    });
+                }
+            });
+        }
+
+        window.sendMsgToAdminFromStudent = async () => {
+            const inp = document.getElementById('studentChatMsgInput');
+            if(!inp.value.trim()) return;
+            const chatRef = doc(db, "chats", currentUser.email);
+            const d = await getDoc(chatRef);
+            let msgs = d.exists() ? d.data().messages : [];
+            msgs.push({ sender: 'student', text: inp.value.trim(), date: Date.now() });
+            await setDoc(chatRef, { studentName: currentUser.name, messages: msgs });
+            inp.value = "";
+        };
+
+        window.doAdminLogin = () => {
+            if (document.getElementById('admUser').value === "houda" && document.getElementById('admPass').value === "houda2026") {
+                closeModal('adminLoginModal');
+                document.getElementById('adminDashboardArea').style.display = 'flex';
+                listenToStudentsCloud();
+                listenToAdminDataExtensions();
+            } else alert("Identifiants incorrects !");
+        };
+
+        function listenToAdminDataExtensions() {
+            onSnapshot(collection(db, "submissions"), (snap) => {
+                const body = document.getElementById('adminExpressionSubmissionsBody'); body.innerHTML = "";
+                snap.forEach(d => {
+                    const sub = d.data();
+                    if(sub.status === "En attente") {
+                        body.innerHTML += `
+                            <tr class="border-b text-xs">
+                                <td class="p-3 font-bold">${sub.studentName}</td>
+                                <td class="p-3">${sub.title}</td>
+                                <td class="p-3 text-gray-500">${sub.studentText}</td>
+                                <td class="p-3"><textarea id="cor_${d.id}" class="border w-full p-2 rounded-lg" placeholder="اكتبي ملاحظاتك هنا..."></textarea></td>
+                                <td class="p-3">
+                                    <select id="rat_${d.id}" class="border font-bold p-1 bg-white rounded-lg">
+                                        <option value="A1">A1</option><option value="A2">A2</option>
+                                        <option value="B1">B1</option><option value="B2">B2</option>
+                                        <option value="C1">C1</option><option value="C2">C2</option>
+                                    </select>
+                                </td>
+                                <td class="p-3"><button onclick="sendCorrectionToStudent('${d.id}')" class="bg-green-600 text-white font-bold px-3 py-1 rounded-lg">إرسال</button></td>
+                            </tr>
+                        `;
+                    }
+                });
+            });
+
+            onSnapshot(collection(db, "chats"), (snap) => {
+                const container = document.getElementById('adminChatListContainer'); container.innerHTML = "";
+                snap.forEach(d => {
+                    const chat = d.data();
+                    const lastMsg = chat.messages[chat.messages.length - 1];
+                    container.innerHTML += `
+                        <div class="p-4 bg-white border rounded-xl space-y-2">
+                            <div class="font-bold text-xs text-indigo-900">👤 الطالب: ${chat.studentName} (${d.id})</div>
+                            <div class="text-xs bg-gray-50 p-2 rounded-lg border">الرسالة الأخيرة: ${lastMsg.text}</div>
+                            <div class="flex space-x-2">
+                                <input id="reply_${d.id}" type="text" placeholder="اكتبي الرد هنا..." class="w-full border rounded-lg p-1.5 text-xs">
+                                <button onclick="replyToStudentFromAdmin('${d.id}')" class="bg-indigo-600 text-white text-xs px-4 rounded-lg font-bold">رد</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        window.sendCorrectionToStudent = async (id) => {
+            const corr = document.getElementById(`cor_${id}`).value.trim();
+            const rating = document.getElementById(`rat_${id}`).value;
+            if(!corr) return alert("يرجى كتابة الملاحظات أولاً");
+            await updateDoc(doc(db, "submissions", id), { teacherCorrection: corr, rating: rating, status: "Corrigé" });
+            alert("تم إرسال التصحيح والتقييم بنجاح!");
+        };
+
+        window.replyToStudentFromAdmin = async (email) => {
+            const inp = document.getElementById(`reply_${email}`);
+            if(!inp.value.trim()) return;
+            const chatRef = doc(db, "chats", email);
+            const d = await getDoc(chatRef);
+            let msgs = d.data().messages;
+            msgs.push({ sender: 'admin', text: inp.value.trim(), date: Date.now() });
+            await updateDoc(chatRef, { messages: msgs });
+            inp.value = "";
+            alert("تم إرسال الرد!");
+        };
+
+        // إدارة وحفظ عينات عروض المنصة حركياً
         onSnapshot(collection(db, "offers"), (snapshot) => {
             const grid = document.getElementById('offersDynamicGrid');
             const adminTable = document.getElementById('adminOffersTableBody');
-            if(grid) grid.innerHTML = "";
-            if(adminTable) adminTable.innerHTML = "";
+            if(grid) grid.innerHTML = ""; if(adminTable) adminTable.innerHTML = "";
 
             snapshot.forEach((docSnap) => {
                 const offer = docSnap.data();
                 const id = docSnap.id;
-
-                // عرض العروض للطلاب
                 if(grid) {
                     const featuresList = offer.features ? offer.features.split(',').map(f => `<li>✔ ${f.trim()}</li>`).join('') : '';
                     grid.innerHTML += `
@@ -584,8 +1005,6 @@
                         </div>
                     `;
                 }
-
-                // لوحة تحكم الإدارة لحذف وتعديل الأسعار
                 if(adminTable) {
                     adminTable.innerHTML += `
                         <tr class="border-b hover:bg-gray-50 text-xs">
@@ -605,16 +1024,12 @@
             const duration = document.getElementById('admOfferDuration').value.trim();
             const features = document.getElementById('admOfferFeatures').value.trim();
             if(!name || !price) return alert("يرجى ملء البيانات الأساسية للعرض");
-
-            const id = `offer_${Date.now()}`;
-            await setDoc(doc(db, "offers", id), { name, price, duration, features });
+            await setDoc(doc(db, "offers", `offer_${Date.now()}`), { name, price, duration, features });
             alert("تم حفظ وتحديث العرض بنجاح!");
         };
 
         window.deletePlatformOffer = async (id) => {
-            if(confirm("هل أنت متأكدة من حذف هذا العرض بالكامل من المنصة؟")) {
-                await deleteDoc(doc(db, "offers", id));
-            }
+            if(confirm("هل أنت متأكدة من حذف هذا العرض بالكامل من المنصة؟")) await deleteDoc(doc(db, "offers", id));
         };
 
         window.requestPayment = (packName) => {
@@ -626,51 +1041,34 @@
         window.submitPayment = async () => {
             const fileInput = document.getElementById('receiptFileBase64');
             if (fileInput.files.length === 0) return alert("Veuillez choisir une image du reçu");
-
             const reader = new FileReader();
             reader.onloadend = async () => {
                 await updateDoc(doc(db, "users", currentUser.email), {
-                    receipt: reader.result,
-                    requestedPack: document.getElementById('chosenOffer').innerText
+                    receipt: reader.result, requestedPack: document.getElementById('chosenOffer').innerText
                 });
-                closeModal('paymentModal');
-                alert("Reçu envoyé avec succès !");
+                closeModal('paymentModal'); alert("Reçu envoyé avec succès !");
             };
             reader.readAsDataURL(fileInput.files[0]);
         };
 
-        window.doAdminLogin = () => {
-            if (document.getElementById('admUser').value === "houda" && document.getElementById('admPass').value === "houda2026") {
-                closeModal('adminLoginModal');
-                document.getElementById('adminDashboardArea').style.display = 'flex';
-                listenToStudentsCloud();
-            } else {
-                alert("Identifiants incorrects !");
-            }
-        };
-
         function listenToStudentsCloud() {
             onSnapshot(collection(db, "users"), (snapshot) => {
-                const tbody = document.getElementById('studentsTableBody');
-                tbody.innerHTML = "";
+                const tbody = document.getElementById('studentsTableBody'); tbody.innerHTML = "";
                 snapshot.forEach((docSnap) => {
                     const student = docSnap.data();
                     const expiryDate = new Date(student.trialExpires).toLocaleDateString();
                     const isLocked = student.accountLocked || false;
-                    
                     tbody.innerHTML += `
-                        <tr class="border-b hover:bg-gray-50">
+                        <tr class="border-b hover:bg-gray-50 text-xs">
                             <td class="p-3 font-bold text-gray-900">${student.name}</td>
-                            <td class="p-3 text-xs">${student.email}</td>
-                            <td class="p-3"><span class="px-2 py-0.5 rounded text-xs ${student.status === 'VIP' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${student.status}</span></td>
-                            <td class="p-3 text-xs">${expiryDate}</td>
-                            <td class="p-3 text-xs font-bold ${isLocked ? 'text-red-600' : 'text-green-600'}">${isLocked ? '🔒 مجمد' : '✅ نشط'}</td>
-                            <td class="p-3">${student.receipt ? `<a href="${student.receipt}" target="_blank" class="text-blue-600 underline text-xs font-bold">عرض الوصل</a>` : 'لا يوجد'}</td>
+                            <td class="p-3">${student.email}</td>
+                            <td class="p-3"><span class="px-2 py-0.5 rounded ${student.status === 'VIP' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${student.status}</span></td>
+                            <td class="p-3">${expiryDate}</td>
+                            <td class="p-3 font-bold ${isLocked ? 'text-red-600' : 'text-green-600'}">${isLocked ? '🔒 مجمد' : '✅ نشط'}</td>
+                            <td class="p-3">${student.receipt ? `<a href="${student.receipt}" target="_blank" class="text-blue-600 underline font-bold">عرض الوصل</a>` : 'لا يوجد'}</td>
                             <td class="p-3 space-x-1 flex">
-                                <button onclick="activateStudentVIP('${student.email}')" class="bg-green-600 text-white px-2 py-1 rounded text-xs font-bold">تفعيل VIP</button>
-                                <button onclick="toggleLockStudent('${student.email}', ${isLocked})" class="${isLocked ? 'bg-blue-600' : 'bg-red-600'} text-white px-2 py-1 rounded text-xs font-bold">
-                                    ${isLocked ? 'فك التجميد' : 'تجميد الحساب'}
-                                </button>
+                                <button onclick="activateStudentVIP('${student.email}')" class="bg-green-600 text-white px-2 py-1 rounded font-bold text-[10px]">تفعيل VIP</button>
+                                <button onclick="toggleLockStudent('${student.email}', ${isLocked})" class="${isLocked ? 'bg-blue-600' : 'bg-red-600'} text-white px-2 py-1 rounded font-bold text-[10px]">${isLocked ? 'فك التجميد' : 'تجميد'}</button>
                             </td>
                         </tr>
                     `;
@@ -679,50 +1077,32 @@
         }
 
         window.activateStudentVIP = async (email) => {
-            const months = prompt("مدد التفعيل بالشهور (مثال: 1 أو 2):", "1");
-            if (!months) return;
+            const months = prompt("مدد التفعيل بالشهور:", "1"); if (!months) return;
             const extraTime = parseInt(months) * 30 * 24 * 60 * 60 * 1000;
-            await updateDoc(doc(db, "users", email), {
-                status: 'VIP', trialExpires: Date.now() + extraTime, receipt: null
-            });
+            await updateDoc(doc(db, "users", email), { status: 'VIP', trialExpires: Date.now() + extraTime, receipt: null });
             alert("Compte activé VIP !");
         };
 
         window.toggleLockStudent = async (email, currentStatus) => {
-            if(confirm(`هل تريدين تعديل حالة تجميد الحساب لهذا الطالب؟`)) {
+            if(confirm(`هل تريدين تعديل حالة تجميد الحساب؟`)) {
                 await updateDoc(doc(db, "users", email), { accountLocked: !currentStatus });
-                alert("تم تحديث حالة الحساب سحابياً!");
+                alert("تم التحديث سحابياً!");
             }
         };
 
-        function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                if (!file) resolve("");
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-            });
-        }
-
-        // حفظ الأسئلة حسب الهيكلة الجديدة الدقيقة للأستاذة هدى
+        // إضافة وحقن أسئلة الامتحانات الرسمية
         window.saveQuestionFromAdmin = async () => {
             const btn = document.getElementById('btnSaveQuestion');
-            btn.innerText = "Processing Cloud Save... ⏳";
-            btn.disabled = true;
+            btn.innerText = "Processing Cloud Save... ⏳"; btn.disabled = true;
 
             const examType = document.getElementById('admExamType').value;
             const sortingType = document.getElementById('admSortingType').value;
             const skillType = document.getElementById('admSkillType').value;
             const qNum = document.getElementById('admQNumber').value;
-
-            // حقول التعبير
             const expressionTaskNum = document.getElementById('admExpressionTaskNum').value;
             const expressionConsigne = document.getElementById('admExpressionConsigne').value;
             const expressionTextSample = document.getElementById('admExpressionTextSample').value;
             const expressionImgFile = document.getElementById('admExpressionImgSample').files[0];
-
-            // حقول الفهم والقواعد
             const comprehensionText = document.getElementById('admComprehensionText').value;
             const questionText = document.getElementById('admQuestionText').value;
             const optA = document.getElementById('admOptA').value;
@@ -742,43 +1122,14 @@
                 const uploadedSampleImg = expressionImgFile ? await fileToBase64(expressionImgFile) : "";
 
                 const qId = `q_${examType}_${sortingType}_${skillType}_${Date.now()}`;
-                
-                const questionData = {
-                    examType, sortingType, skillType, qNum,
-                    expressionTaskNum, expressionConsigne, expressionTextSample, uploadedSampleImg,
-                    comprehensionText, questionText, optA, optB, optC, optD, correctOpt,
+                await setDoc(doc(db, "questions", qId), {
+                    examType, sortingType, skillType, qNum, expressionTaskNum, expressionConsigne,
+                    expressionTextSample, uploadedSampleImg, comprehensionText, questionText, optA, optB, optC, optD, correctOpt,
                     uploadedAudio, uploadedImage, uploadedVideo
-                };
-
-                await setDoc(doc(db, "questions", qId), questionData);
-                alert("تم حفظ ونشر السؤال السحابي المطور بنجاح! 💾🚀");
-                
-                // تفريغ الحقول وإعادة الكلمات الجمالية للأزرار
-                document.getElementById('admExpressionConsigne').value = "";
-                document.getElementById('admExpressionTextSample').value = "";
-                document.getElementById('admComprehensionText').value = "";
-                document.getElementById('admQuestionText').value = "";
-                document.getElementById('admOptA').value = "";
-                document.getElementById('admOptB').value = "";
-                document.getElementById('admOptC').value = "";
-                document.getElementById('admOptD').value = "";
-                
-                document.getElementById('admAudioFile').value = "";
-                document.getElementById('admImageFile').value = "";
-                document.getElementById('admVideoFile').value = "";
-                document.getElementById('admExpressionImgSample').value = "";
-
-                document.getElementById('audioFileNameTxt').innerText = "Choisir un fichier audio...";
-                document.getElementById('imageFileNameTxt').innerText = "Choisir une image...";
-                document.getElementById('videoFileNameTxt').innerText = "Choisir un fichier vidéo...";
-                document.getElementById('sampleImgNameTxt').innerText = "Choisir une image...";
-                
-            } catch (err) {
-                alert("Erreur: " + err.message);
-            } finally {
-                btn.innerText = "نشر وحقن السؤال في السحابة فوراً 💾🚀";
-                btn.disabled = false;
-            }
+                });
+                alert("تم حفظ ونشر السؤال للامتحان الرسمي بنجاح! 💾🚀");
+            } catch (err) { alert("Erreur: " + err.message); }
+            finally { btn.innerText = "نشر وحقن السؤال في السحابة فوراً 💾🚀"; btn.disabled = false; }
         };
 
         window.startExamEngine = async (examType, sortingType) => {
@@ -786,21 +1137,16 @@
             if (currentUser.status === 'free' && currentUser.trialExpires < now) {
                 return alert("Votre période d'essai a expiré. Veuillez acheter un Pack pour continuer.");
             }
-
             const querySnapshot = await getDocs(collection(db, "questions"));
             activeExamQuestions = [];
             querySnapshot.forEach((doc) => {
                 const q = doc.data();
-                if (q.examType === examType && q.sortingType === sortingType) {
-                    activeExamQuestions.push(q);
-                }
+                if (q.examType === examType && q.sortingType === sortingType) activeExamQuestions.push(q);
             });
-
             if (activeExamQuestions.length === 0) return alert("Aucune question disponible.");
 
             activeExamQuestions.sort((a, b) => a.qNum - b.qNum);
             currentQuestionIndex = 0;
-            examResultsData = { correct: 0, wrong: 0, skipped: 0 };
             document.getElementById('quizContainerArea').style.display = 'flex';
             document.getElementById('quizBadgeType').innerText = examType.toUpperCase();
             renderQuestion();
@@ -808,142 +1154,79 @@
         };
 
         function renderQuestion() {
-            clearInterval(questionTimerInterval);
-            questionTimeLeft = 60;
+            clearInterval(questionTimerInterval); questionTimeLeft = 60;
             document.getElementById('questionTimerClock').innerText = questionTimeLeft;
-
             const q = activeExamQuestions[currentQuestionIndex];
-            
-            // تهيئة الحقول وعرض العناوين
             document.getElementById('quizBadgeSection').innerText = `Compétence: ${q.skillType} | N° ${q.qNum}`;
             
             const mediaArea = document.getElementById('quizMediaDisplayArea');
             const textBox = document.getElementById('quizTextDisplayArea');
             const sampleBox = document.getElementById('quizSampleAnswerBox');
-            
-            mediaArea.innerHTML = ""; 
-            textBox.classList.add('hidden');
-            sampleBox.classList.add('hidden');
+            mediaArea.innerHTML = ""; textBox.classList.add('hidden'); sampleBox.classList.add('hidden');
 
-            // تفعيل الميديا إن وجدت
             if (q.uploadedVideo) mediaArea.innerHTML += `<video src="${q.uploadedVideo}" controls class="w-full max-h-48 rounded-xl bg-black mb-2"></video>`;
             if (q.uploadedImage) mediaArea.innerHTML += `<img src="${q.uploadedImage}" class="max-w-full max-h-48 object-contain rounded-xl border mb-2">`;
             if (q.uploadedAudio) mediaArea.innerHTML += `<audio src="${q.uploadedAudio}" controls autoplay class="w-full mb-2"></audio>`;
 
-            // معالجة المهارات الخاصة بالتعبير (Tasks)
             if (q.skillType === 'EE' || q.skillType === 'EO') {
-                document.getElementById('questionBodyDisplay').innerHTML = `
-                    <span class="bg-blue-100 text-blue-800 text-xs px-2.5 py-1 font-bold rounded mb-2 inline-block">Tâche ${q.expressionTaskNum || 1}</span>
-                    <p class="text-base font-bold text-gray-900 mt-1">${q.expressionConsigne || ''}</p>
-                `;
+                document.getElementById('questionBodyDisplay').innerHTML = `<span class="bg-blue-100 text-blue-800 text-xs px-2.5 py-1 font-bold rounded mb-2 inline-block">Tâche ${q.expressionTaskNum || 1}</span><p class="text-base font-bold text-gray-900 mt-1">${q.expressionConsigne || ''}</p>`;
                 document.getElementById('qcmOptionsGrid').innerHTML = "";
                 document.getElementById('expressionAreaFields').classList.remove('hidden');
-
-                // إظهار نموذج الإجابة إن وجد لمساعدة الطالب
                 if (q.expressionTextSample || q.uploadedSampleImg) {
                     sampleBox.classList.remove('hidden');
-                    sampleBox.innerHTML = `<p class="font-bold text-xs text-yellow-800 mb-1">💡 Exemple de réponse proposé :</p>`;
-                    if (q.expressionTextSample) sampleBox.innerHTML += `<p class="whitespace-pre-line text-xs">${q.expressionTextSample}</p>`;
+                    if (q.expressionTextSample) sampleBox.innerHTML += `<p class="text-xs">${q.expressionTextSample}</p>`;
                     if (q.uploadedSampleImg) sampleBox.innerHTML += `<img src="${q.uploadedSampleImg}" class="mt-2 max-h-40 object-contain rounded border">`;
                 }
-
             } else {
-                // مهارات الاختيار المتعدد (QCM) الفهم والقواعد
                 document.getElementById('expressionAreaFields').classList.add('hidden');
-                
                 if (q.skillType === 'CE' && q.comprehensionText) {
-                    textBox.classList.remove('hidden');
-                    textBox.innerHTML = `<p class="whitespace-pre-line text-gray-700 font-mono">${q.comprehensionText}</p>`;
+                    textBox.classList.remove('hidden'); textBox.innerHTML = `<p class="whitespace-pre-line text-gray-700 font-mono">${q.comprehensionText}</p>`;
                 }
-
                 document.getElementById('questionBodyDisplay').innerHTML = `<p class="text-base font-bold">${q.questionText || ''}</p>`;
-
                 document.getElementById('qcmOptionsGrid').innerHTML = `
-                    <button onclick="handleAnswer('A')" class="p-3 bg-gray-50 border rounded-xl hover:bg-blue-50 text-left text-sm font-medium">A. ${q.optA || ''}</button>
-                    <button onclick="handleAnswer('B')" class="p-3 bg-gray-50 border rounded-xl hover:bg-blue-50 text-left text-sm font-medium">B. ${q.optB || ''}</button>
-                    <button onclick="handleAnswer('C')" class="p-3 bg-gray-50 border rounded-xl hover:bg-blue-50 text-left text-sm font-medium">C. ${q.optC || ''}</button>
-                    <button onclick="handleAnswer('D')" class="p-3 bg-gray-50 border rounded-xl hover:bg-blue-50 text-left text-sm font-medium">D. ${q.optD || ''}</button>
+                    <button onclick="handleAnswer('A')" class="p-3 bg-gray-50 border rounded-xl hover:bg-blue-50 text-left text-sm">A. ${q.optA || ''}</button>
+                    <button onclick="handleAnswer('B')" class="p-3 bg-gray-50 border rounded-xl hover:bg-blue-50 text-left text-sm">B. ${q.optB || ''}</button>
+                    <button onclick="handleAnswer('C')" class="p-3 bg-gray-50 border rounded-xl hover:bg-blue-50 text-left text-sm">C. ${q.optC || ''}</button>
+                    <button onclick="handleAnswer('D')" class="p-3 bg-gray-50 border rounded-xl hover:bg-blue-50 text-left text-sm">D. ${q.optD || ''}</button>
                 `;
-
                 questionTimerInterval = setInterval(() => {
-                    questionTimeLeft--;
-                    document.getElementById('questionTimerClock').innerText = questionTimeLeft;
-                    if (questionTimeLeft <= 0) {
-                        examResultsData.skipped++;
-                        nextQuestion();
-                    }
+                    questionTimeLeft--; document.getElementById('questionTimerClock').innerText = questionTimeLeft;
+                    if (questionTimeLeft <= 0) nextQuestion();
                 }, 1000);
             }
         }
 
-        window.handleAnswer = (selected) => {
-            clearInterval(questionTimerInterval);
-            const q = activeExamQuestions[currentQuestionIndex];
-            if (selected === q.correctOpt) examResultsData.correct++;
-            else examResultsData.wrong++;
-            nextQuestion();
-        };
-
-        window.saveAndNextQuestion = (isExpression) => {
-            if(isExpression) {
-                // حفظ التعبيرات المكتوبة من الطلاب ومتابعتها لاحقاً
-                document.getElementById('studentExpressionInput').value = "";
-            }
-            nextQuestion();
-        };
-
-        function nextQuestion() {
-            currentQuestionIndex++;
-            if (currentQuestionIndex < activeExamQuestions.length) renderQuestion();
-            else endExam();
-        }
-
-        function startTimers() {
-            let totalSeconds = 80 * 60;
-            globalTimerInterval = setInterval(() => {
-                totalSeconds--;
-                const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
-                const s = (totalSeconds % 60).toString().padStart(2, '0');
-                document.getElementById('globalTimerClock').innerText = `${m}:${s}`;
-                if (totalSeconds <= 0) endExam();
-            }, 1000);
-        }
-
-        function endExam() {
-            clearInterval(globalTimerInterval);
-            clearInterval(questionTimerInterval);
-            document.getElementById('quizContainerArea').style.display = 'none';
-            alert("Examen Terminé ! Merci pour votre participation.");
-        }
+        window.handleAnswer = (selected) => { clearInterval(questionTimerInterval); nextQuestion(); };
+        window.closeQuizArea = () => { clearInterval(globalTimerInterval); clearInterval(questionTimerInterval); document.getElementById('quizContainerArea').style.display = 'none'; };
+        function nextQuestion() { currentQuestionIndex++; if (currentQuestionIndex < activeExamQuestions.length) renderQuestion(); else closeQuizArea(); }
+        function startTimers() { let totalSeconds = 80 * 60; globalTimerInterval = setInterval(() => { totalSeconds--; if (totalSeconds <= 0) closeQuizArea(); }, 1000); }
 
         window.saveLessonFromAdmin = async () => {
             const skill = document.getElementById('admLessonSkill').value;
             const title = document.getElementById('admLessonTitle').value;
             const url = document.getElementById('admLessonUrl').value;
             if(!title || !url) return alert("يرجى ملء بيانات المستند");
-            const id = `l_${skill}_${Date.now()}`;
-            await setDoc(doc(db, "lessons", id), { skill, title, url });
+            await setDoc(doc(db, "lessons", `l_${skill}_${Date.now()}`), { skill, title, url });
             alert("Document publié !");
-            document.getElementById('admLessonTitle').value = "";
-            document.getElementById('admLessonUrl').value = "";
         };
 
         window.loadSkillCours = async (skill) => {
             document.getElementById('skillsCoursContainer').classList.remove('hidden');
-            document.getElementById('selectedSkillTitle').innerText = `Leçons pour ${skill} :`;
             const querySnapshot = await getDocs(collection(db, "lessons"));
-            const list = document.getElementById('coursItemsList');
-            list.innerHTML = "";
-            let count = 0;
+            const list = document.getElementById('coursItemsList'); list.innerHTML = "";
             querySnapshot.forEach((doc) => {
                 const l = doc.data();
-                if (l.skill === skill) {
-                    count++;
-                    list.innerHTML += `<li class="p-2 bg-gray-50 rounded flex justify-between"><span>📄 ${l.title}</span> <a href="${l.url}" target="_blank" class="text-blue-600 underline font-bold">Ouvrir</a></li>`;
-                }
+                if (l.skill === skill) list.innerHTML += `<li class="p-2 bg-gray-50 rounded flex justify-between"><span>📄 ${l.title}</span> <a href="${l.url}" target="_blank" class="text-blue-600 underline font-bold">Ouvrir</a></li>`;
             });
-            if(count === 0) list.innerHTML = "<li class='p-2 text-gray-400'>Aucun document disponible.</li>";
         };
+
+        function fileToBase64(file) {
+            return new Promise((resolve) => {
+                if (!file) resolve("");
+                const reader = new FileReader(); reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+            });
+        }
     </script>
 </body>
 </html>
