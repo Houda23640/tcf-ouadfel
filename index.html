@@ -25,6 +25,7 @@
                 <a href="#exercises-section" class="hover:text-purple-600 font-bold">Exercices Proposés</a>
                 <a href="#offers-section" class="hover:text-blue-600">Nos Offres</a>
                 <a href="#courses-section" class="hover:text-blue-600">Cours</a>
+                <a href="#media-section" id="navMediaBtn" class="hidden hover:text-indigo-600 font-bold">🎙 Podcast</a>
                 <button id="navProfileBtn" onclick="openStudentProfile()" class="hidden text-blue-600 font-bold hover:underline flex items-center">👤 Mon Profil</button>
             </nav>
 
@@ -41,6 +42,7 @@
                     <option value="zh">中文</option>
                 </select>
 
+                <button id="darkModeBtn" onclick="toggleDarkMode()" class="px-2 py-1.5 text-lg" title="Dark Mode">🌙</button>
                 <div id="headerAuthBtns" class="flex space-x-2">
                     <button onclick="openModal('loginModal')" class="px-3 py-1.5 text-sm font-semibold text-blue-600">Connexion</button>
                     <button onclick="openModal('registerModal')" class="px-3 py-1.5 text-sm font-semibold bg-blue-600 text-white rounded-lg shadow">Créer un compte</button>
@@ -57,6 +59,14 @@
         <div id="trialCountdownBanner" class="hidden bg-blue-50 border-y border-blue-200 py-2 text-center text-sm font-bold text-gray-700">
             <span>Période d'essai gratuite active</span>
             <span id="trialClock" class="text-red-600 font-mono text-base ml-2">72:00:00</span>
+        </div>
+        <!-- شريط الإعلانات المتحرك -->
+        <div id="announcementTicker" class="hidden bg-yellow-400 border-b border-yellow-500 py-1.5 overflow-hidden">
+            <div id="tickerContent" class="whitespace-nowrap animate-marquee text-gray-900 font-bold text-sm px-4">📢 مرحباً بكم في منصة TCF Ouadfel!</div>
+        </div>
+        <!-- كلمة اليوم -->
+        <div id="motDuJourBanner" class="hidden bg-gradient-to-r from-green-50 to-teal-50 border-b border-green-200 py-1.5 text-center text-xs font-bold text-gray-700">
+            🌟 <span class="text-green-700">Mot du Jour:</span> <span id="motDuJourText" class="text-gray-800 font-black"></span> — <span id="motDuJourDef" class="text-gray-500 font-normal italic"></span>
         </div>
     </header>
 
@@ -170,6 +180,118 @@
         </div>
     </section>
 
+    <!-- ===== قسم المقالات والبودكاست والريبورتاج ===== -->
+    <section id="media-section" class="hidden bg-gradient-to-br from-indigo-50 to-blue-50 border-t border-b py-12">
+        <div class="container mx-auto px-4 max-w-5xl">
+            <div class="text-center mb-8">
+                <span class="text-indigo-600 font-bold uppercase tracking-widest text-xs">🎙 محتوى تعليمي حي</span>
+                <h2 class="text-2xl font-black text-gray-900 mt-1">المقالات · البودكاست · الريبورتاج</h2>
+                <p class="text-gray-500 text-sm mt-1">استمع وتعلم — ترجمة تلقائية وعرض النص أسفل كل مقطع</p>
+            </div>
+
+            <!-- تبويب الأنواع -->
+            <div class="flex justify-center gap-3 mb-8 flex-wrap">
+                <button onclick="switchMediaTab('articles')" id="tab-articles" class="media-tab-btn active-tab px-5 py-2.5 rounded-xl font-bold text-sm bg-indigo-600 text-white shadow">📰 مقالات</button>
+                <button onclick="switchMediaTab('podcasts')" id="tab-podcasts" class="media-tab-btn px-5 py-2.5 rounded-xl font-bold text-sm bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-50">🎙 بودكاست</button>
+                <button onclick="switchMediaTab('reportages')" id="tab-reportages" class="media-tab-btn px-5 py-2.5 rounded-xl font-bold text-sm bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-50">🎬 ريبورتاج</button>
+            </div>
+
+            <!-- قائمة المحتوى -->
+            <div id="mediaContentList" class="space-y-5">
+                <p class="text-center text-sm text-gray-400">جاري تحميل المحتوى...</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- MODAL: مشاهدة/استماع المحتوى مع الترجمة -->
+    <div id="mediaViewerModal" class="fixed inset-0 bg-black/80 z-50 hidden justify-center items-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl w-full max-w-2xl shadow-2xl relative">
+            <div class="flex justify-between items-center p-5 border-b">
+                <div>
+                    <span id="mediaViewerBadge" class="bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full">مقال</span>
+                    <h3 id="mediaViewerTitle" class="text-lg font-black text-gray-900 mt-1"></h3>
+                </div>
+                <button onclick="closeModal('mediaViewerModal')" class="text-gray-400 text-2xl leading-none">&times;</button>
+            </div>
+
+            <!-- ميديا -->
+            <div id="mediaViewerMedia" class="p-5 pb-0"></div>
+
+            <!-- محتوى النص -->
+            <div class="p-5">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-xs font-black text-gray-500 uppercase tracking-wider">النص المرافق</span>
+                    <div class="flex gap-2">
+                        <select id="mediaTranslateLang" class="border rounded-lg p-1 text-xs bg-gray-50 font-medium">
+                            <option value="">— الفرنسية (أصلي) —</option>
+                            <option value="ar">ترجمة للعربية</option>
+                            <option value="dz">ترجمة للدارجة</option>
+                            <option value="en">Translate to English</option>
+                            <option value="de">Auf Deutsch</option>
+                            <option value="es">Español</option>
+                        </select>
+                        <button onclick="translateMediaText()" class="px-3 py-1 bg-indigo-600 text-white text-xs font-bold rounded-lg shadow">ترجم</button>
+                    </div>
+                </div>
+                <div id="mediaViewerText" class="bg-gray-50 border rounded-xl p-4 text-sm leading-relaxed max-h-60 overflow-y-auto text-gray-700 whitespace-pre-line"></div>
+                <div id="mediaTranslationBox" class="hidden mt-3 bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm leading-relaxed text-blue-900 whitespace-pre-line">
+                    <span class="text-xs font-black text-blue-600 block mb-1">🌐 الترجمة:</span>
+                    <div id="mediaTranslatedText"></div>
+                </div>
+                <div id="mediaTranslatingLoader" class="hidden text-center py-3 text-sm text-indigo-600 font-bold">⏳ جاري الترجمة...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== قسم الأدوات الإضافية ===== -->
+    <section id="tools-section" class="hidden bg-white border-t py-12">
+        <div class="container mx-auto px-4 max-w-5xl">
+            <div class="text-center mb-8">
+                <span class="text-green-600 font-bold uppercase tracking-widest text-xs">أدوات مجانية</span>
+                <h2 class="text-2xl font-black text-gray-900 mt-1">🛠 أدواتك الشخصية</h2>
+                <p class="text-gray-500 text-sm mt-1">كل ما تحتاجه لتحضير أفضل</p>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <button onclick="openFlashcards()" class="bg-gradient-to-br from-blue-500 to-indigo-600 text-white p-5 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center gap-2 font-bold text-sm">
+                    <span class="text-3xl">🃏</span> Flashcards
+                    <span class="text-xs font-normal opacity-80">بطاقات المراجعة</span>
+                </button>
+                <button onclick="openModal('sprintModal')" class="bg-gradient-to-br from-orange-500 to-red-500 text-white p-5 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center gap-2 font-bold text-sm">
+                    <span class="text-3xl">⚡</span> Sprint Mode
+                    <span class="text-xs font-normal opacity-80">10 أسئلة / 5 دقائق</span>
+                </button>
+                <button onclick="openFavoris()" class="bg-gradient-to-br from-yellow-400 to-amber-500 text-white p-5 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center gap-2 font-bold text-sm">
+                    <span class="text-3xl">⭐</span> Mes Favoris
+                    <span class="text-xs font-normal opacity-80">أسئلتي المحفوظة</span>
+                </button>
+                <button onclick="openModal('studyPlanModal')" class="bg-gradient-to-br from-green-500 to-teal-600 text-white p-5 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center gap-2 font-bold text-sm">
+                    <span class="text-3xl">📅</span> Plan d'étude
+                    <span class="text-xs font-normal opacity-80">جدول المراجعة</span>
+                </button>
+                <button onclick="openBadges()" class="bg-gradient-to-br from-purple-500 to-pink-500 text-white p-5 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center gap-2 font-bold text-sm">
+                    <span class="text-3xl">🏆</span> Mes Badges
+                    <span class="text-xs font-normal opacity-80">إنجازاتي</span>
+                </button>
+                <button onclick="openModal('progressModal'); loadProgressChart()" class="bg-gradient-to-br from-cyan-500 to-blue-600 text-white p-5 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center gap-2 font-bold text-sm">
+                    <span class="text-3xl">📈</span> Progression
+                    <span class="text-xs font-normal opacity-80">منحنى التطور</span>
+                </button>
+                <button onclick="openModal('printWorksheetModal')" class="bg-gradient-to-br from-gray-600 to-gray-800 text-white p-5 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center gap-2 font-bold text-sm">
+                    <span class="text-3xl">📄</span> Fiche Expression
+                    <span class="text-xs font-normal opacity-80">نموذج للطباعة</span>
+                </button>
+                <button onclick="openExportPDF()" class="bg-gradient-to-br from-rose-500 to-red-600 text-white p-5 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center gap-2 font-bold text-sm">
+                    <span class="text-3xl">📥</span> Export PDF
+                    <span class="text-xs font-normal opacity-80">تصدير ملفي</span>
+                </button>
+                <button onclick="document.getElementById('media-section').classList.remove('hidden'); document.getElementById('media-section').scrollIntoView({behavior:'smooth'}); switchMediaTab('articles')" class="bg-gradient-to-br from-indigo-500 to-violet-600 text-white p-5 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center gap-2 font-bold text-sm">
+                    <span class="text-3xl">🎙</span> Podcast & Articles
+                    <span class="text-xs font-normal opacity-80">محتوى + ترجمة</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
     <div id="quizContainerArea" class="fixed inset-0 bg-gray-900/90 z-50 hidden justify-center items-center p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl w-full max-w-3xl shadow-2xl p-6 relative">
             <div class="flex justify-between items-center mb-6 border-b pb-4">
@@ -206,7 +328,10 @@
 
             <div class="flex justify-between items-center border-t pt-4 mt-6 text-sm">
                 <span id="quizProgressTxt" class="font-bold text-gray-500">Question 1 / 1</span>
-                <button onclick="closeQuizArea()" class="text-red-600 underline font-bold">Quitter</button>
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleFavoriteQuestion()" id="btnFavoriteQ" class="text-yellow-400 hover:text-yellow-500 text-xl font-bold" title="حفظ السؤال للمراجعة">⭐</button>
+                    <button onclick="closeQuizArea()" class="text-red-600 underline font-bold">Quitter</button>
+                </div>
             </div>
         </div>
     </div>
@@ -251,6 +376,19 @@
                         <thead class="bg-blue-50 text-blue-900 border-b"><tr><th class="p-2">التمرين / المهمة</th><th class="p-2">تعبيرك المرسل</th><th class="p-2">تصحيح وملاحظات الأستاذة هدى</th><th class="p-2">التقييم المستحق</th></tr></thead>
                         <tbody id="profExpressionsCorrectionsBody"></tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- أدوات سريعة من ملف الطالب -->
+            <div class="border-t pt-4">
+                <h4 class="text-xs font-black text-gray-700 uppercase tracking-wider mb-3">🛠 أدواتي السريعة</h4>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="closeModal('studentProfileModal'); openBadges()" class="py-2.5 bg-purple-50 border border-purple-200 text-purple-700 rounded-xl text-xs font-bold hover:bg-purple-100">🏆 شاراتي</button>
+                    <button onclick="closeModal('studentProfileModal'); openModal('progressModal'); loadProgressChart()" class="py-2.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl text-xs font-bold hover:bg-blue-100">📈 تطوري</button>
+                    <button onclick="closeModal('studentProfileModal'); openExportPDF()" class="py-2.5 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs font-bold hover:bg-red-100">📥 PDF</button>
+                    <button onclick="closeModal('studentProfileModal'); openModal('studyPlanModal')" class="py-2.5 bg-green-50 border border-green-200 text-green-700 rounded-xl text-xs font-bold hover:bg-green-100">📅 خطتي</button>
+                    <button onclick="closeModal('studentProfileModal'); openFavoris()" class="py-2.5 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-xl text-xs font-bold hover:bg-yellow-100">⭐ محفوظاتي</button>
+                    <button onclick="closeModal('studentProfileModal'); openAttestationFromProfile()" class="py-2.5 bg-gray-50 border border-gray-200 text-gray-700 rounded-xl text-xs font-bold hover:bg-gray-100">🖨 شهادة</button>
                 </div>
             </div>
         </div>
@@ -514,6 +652,75 @@
                 </div>
             </div>
 
+            <!-- قسم الإعلانات + كلمة اليوم -->
+            <div class="bg-white p-6 rounded-2xl border shadow-sm">
+                <h3 class="text-lg font-black text-yellow-700 border-b pb-2 mb-4">📢 [6] الإعلانات العامة + كلمة اليوم</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1">📢 إعلان عام يظهر كشريط متحرك لجميع الطلاب</label>
+                        <textarea id="admAnnouncementText" rows="2" class="w-full border rounded-lg p-2 text-sm mb-2" placeholder="اكتبي الإعلان هنا..."></textarea>
+                        <button onclick="saveAnnouncement()" class="px-5 py-2 bg-yellow-500 text-gray-900 font-bold rounded-xl text-sm shadow">نشر الإعلان فوراً 📣</button>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1">🌟 كلمة اليوم — Mot du Jour</label>
+                        <input id="admMotWord" type="text" placeholder="الكلمة (فرنسي)" class="w-full border rounded-lg p-2 text-sm mb-2">
+                        <input id="admMotMeaning" type="text" placeholder="المعنى أو التعريف" class="w-full border rounded-lg p-2 text-sm mb-2">
+                        <input id="admMotExample" type="text" placeholder="مثال على الاستخدام" class="w-full border rounded-lg p-2 text-sm mb-2">
+                        <button onclick="saveMotDuJourFromAdmin()" class="px-5 py-2 bg-green-600 text-white font-bold rounded-xl text-sm shadow">نشر كلمة اليوم ✅</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- [7] قسم المقالات والبودكاست والريبورتاج -->
+            <div class="bg-white p-6 rounded-2xl border shadow-sm">
+                <h3 class="text-lg font-black text-indigo-900 border-b pb-2 mb-4">🎙 [7] إضافة مقالات · بودكاست · ريبورتاج</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1">نوع المحتوى</label>
+                        <select id="admMediaType" class="w-full border rounded-lg p-2 text-sm bg-indigo-50 font-bold text-indigo-900">
+                            <option value="articles">📰 مقال</option>
+                            <option value="podcasts">🎙 بودكاست</option>
+                            <option value="reportages">🎬 ريبورتاج</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-gray-500 mb-1">عنوان المحتوى</label>
+                        <input id="admMediaTitle" type="text" placeholder="عنوان المقال أو البودكاست..." class="w-full border rounded-lg p-2 text-sm">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1">النص المرافق (يظهر أسفل المحتوى)</label>
+                        <textarea id="admMediaText" rows="4" class="w-full border rounded-lg p-2 text-sm" placeholder="اكتبي النص الفرنسي هنا — سيظهر للطالب ويمكن ترجمته تلقائياً..."></textarea>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1">🎵 ملف صوتي (للبودكاست)</label>
+                            <label class="flex items-center justify-between border-2 border-dashed border-blue-300 bg-blue-50 hover:bg-blue-100 rounded-lg p-2.5 cursor-pointer transition">
+                                <span id="mediaAudioNameTxt" class="text-xs text-blue-800 font-medium truncate">اختر ملف صوتي...</span>
+                                <span class="bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded">📂 رفع</span>
+                                <input id="admMediaAudio" type="file" accept="audio/*" class="hidden" onchange="document.getElementById('mediaAudioNameTxt').innerText = this.files[0]?.name || 'اختر ملف...'">
+                            </label>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1">🎬 فيديو ريبورتاج (رابط YouTube أو ملف)</label>
+                            <input id="admMediaVideoUrl" type="text" placeholder="رابط يوتيوب أو فيديو..." class="w-full border rounded-lg p-2 text-sm mb-1">
+                            <label class="flex items-center justify-between border-2 border-dashed border-purple-300 bg-purple-50 hover:bg-purple-100 rounded-lg p-2.5 cursor-pointer transition">
+                                <span id="mediaVideoNameTxt" class="text-xs text-purple-800 font-medium truncate">أو ارفع فيديو مباشرة...</span>
+                                <span class="bg-purple-600 text-white text-[10px] font-bold px-2 py-1 rounded">📂 رفع</span>
+                                <input id="admMediaVideo" type="file" accept="video/*" class="hidden" onchange="document.getElementById('mediaVideoNameTxt').innerText = this.files[0]?.name || 'اختر ملف...'">
+                            </label>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1">🖼 صورة مصغرة (thumbnail)</label>
+                            <input id="admMediaImg" type="file" accept="image/*" class="w-full border p-1 rounded-lg bg-white text-xs">
+                        </div>
+                    </div>
+                </div>
+                <button onclick="saveMediaContent()" class="w-full py-2.5 bg-indigo-600 text-white font-bold text-sm rounded-xl shadow">نشر المحتوى فوراً للطلاب 🚀</button>
+                <div id="adminMediaListPreview" class="mt-4 space-y-2 max-h-48 overflow-y-auto"></div>
+            </div>
+
             <div class="bg-white p-6 rounded-2xl border shadow-sm">
                 <h3 class="text-lg font-black text-gray-900 border-b pb-2 mb-4">👥 إدارة الطلاب، الاشتراكات وتجميد الحسابات</h3>
                 <div class="overflow-x-auto">
@@ -568,6 +775,240 @@
             <span id="chosenOffer" class="block bg-yellow-50 text-yellow-700 font-bold p-2 text-xs rounded-xl border mb-4">Pack Gold</span>
             <input id="receiptFileBase64" type="file" accept="image/*" class="w-full text-xs border rounded p-2 mb-4">
             <button onclick="submitPayment()" class="w-full py-2.5 bg-green-600 text-white font-bold rounded-xl">إرسال الوصل للمديرة هدى ✉</button>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: Flashcards ===== -->
+    <div id="flashcardsModal" class="fixed inset-0 bg-black/70 z-50 hidden justify-center items-center p-4">
+        <div class="bg-white rounded-3xl w-full max-w-lg p-6 relative">
+            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                <h3 class="text-lg font-black text-gray-900">🃏 بطاقات المراجعة السريعة</h3>
+                <button onclick="closeModal('flashcardsModal')" class="text-gray-400 text-2xl">&times;</button>
+            </div>
+            <div id="flashcardDisplay" class="relative h-52 cursor-pointer" onclick="flipFlashcard()">
+                <div id="flashcardInner" class="w-full h-full transition-transform duration-500" style="transform-style:preserve-3d; transition: transform 0.5s;">
+                    <div id="flashcardFront" class="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex flex-col items-center justify-center text-white p-6" style="backface-visibility:hidden;">
+                        <span class="text-xs font-bold uppercase tracking-widest mb-3 opacity-70">Mot / الكلمة</span>
+                        <p id="fcWord" class="text-3xl font-black text-center"></p>
+                        <span class="text-xs mt-4 opacity-60">اضغط للقلب 👆</span>
+                    </div>
+                    <div id="flashcardBack" class="absolute inset-0 bg-gradient-to-br from-green-500 to-teal-600 rounded-2xl flex flex-col items-center justify-center text-white p-6" style="backface-visibility:hidden; transform: rotateY(180deg);">
+                        <span class="text-xs font-bold uppercase tracking-widest mb-2 opacity-70">Définition / المعنى</span>
+                        <p id="fcMeaning" class="text-lg font-bold text-center mb-2"></p>
+                        <p id="fcExample" class="text-xs text-center opacity-80 italic"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-between mt-4">
+                <button onclick="prevFlashcard()" class="px-4 py-2 bg-gray-100 rounded-xl font-bold text-sm hover:bg-gray-200">◀ السابق</button>
+                <span id="fcProgress" class="text-xs text-gray-400 font-bold self-center">1 / 1</span>
+                <button onclick="nextFlashcard()" class="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700">التالي ▶</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: Sprint Mode ===== -->
+    <div id="sprintModal" class="fixed inset-0 bg-black/80 z-50 hidden justify-center items-center p-4">
+        <div class="bg-white rounded-3xl w-full max-w-2xl p-6 relative">
+            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                <div>
+                    <h3 class="text-lg font-black text-gray-900">⚡ Sprint Mode — 10 أسئلة في 5 دقائق</h3>
+                    <p class="text-xs text-gray-400">تدريب مكثف سريع قبل الامتحان</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="bg-orange-100 px-3 py-1.5 rounded-xl text-center border border-orange-200">
+                        <small class="text-orange-400 block text-[9px] uppercase font-bold">وقت</small>
+                        <span id="sprintTimerClock" class="font-mono font-black text-orange-600 text-xl">5:00</span>
+                    </div>
+                    <button onclick="closeModal('sprintModal')" class="text-gray-400 text-2xl">&times;</button>
+                </div>
+            </div>
+            <div id="sprintQuestionArea">
+                <div id="sprintStartScreen" class="text-center py-8">
+                    <p class="text-4xl mb-4">⚡</p>
+                    <h4 class="text-xl font-black text-gray-900 mb-2">اختر المهارة وابدأ!</h4>
+                    <div class="grid grid-cols-2 gap-3 max-w-xs mx-auto mt-4">
+                        <button onclick="startSprint('CO')" class="py-3 bg-blue-600 text-white rounded-xl font-bold text-sm shadow">CO — شفهي</button>
+                        <button onclick="startSprint('CE')" class="py-3 bg-green-600 text-white rounded-xl font-bold text-sm shadow">CE — كتابي</button>
+                        <button onclick="startSprint('SL')" class="py-3 bg-purple-600 text-white rounded-xl font-bold text-sm shadow">SL — قواعد</button>
+                        <button onclick="startSprint('ALL')" class="py-3 bg-orange-500 text-white rounded-xl font-bold text-sm shadow">ALL — مختلط</button>
+                    </div>
+                </div>
+                <div id="sprintQuizArea" class="hidden">
+                    <div class="flex justify-between items-center mb-3">
+                        <span id="sprintProgress" class="text-xs font-bold text-gray-500">السؤال 1 / 10</span>
+                        <span id="sprintScore" class="text-xs font-bold text-green-600">✅ 0 صحيح</span>
+                    </div>
+                    <div id="sprintMediaArea" class="mb-3 flex flex-col items-center"></div>
+                    <div id="sprintQuestionText" class="text-base font-bold text-gray-800 mb-4 p-3 bg-gray-50 rounded-xl border"></div>
+                    <div id="sprintOptionsGrid" class="grid grid-cols-2 gap-3"></div>
+                </div>
+                <div id="sprintResultArea" class="hidden text-center py-6">
+                    <p class="text-5xl mb-3" id="sprintResultEmoji">🎉</p>
+                    <h4 class="text-2xl font-black text-gray-900" id="sprintResultTitle"></h4>
+                    <p class="text-gray-500 text-sm mt-1" id="sprintResultSub"></p>
+                    <div class="mt-4 bg-gray-50 rounded-xl p-4 border text-sm">
+                        <p>✅ إجابات صحيحة: <span id="sprintCorrectCount" class="font-black text-green-600"></span></p>
+                        <p>❌ إجابات خاطئة: <span id="sprintWrongCount" class="font-black text-red-600"></span></p>
+                        <p>📊 المستوى المقدر: <span id="sprintLevelBadge" class="font-black text-blue-600"></span></p>
+                    </div>
+                    <button onclick="startSprint('ALL')" class="mt-4 px-6 py-2.5 bg-orange-500 text-white font-bold rounded-xl shadow">🔄 مرة أخرى</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: Favoris ===== -->
+    <div id="favorisModal" class="fixed inset-0 bg-black/70 z-50 hidden justify-center items-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl w-full max-w-2xl p-6 relative">
+            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                <h3 class="text-lg font-black text-gray-900">⭐ أسئلتي المحفوظة للمراجعة</h3>
+                <button onclick="closeModal('favorisModal')" class="text-gray-400 text-2xl">&times;</button>
+            </div>
+            <div id="favorisList" class="space-y-3 max-h-96 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: Study Plan ===== -->
+    <div id="studyPlanModal" class="fixed inset-0 bg-black/70 z-50 hidden justify-center items-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl w-full max-w-lg p-6 relative">
+            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                <h3 class="text-lg font-black text-gray-900">📅 جدول المراجعة الأسبوعي</h3>
+                <button onclick="closeModal('studyPlanModal')" class="text-gray-400 text-2xl">&times;</button>
+            </div>
+            <div id="studyPlanSetup" class="">
+                <p class="text-sm text-gray-600 mb-3">حدد تاريخ امتحانك الحقيقي وسنضع لك خطة مراجعة مخصصة!</p>
+                <div class="mb-4">
+                    <label class="block text-xs font-bold text-gray-500 mb-1">تاريخ امتحانك</label>
+                    <input id="examDateInput" type="date" class="w-full border rounded-xl p-2.5 text-sm outline-none">
+                </div>
+                <button onclick="generateStudyPlan()" class="w-full py-2.5 bg-blue-600 text-white font-bold rounded-xl shadow">🗓 إنشاء خطة المراجعة الآن!</button>
+            </div>
+            <div id="studyPlanResult" class="hidden mt-4 space-y-3">
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 text-center">
+                    <p class="text-xs text-blue-600 font-bold">أيام متبقية حتى الامتحان:</p>
+                    <p id="daysLeftCount" class="text-3xl font-black text-blue-700 mt-1"></p>
+                </div>
+                <div id="weeklyPlanGrid" class="grid grid-cols-1 gap-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: Badges ===== -->
+    <div id="badgesModal" class="fixed inset-0 bg-black/70 z-50 hidden justify-center items-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl w-full max-w-lg p-6 relative">
+            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                <h3 class="text-lg font-black text-gray-900">🏆 شاراتي وإنجازاتي</h3>
+                <button onclick="closeModal('badgesModal')" class="text-gray-400 text-2xl">&times;</button>
+            </div>
+            <div id="badgesGrid" class="grid grid-cols-3 gap-4"></div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: Attestation (Print) ===== -->
+    <div id="attestationModal" class="fixed inset-0 bg-black/70 z-50 hidden justify-center items-center p-4">
+        <div class="bg-white rounded-3xl w-full max-w-md p-6 relative">
+            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                <h3 class="text-lg font-black text-gray-900">🖨 طباعة ورقة النتيجة</h3>
+                <button onclick="closeModal('attestationModal')" class="text-gray-400 text-2xl">&times;</button>
+            </div>
+            <div id="attestationContent" class="border-2 border-gray-200 rounded-xl p-6 text-center space-y-3 mb-4">
+                <div class="text-2xl font-black text-blue-600">TCF <span class="text-yellow-500">OUADFEL</span></div>
+                <p class="text-xs text-gray-400 uppercase tracking-widest">Attestation de Résultat</p>
+                <div class="border-t border-b py-3 my-2 space-y-1">
+                    <p class="text-sm">الاسم الكامل: <span id="attName" class="font-black text-gray-900"></span></p>
+                    <p class="text-sm">التاريخ: <span id="attDate" class="font-bold text-gray-700"></span></p>
+                    <p class="text-sm">المستوى المقدر: <span id="attLevel" class="font-black text-blue-600 text-lg"></span></p>
+                    <p class="text-sm">النتيجة: <span id="attScore" class="font-black text-green-600"></span></p>
+                </div>
+                <p class="text-xs text-gray-400">tcf-ouadfel.netlify.app</p>
+            </div>
+            <button onclick="window.print()" class="w-full py-2.5 bg-gray-900 text-white font-bold rounded-xl shadow">🖨 طباعة الورقة</button>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: Progress Chart ===== -->
+    <div id="progressModal" class="fixed inset-0 bg-black/70 z-50 hidden justify-center items-center p-4">
+        <div class="bg-white rounded-3xl w-full max-w-lg p-6 relative">
+            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                <h3 class="text-lg font-black text-gray-900">📈 منحنى تطوري في TCF</h3>
+                <button onclick="closeModal('progressModal')" class="text-gray-400 text-2xl">&times;</button>
+            </div>
+            <canvas id="progressChartCanvas" height="200"></canvas>
+            <p class="text-xs text-gray-400 text-center mt-3">كل نقطة = امتحان أكملته — المستوى محسوب تلقائياً</p>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: Share Result ===== -->
+    <div id="shareResultModal" class="fixed inset-0 bg-black/70 z-50 hidden justify-center items-center p-4">
+        <div class="bg-white rounded-3xl w-full max-w-sm p-6 text-center relative">
+            <button onclick="closeModal('shareResultModal')" class="absolute top-4 right-4 text-gray-400 text-2xl">&times;</button>
+            <p class="text-4xl mb-3">🎉</p>
+            <h3 class="text-xl font-black text-gray-900 mb-1">شارك نتيجتك!</h3>
+            <p id="shareResultText" class="text-gray-600 text-sm mb-4"></p>
+            <button onclick="shareViaWhatsApp()" class="w-full py-2.5 bg-green-500 text-white font-bold rounded-xl shadow mb-2 flex items-center justify-center gap-2">
+                <span>📱</span> مشاركة عبر واتساب
+            </button>
+            <button onclick="copyShareLink()" class="w-full py-2.5 bg-gray-100 text-gray-700 font-bold rounded-xl shadow text-sm">📋 نسخ النص</button>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: Mot du Jour Admin ===== -->
+    <div id="motDuJourAdminModal" class="fixed inset-0 bg-black/60 z-[60] hidden justify-center items-center p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-sm">
+            <h3 class="text-lg font-black mb-4">🌟 إضافة كلمة اليوم</h3>
+            <input id="mdj_word" type="text" placeholder="الكلمة بالفرنسية" class="w-full border rounded-xl p-2.5 mb-2 text-sm outline-none">
+            <input id="mdj_meaning" type="text" placeholder="المعنى أو التعريف" class="w-full border rounded-xl p-2.5 mb-2 text-sm outline-none">
+            <input id="mdj_example" type="text" placeholder="مثال على الاستخدام" class="w-full border rounded-xl p-2.5 mb-4 text-sm outline-none">
+            <button onclick="saveMotDuJour()" class="w-full py-2.5 bg-green-600 text-white font-bold rounded-xl">نشر الكلمة اليومية ✅</button>
+            <button onclick="closeModal('motDuJourAdminModal')" class="w-full mt-2 text-xs text-gray-400 underline">إلغاء</button>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: Export PDF Profile ===== -->
+    <div id="exportPdfModal" class="fixed inset-0 bg-black/70 z-50 hidden justify-center items-center p-4">
+        <div class="bg-white rounded-3xl w-full max-w-sm p-6 text-center relative">
+            <button onclick="closeModal('exportPdfModal')" class="absolute top-4 right-4 text-gray-400 text-2xl">&times;</button>
+            <p class="text-4xl mb-3">📄</p>
+            <h3 class="text-xl font-black text-gray-900 mb-2">تصدير ملفك الشخصي</h3>
+            <p class="text-sm text-gray-500 mb-5">سيتم تحميل ملف PDF يحتوي على كل سجل امتحاناتك ونتائجك ومستوياتك.</p>
+            <button onclick="exportProfilePDF()" class="w-full py-2.5 bg-blue-600 text-white font-bold rounded-xl shadow">📥 تحميل PDF الآن</button>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: Print Expression Worksheet ===== -->
+    <div id="printWorksheetModal" class="fixed inset-0 bg-black/70 z-50 hidden justify-center items-center p-4">
+        <div class="bg-white rounded-3xl w-full max-w-md p-6 relative">
+            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                <h3 class="text-lg font-black text-gray-900">📄 نموذج تعبير للطباعة</h3>
+                <button onclick="closeModal('printWorksheetModal')" class="text-gray-400 text-2xl">&times;</button>
+            </div>
+            <div id="worksheetContent" class="border rounded-xl p-5 space-y-4 mb-4 text-sm">
+                <div class="text-center">
+                    <p class="font-black text-blue-600 text-base">TCF OUADFEL — Fiche d'Expression</p>
+                    <p class="text-xs text-gray-400">الاسم: _________________________ | التاريخ: _____________</p>
+                </div>
+                <div>
+                    <p class="font-bold text-gray-700 mb-1">📌 Consigne:</p>
+                    <input id="ws_consigne" type="text" placeholder="اكتب التعليمات هنا..." class="w-full border rounded-lg p-2 text-xs outline-none">
+                </div>
+                <div>
+                    <p class="font-bold text-gray-700 mb-1">✍ espace de rédaction:</p>
+                    <div class="space-y-1">
+                        <div class="border-b border-gray-200 h-6" v-for="i in 10"></div>
+                        <div class="border-b border-gray-200 h-6"></div>
+                        <div class="border-b border-gray-200 h-6"></div>
+                        <div class="border-b border-gray-200 h-6"></div>
+                        <div class="border-b border-gray-200 h-6"></div>
+                        <div class="border-b border-gray-200 h-6"></div>
+                        <div class="border-b border-gray-200 h-6"></div>
+                        <div class="border-b border-gray-200 h-6"></div>
+                        <div class="border-b border-gray-200 h-6"></div>
+                        <div class="border-b border-gray-200 h-6"></div>
+                    </div>
+                </div>
+            </div>
+            <button onclick="window.print()" class="w-full py-2.5 bg-gray-900 text-white font-bold rounded-xl">🖨 طباعة النموذج</button>
         </div>
     </div>
 
@@ -1394,6 +1835,706 @@
             document.documentElement.dir = (lang === 'ar' || lang === 'dz') ? 'rtl' : 'ltr';
             document.documentElement.lang = lang;
         };
+
+        // ============================================================
+        // 1. DARK MODE
+        // ============================================================
+        window.toggleDarkMode = () => {
+            const isDark = document.documentElement.classList.toggle('dark-mode');
+            localStorage.setItem('tcf_darkmode', isDark ? '1' : '0');
+            document.getElementById('darkModeBtn').innerText = isDark ? '☀️' : '🌙';
+            document.body.style.backgroundColor = isDark ? '#111827' : '';
+            document.body.style.color = isDark ? '#f9fafb' : '';
+            document.querySelectorAll('.bg-white').forEach(el => {
+                el.style.backgroundColor = isDark ? '#1f2937' : '';
+                el.style.color = isDark ? '#f9fafb' : '';
+            });
+            document.querySelectorAll('.bg-gray-50').forEach(el => {
+                el.style.backgroundColor = isDark ? '#111827' : '';
+            });
+        };
+        if (localStorage.getItem('tcf_darkmode') === '1') {
+            setTimeout(() => toggleDarkMode(), 100);
+        }
+
+        // ============================================================
+        // 2. FLASHCARDS
+        // ============================================================
+        let allFlashcards = [];
+        let currentFcIndex = 0;
+        let fcFlipped = false;
+
+        window.openFlashcards = async () => {
+            const snap = await getDocs(collection(db, "flashcards"));
+            allFlashcards = [];
+            snap.forEach(d => allFlashcards.push(d.data()));
+            if (allFlashcards.length === 0) {
+                return alert("لا توجد بطاقات مراجعة متوفرة حالياً. انتظر إضافة الأستاذة هدى!");
+            }
+            currentFcIndex = 0;
+            renderFlashcard();
+            openModal('flashcardsModal');
+        };
+
+        function renderFlashcard() {
+            const fc = allFlashcards[currentFcIndex];
+            document.getElementById('fcWord').innerText = fc.word || '';
+            document.getElementById('fcMeaning').innerText = fc.meaning || '';
+            document.getElementById('fcExample').innerText = fc.example || '';
+            document.getElementById('fcProgress').innerText = `${currentFcIndex + 1} / ${allFlashcards.length}`;
+            // reset flip
+            fcFlipped = false;
+            document.getElementById('flashcardInner').style.transform = 'rotateY(0deg)';
+        }
+
+        window.flipFlashcard = () => {
+            fcFlipped = !fcFlipped;
+            document.getElementById('flashcardInner').style.transform = fcFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)';
+        };
+        window.nextFlashcard = () => { currentFcIndex = (currentFcIndex + 1) % allFlashcards.length; renderFlashcard(); };
+        window.prevFlashcard = () => { currentFcIndex = (currentFcIndex - 1 + allFlashcards.length) % allFlashcards.length; renderFlashcard(); };
+
+        // ============================================================
+        // 3. SPRINT MODE
+        // ============================================================
+        let sprintQuestions = [];
+        let sprintIndex = 0;
+        let sprintCorrect = 0;
+        let sprintWrong = 0;
+        let sprintTimerInterval = null;
+        let sprintTimeLeft = 300;
+
+        window.startSprint = async (skill) => {
+            document.getElementById('sprintStartScreen').classList.add('hidden');
+            document.getElementById('sprintResultArea').classList.add('hidden');
+            document.getElementById('sprintQuizArea').classList.remove('hidden');
+
+            const snap = await getDocs(collection(db, "questions"));
+            let pool = [];
+            snap.forEach(d => {
+                const q = d.data();
+                if (skill === 'ALL' || q.skillType === skill) {
+                    if (q.skillType !== 'EE' && q.skillType !== 'EO') pool.push(q);
+                }
+            });
+
+            if (pool.length === 0) return alert("لا توجد أسئلة متوفرة لهذه المهارة!");
+            pool = pool.sort(() => Math.random() - 0.5).slice(0, 10);
+            sprintQuestions = pool;
+            sprintIndex = 0; sprintCorrect = 0; sprintWrong = 0;
+            sprintTimeLeft = 300;
+
+            clearInterval(sprintTimerInterval);
+            sprintTimerInterval = setInterval(() => {
+                sprintTimeLeft--;
+                const m = Math.floor(sprintTimeLeft / 60);
+                const s = sprintTimeLeft % 60;
+                document.getElementById('sprintTimerClock').innerText = `${m}:${s.toString().padStart(2,'0')}`;
+                if (sprintTimeLeft <= 0) endSprint();
+            }, 1000);
+
+            renderSprintQuestion();
+        };
+
+        function renderSprintQuestion() {
+            if (sprintIndex >= sprintQuestions.length) return endSprint();
+            const q = sprintQuestions[sprintIndex];
+            document.getElementById('sprintProgress').innerText = `السؤال ${sprintIndex + 1} / ${sprintQuestions.length}`;
+            document.getElementById('sprintScore').innerText = `✅ ${sprintCorrect} صحيح`;
+            const mediaArea = document.getElementById('sprintMediaArea');
+            mediaArea.innerHTML = '';
+            if (q.uploadedAudio) mediaArea.innerHTML += `<audio src="${q.uploadedAudio}" controls autoplay class="w-full mb-2"></audio>`;
+            if (q.uploadedImage) mediaArea.innerHTML += `<img src="${q.uploadedImage}" class="max-h-32 object-contain rounded-xl border mb-2">`;
+            document.getElementById('sprintQuestionText').innerText = q.questionText || q.question || '';
+            document.getElementById('sprintOptionsGrid').innerHTML = ['A','B','C','D'].map(opt => `
+                <button onclick="answerSprint('${opt}')" class="p-3 bg-gray-50 border rounded-xl hover:bg-orange-50 text-left text-sm font-medium">
+                    ${opt}. ${q['opt'+opt] || ''}
+                </button>`).join('');
+        }
+
+        window.answerSprint = (selected) => {
+            const q = sprintQuestions[sprintIndex];
+            const btns = document.getElementById('sprintOptionsGrid').querySelectorAll('button');
+            btns.forEach(b => b.disabled = true);
+            if (selected === q.correctOpt) { sprintCorrect++; btns[['A','B','C','D'].indexOf(selected)].className += ' bg-green-100 border-green-400'; }
+            else { sprintWrong++; btns[['A','B','C','D'].indexOf(selected)].className += ' bg-red-100 border-red-400'; }
+            setTimeout(() => { sprintIndex++; renderSprintQuestion(); }, 600);
+        };
+
+        function endSprint() {
+            clearInterval(sprintTimerInterval);
+            document.getElementById('sprintQuizArea').classList.add('hidden');
+            document.getElementById('sprintResultArea').classList.remove('hidden');
+            const total = sprintCorrect + sprintWrong;
+            const pct = total > 0 ? Math.round((sprintCorrect / total) * 100) : 0;
+            const levels = [[80,'C1-C2','🏆'],[60,'B2','🎯'],[40,'B1','📚'],[20,'A2','💪'],[0,'A1','🌱']];
+            const [,lvl,emoji] = levels.find(([min]) => pct >= min) || levels[levels.length-1];
+            document.getElementById('sprintResultEmoji').innerText = emoji;
+            document.getElementById('sprintResultTitle').innerText = pct >= 60 ? 'Bravo ! رائع!' : 'استمر في التدريب!';
+            document.getElementById('sprintResultSub').innerText = `أجبت على ${total} سؤال في Sprint`;
+            document.getElementById('sprintCorrectCount').innerText = sprintCorrect;
+            document.getElementById('sprintWrongCount').innerText = sprintWrong;
+            document.getElementById('sprintLevelBadge').innerText = lvl;
+            // حفظ في ملف الطالب
+            if (currentUser) {
+                setDoc(doc(db, "users", currentUser.email, "scores", `sprint_${Date.now()}`), {
+                    title: `Sprint Mode — ${sprintCorrect}/${total}`, date: new Date().toLocaleDateString(), level: lvl
+                });
+                checkAndAwardBadges();
+            }
+        }
+
+        // ============================================================
+        // 4. FAVORIS — أسئلة محفوظة
+        // ============================================================
+        let favoriteQuestions = JSON.parse(localStorage.getItem('tcf_favorites') || '[]');
+
+        window.toggleFavoriteQuestion = () => {
+            if (!activeExamQuestions.length) return;
+            const q = activeExamQuestions[currentQuestionIndex];
+            const key = q.questionText || q.expressionConsigne || '';
+            const idx = favoriteQuestions.findIndex(f => f.key === key);
+            if (idx === -1) {
+                favoriteQuestions.push({ key, question: q });
+                document.getElementById('btnFavoriteQ').innerText = '💛';
+                setTimeout(() => document.getElementById('btnFavoriteQ').innerText = '⭐', 800);
+            } else {
+                favoriteQuestions.splice(idx, 1);
+                document.getElementById('btnFavoriteQ').innerText = '⭐';
+            }
+            localStorage.setItem('tcf_favorites', JSON.stringify(favoriteQuestions));
+        };
+
+        window.openFavoris = () => {
+            favoriteQuestions = JSON.parse(localStorage.getItem('tcf_favorites') || '[]');
+            const list = document.getElementById('favorisList');
+            list.innerHTML = '';
+            if (favoriteQuestions.length === 0) {
+                list.innerHTML = `<p class="text-center text-sm text-gray-400 py-8">لا توجد أسئلة محفوظة بعد.<br>اضغط ⭐ أثناء الامتحان لحفظ أي سؤال!</p>`;
+            } else {
+                favoriteQuestions.forEach((f, i) => {
+                    list.innerHTML += `
+                    <div class="p-3 bg-yellow-50 border border-yellow-200 rounded-xl text-sm flex justify-between items-start gap-2">
+                        <p class="font-medium text-gray-800 flex-1">${f.key || 'سؤال محفوظ'}</p>
+                        <button onclick="removeFavorite(${i})" class="text-red-400 font-bold text-xs hover:text-red-600 shrink-0">حذف ✕</button>
+                    </div>`;
+                });
+            }
+            openModal('favorisModal');
+        };
+
+        window.removeFavorite = (i) => {
+            favoriteQuestions.splice(i, 1);
+            localStorage.setItem('tcf_favorites', JSON.stringify(favoriteQuestions));
+            openFavoris();
+        };
+
+        // ============================================================
+        // 5. STUDY PLAN — جدول المراجعة الأسبوعي
+        // ============================================================
+        window.generateStudyPlan = () => {
+            const dateVal = document.getElementById('examDateInput').value;
+            if (!dateVal) return alert("يرجى اختيار تاريخ الامتحان أولاً!");
+            const examDate = new Date(dateVal);
+            const today = new Date();
+            const daysLeft = Math.ceil((examDate - today) / (1000 * 60 * 60 * 24));
+            if (daysLeft <= 0) return alert("يرجى اختيار تاريخ مستقبلي!");
+
+            document.getElementById('daysLeftCount').innerText = `${daysLeft} يوم`;
+            document.getElementById('studyPlanSetup').classList.add('hidden');
+            document.getElementById('studyPlanResult').classList.remove('hidden');
+
+            const skills = ['CO — Compréhension Orale 🎧','CE — Compréhension Écrite 📖','SL — Structures de la langue 📝','EE — Expression Écrite ✍','EO — Expression Orale 🎤'];
+            const colors = ['bg-blue-50 border-blue-200','bg-green-50 border-green-200','bg-purple-50 border-purple-200','bg-yellow-50 border-yellow-200','bg-red-50 border-red-200'];
+            const planGrid = document.getElementById('weeklyPlanGrid');
+            planGrid.innerHTML = '';
+            const days = ['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+            for (let i = 0; i < Math.min(daysLeft, 7); i++) {
+                const d = new Date(today); d.setDate(today.getDate() + i);
+                const skill = skills[i % skills.length];
+                const color = colors[i % colors.length];
+                planGrid.innerHTML += `
+                <div class="p-3 ${color} border rounded-xl flex justify-between items-center text-sm">
+                    <div>
+                        <p class="font-black text-gray-800">${days[d.getDay()]} — ${d.toLocaleDateString()}</p>
+                        <p class="text-xs text-gray-600 mt-0.5">📌 ${skill}</p>
+                    </div>
+                    <span class="text-xs bg-white px-2 py-1 rounded-lg font-bold text-gray-600 border">يوم ${i+1}</span>
+                </div>`;
+            }
+        };
+
+        // ============================================================
+        // 6. BADGES — شارات الإنجاز
+        // ============================================================
+        const BADGES_DEF = [
+            { id:'first_exam', icon:'🎯', name:'أول امتحان', desc:'أكملت أول امتحان لك', condition: (scores) => scores >= 1 },
+            { id:'five_exams', icon:'🔥', name:'5 امتحانات', desc:'أكملت 5 امتحانات متتالية', condition: (scores) => scores >= 5 },
+            { id:'ten_exams', icon:'💪', name:'10 امتحانات', desc:'متدرب محترف!', condition: (scores) => scores >= 10 },
+            { id:'sprint_master', icon:'⚡', name:'Sprint Master', desc:'أكملت Sprint Mode', condition: (scores, sprints) => sprints >= 1 },
+            { id:'all_skills', icon:'🌟', name:'متعدد المهارات', desc:'تدربت على كل المهارات', condition: (scores) => scores >= 3 },
+            { id:'b2_level', icon:'🏆', name:'مستوى B2', desc:'وصلت لمستوى B2', condition: (scores) => scores >= 7 },
+        ];
+
+        window.openBadges = async () => {
+            const grid = document.getElementById('badgesGrid');
+            grid.innerHTML = '';
+            let scores = 0, sprints = 0;
+            if (currentUser) {
+                const snap = await getDocs(collection(db, "users", currentUser.email, "scores"));
+                snap.forEach(d => { if (d.data().title?.includes('Sprint')) sprints++; else scores++; });
+            }
+            const earned = JSON.parse(localStorage.getItem(`tcf_badges_${currentUser?.email}`) || '[]');
+            BADGES_DEF.forEach(b => {
+                const has = earned.includes(b.id) || b.condition(scores, sprints);
+                grid.innerHTML += `
+                <div class="text-center p-3 rounded-2xl border ${has ? 'bg-yellow-50 border-yellow-300' : 'bg-gray-50 border-gray-200 opacity-40'}">
+                    <p class="text-3xl mb-1">${b.icon}</p>
+                    <p class="text-xs font-black text-gray-800">${b.name}</p>
+                    <p class="text-[10px] text-gray-500 mt-0.5">${b.desc}</p>
+                    ${has ? '<span class="text-[10px] text-yellow-600 font-bold">✅ مكتسبة</span>' : '<span class="text-[10px] text-gray-400">🔒</span>'}
+                </div>`;
+            });
+            openModal('badgesModal');
+        };
+
+        async function checkAndAwardBadges() {
+            if (!currentUser) return;
+            const snap = await getDocs(collection(db, "users", currentUser.email, "scores"));
+            let scores = 0, sprints = 0;
+            snap.forEach(d => { if (d.data().title?.includes('Sprint')) sprints++; else scores++; });
+            const earned = JSON.parse(localStorage.getItem(`tcf_badges_${currentUser.email}`) || '[]');
+            BADGES_DEF.forEach(b => {
+                if (!earned.includes(b.id) && b.condition(scores, sprints)) {
+                    earned.push(b.id);
+                    showBadgeToast(b);
+                }
+            });
+            localStorage.setItem(`tcf_badges_${currentUser.email}`, JSON.stringify(earned));
+        }
+
+        function showBadgeToast(badge) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-yellow-400 text-gray-900 px-5 py-3 rounded-2xl shadow-xl font-bold text-sm z-[100] flex items-center gap-2 animate-bounce';
+            toast.innerHTML = `${badge.icon} شارة جديدة: ${badge.name}!`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        // ============================================================
+        // 7. ATTESTATION — ورقة النتيجة
+        // ============================================================
+        window.openAttestationFromProfile = () => {
+            if (!currentUser) return;
+            document.getElementById('attName').innerText = currentUser.name;
+            document.getElementById('attDate').innerText = new Date().toLocaleDateString();
+            document.getElementById('attLevel').innerText = 'B1-B2';
+            document.getElementById('attScore').innerText = '—';
+            openModal('attestationModal');
+        };
+
+        // تحديث الشهادة بعد كل امتحان
+        function showAttestation(score, total, level) {
+            if (!currentUser) return;
+            document.getElementById('attName').innerText = currentUser.name;
+            document.getElementById('attDate').innerText = new Date().toLocaleDateString();
+            document.getElementById('attLevel').innerText = level;
+            document.getElementById('attScore').innerText = `${score} / ${total}`;
+            openModal('attestationModal');
+        }
+
+        // ============================================================
+        // 8. PROGRESS CHART — منحنى التطور
+        // ============================================================
+        window.loadProgressChart = async () => {
+            if (!currentUser) return;
+            const snap = await getDocs(collection(db, "users", currentUser.email, "scores"));
+            const labels = [], data = [];
+            const levelMap = {'A1':1,'A2':2,'B1':3,'B2':4,'C1':5,'C2':6};
+            snap.forEach(d => {
+                const s = d.data();
+                labels.push(s.date || '');
+                data.push(levelMap[s.level] || 2);
+            });
+            if (labels.length === 0) { labels.push('اليوم'); data.push(1); }
+
+            const canvas = document.getElementById('progressChartCanvas');
+            if (window._progressChart) window._progressChart.destroy();
+            const ctx = canvas.getContext('2d');
+            window._progressChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'مستواك عبر الزمن',
+                        data,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37,99,235,0.1)',
+                        borderWidth: 3,
+                        pointRadius: 5,
+                        pointBackgroundColor: '#2563eb',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { min:1, max:6, ticks: { callback: v => ['','A1','A2','B1','B2','C1','C2'][v] || '' } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        };
+
+        // ============================================================
+        // 9. SHARE RESULT
+        // ============================================================
+        window.openShareResult = (level, score, total) => {
+            const txt = `🎓 أكملت امتحان TCF على منصة Ouadfel!\n📊 نتيجتي: ${score}/${total} — المستوى: ${level}\n🌟 جرب أنت أيضاً: tcf-ouadfel.netlify.app`;
+            document.getElementById('shareResultText').innerText = txt;
+            document.getElementById('shareResultModal').setAttribute('data-share-text', txt);
+            openModal('shareResultModal');
+        };
+
+        window.shareViaWhatsApp = () => {
+            const txt = document.getElementById('shareResultModal').getAttribute('data-share-text') || '';
+            window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank');
+        };
+
+        window.copyShareLink = () => {
+            const txt = document.getElementById('shareResultModal').getAttribute('data-share-text') || '';
+            navigator.clipboard.writeText(txt).then(() => alert("تم نسخ النص!"));
+        };
+
+        // ============================================================
+        // 10. MOT DU JOUR — كلمة اليوم
+        // ============================================================
+        window.saveMotDuJourFromAdmin = async () => {
+            const word = document.getElementById('admMotWord').value.trim();
+            const meaning = document.getElementById('admMotMeaning').value.trim();
+            const example = document.getElementById('admMotExample').value.trim();
+            if (!word) return alert("يرجى كتابة الكلمة أولاً");
+            const today = new Date().toISOString().split('T')[0];
+            await setDoc(doc(db, "motdujour", today), { word, meaning, example, date: today });
+            alert("✅ تم نشر كلمة اليوم للجميع!");
+            document.getElementById('admMotWord').value = '';
+            document.getElementById('admMotMeaning').value = '';
+            document.getElementById('admMotExample').value = '';
+        };
+
+        async function loadMotDuJour() {
+            const today = new Date().toISOString().split('T')[0];
+            try {
+                const snap = await getDoc(doc(db, "motdujour", today));
+                if (snap.exists()) {
+                    const m = snap.data();
+                    document.getElementById('motDuJourText').innerText = m.word;
+                    document.getElementById('motDuJourDef').innerText = m.meaning + (m.example ? ` — Ex: ${m.example}` : '');
+                    document.getElementById('motDuJourBanner').classList.remove('hidden');
+                }
+            } catch(e) {}
+        }
+        loadMotDuJour();
+
+        // ============================================================
+        // 11. ANNOUNCEMENT — شريط الإعلانات المتحرك
+        // ============================================================
+        window.saveAnnouncement = async () => {
+            const txt = document.getElementById('admAnnouncementText').value.trim();
+            if (!txt) return alert("يرجى كتابة الإعلان أولاً");
+            await setDoc(doc(db, "settings", "announcement"), { text: txt, date: Date.now() });
+            alert("✅ تم نشر الإعلان لجميع الطلاب!");
+            document.getElementById('admAnnouncementText').value = '';
+        };
+
+        async function loadAnnouncement() {
+            try {
+                const snap = await getDoc(doc(db, "settings", "announcement"));
+                if (snap.exists()) {
+                    const txt = snap.data().text;
+                    document.getElementById('tickerContent').innerText = `📢 ${txt}`;
+                    document.getElementById('announcementTicker').classList.remove('hidden');
+                    // أضف CSS للتمرير
+                    const style = document.createElement('style');
+                    style.innerText = `@keyframes marquee { 0%{transform:translateX(100%)} 100%{transform:translateX(-100%)} } .animate-marquee{display:inline-block;animation:marquee 18s linear infinite;}`;
+                    document.head.appendChild(style);
+                }
+            } catch(e) {}
+        }
+        loadAnnouncement();
+
+        // ============================================================
+        // 12. EXPORT PDF
+        // ============================================================
+        window.openExportPDF = async () => {
+            if (!currentUser) return openModal('loginModal');
+            openModal('exportPdfModal');
+        };
+
+        window.exportProfilePDF = async () => {
+            const snap = await getDocs(collection(db, "users", currentUser.email, "scores"));
+            let rows = '';
+            snap.forEach(d => {
+                const s = d.data();
+                rows += `<tr><td style="padding:6px;border:1px solid #e5e7eb">${s.title||''}</td><td style="padding:6px;border:1px solid #e5e7eb">${s.level||'—'}</td><td style="padding:6px;border:1px solid #e5e7eb">${s.date||''}</td></tr>`;
+            });
+
+            const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>TCF Ouadfel — Profil</title>
+            <style>body{font-family:Arial,sans-serif;padding:40px;color:#111} h1{color:#2563eb} table{width:100%;border-collapse:collapse;margin-top:16px} th{background:#f3f4f6;padding:8px;border:1px solid #e5e7eb;text-align:left} .badge{display:inline-block;background:#dbeafe;color:#1d4ed8;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:bold}</style>
+            </head><body>
+            <h1>TCF <span style="color:#f59e0b">OUADFEL</span></h1>
+            <p><strong>الاسم:</strong> ${currentUser.name}</p>
+            <p><strong>البريد:</strong> ${currentUser.email}</p>
+            <p><strong>الاشتراك:</strong> <span class="badge">${currentUser.status}</span></p>
+            <p><strong>تاريخ التصدير:</strong> ${new Date().toLocaleDateString()}</p>
+            <h2>📈 سجل الامتحانات والنتائج</h2>
+            <table><thead><tr><th>الامتحان</th><th>المستوى</th><th>التاريخ</th></tr></thead><tbody>${rows||'<tr><td colspan="3" style="text-align:center;padding:12px;color:#6b7280">لا توجد نتائج بعد</td></tr>'}</tbody></table>
+            <p style="margin-top:30px;font-size:11px;color:#9ca3af;text-align:center">tcf-ouadfel.netlify.app — منصة الأستاذة هدى</p>
+            </body></html>`;
+
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = `TCF_Ouadfel_${currentUser.name}.html`;
+            a.click(); URL.revokeObjectURL(url);
+            closeModal('exportPdfModal');
+        };
+
+        // ============================================================
+        // 13. MEDIA CONTENT — مقالات / بودكاست / ريبورتاج + ترجمة
+        // ============================================================
+        window.saveMediaContent = async () => {
+            const type = document.getElementById('admMediaType').value;
+            const title = document.getElementById('admMediaTitle').value.trim();
+            const text = document.getElementById('admMediaText').value.trim();
+            const videoUrl = document.getElementById('admMediaVideoUrl').value.trim();
+            if (!title) return alert("يرجى كتابة العنوان أولاً!");
+
+            const audioFile = document.getElementById('admMediaAudio').files[0];
+            const videoFile = document.getElementById('admMediaVideo').files[0];
+            const imgFile = document.getElementById('admMediaImg').files[0];
+
+            let baseAudio = "", baseVideo = "", baseImg = "";
+            if (audioFile) baseAudio = await fileToBase64(audioFile);
+            if (videoFile) baseVideo = await fileToBase64(videoFile);
+            if (imgFile) baseImg = await fileToBase64(imgFile);
+
+            const id = `media_${type}_${Date.now()}`;
+            await setDoc(doc(db, "media", id), {
+                type, title, text, videoUrl, baseAudio, baseVideo, baseImg,
+                date: new Date().toLocaleDateString(), createdAt: Date.now()
+            });
+            alert("✅ تم نشر المحتوى بنجاح!");
+            document.getElementById('admMediaTitle').value = '';
+            document.getElementById('admMediaText').value = '';
+            document.getElementById('admMediaVideoUrl').value = '';
+            loadAdminMediaPreview();
+        };
+
+        async function loadAdminMediaPreview() {
+            try {
+                const snap = await getDocs(collection(db, "media"));
+                const container = document.getElementById('adminMediaListPreview');
+                if (!container) return;
+                container.innerHTML = '<p class="text-xs font-bold text-gray-400 mb-2">المحتوى المنشور:</p>';
+                snap.forEach(d => {
+                    const m = d.data();
+                    const typeIcon = { articles:'📰', podcasts:'🎙', reportages:'🎬' }[m.type] || '📄';
+                    container.innerHTML += `
+                        <div class="flex items-center justify-between bg-gray-50 border rounded-lg p-2 text-xs">
+                            <span>${typeIcon} ${m.title}</span>
+                            <button onclick="deleteMediaItem('${d.id}')" class="text-red-500 font-bold underline">حذف</button>
+                        </div>`;
+                });
+            } catch(e) {}
+        }
+
+        window.deleteMediaItem = async (id) => {
+            if (confirm("هل تريدين حذف هذا المحتوى؟")) {
+                await deleteDoc(doc(db, "media", id));
+                loadAdminMediaPreview();
+            }
+        };
+
+        let _currentMediaTab = 'articles';
+        let _currentMediaText = '';
+
+        window.switchMediaTab = async (tab) => {
+            _currentMediaTab = tab;
+            document.querySelectorAll('.media-tab-btn').forEach(b => {
+                b.classList.remove('active-tab', 'bg-indigo-600', 'text-white', 'shadow');
+                b.classList.add('bg-white', 'border', 'border-indigo-200', 'text-indigo-700');
+            });
+            const activeBtn = document.getElementById(`tab-${tab}`);
+            if (activeBtn) {
+                activeBtn.classList.add('active-tab', 'bg-indigo-600', 'text-white', 'shadow');
+                activeBtn.classList.remove('bg-white', 'border', 'border-indigo-200', 'text-indigo-700');
+            }
+            await loadMediaList(tab);
+        };
+
+        async function loadMediaList(tab) {
+            const container = document.getElementById('mediaContentList');
+            container.innerHTML = '<p class="text-center text-sm text-gray-400 py-8">⏳ جاري التحميل...</p>';
+            try {
+                const snap = await getDocs(collection(db, "media"));
+                const items = [];
+                snap.forEach(d => { if (d.data().type === tab) items.push({ id: d.id, ...d.data() }); });
+                items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+                if (items.length === 0) {
+                    container.innerHTML = '<p class="text-center text-sm text-gray-400 py-10">لا يوجد محتوى منشور في هذا القسم بعد.</p>';
+                    return;
+                }
+
+                const typeIcon = { articles:'📰', podcasts:'🎙', reportages:'🎬' };
+                container.innerHTML = items.map(m => `
+                    <div class="bg-white border border-indigo-100 rounded-2xl p-5 shadow-sm flex gap-4 items-start hover:shadow-md transition">
+                        ${m.baseImg ? `<img src="${m.baseImg}" class="w-20 h-20 object-cover rounded-xl flex-shrink-0 border">` : `<div class="w-20 h-20 bg-indigo-100 rounded-xl flex-shrink-0 flex items-center justify-center text-3xl">${typeIcon[m.type]||'📄'}</div>`}
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-xs font-bold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">${typeIcon[m.type]||''} ${m.type === 'articles' ? 'مقال' : m.type === 'podcasts' ? 'بودكاست' : 'ريبورتاج'}</span>
+                                <span class="text-xs text-gray-400">${m.date || ''}</span>
+                            </div>
+                            <h4 class="font-black text-gray-900 text-base mb-1 truncate">${m.title}</h4>
+                            <p class="text-xs text-gray-500 line-clamp-2">${(m.text || '').substring(0, 100)}${m.text?.length > 100 ? '...' : ''}</p>
+                            <button onclick="openMediaViewer('${m.id}')" class="mt-3 px-4 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-xl shadow">
+                                ${m.type === 'podcasts' ? '🎵 استمع الآن' : m.type === 'reportages' ? '🎬 شاهد الآن' : '📖 اقرأ الآن'}
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch(e) {
+                container.innerHTML = '<p class="text-center text-sm text-red-400 py-8">خطأ في تحميل المحتوى.</p>';
+            }
+        }
+
+        let _allMediaCache = {};
+
+        window.openMediaViewer = async (id) => {
+            let item = _allMediaCache[id];
+            if (!item) {
+                const snap = await getDoc(doc(db, "media", id));
+                if (!snap.exists()) return;
+                item = snap.data();
+                _allMediaCache[id] = item;
+            }
+            _currentMediaText = item.text || '';
+
+            const typeLabel = { articles:'📰 مقال', podcasts:'🎙 بودكاست', reportages:'🎬 ريبورتاج' }[item.type] || '📄';
+            document.getElementById('mediaViewerBadge').innerText = typeLabel;
+            document.getElementById('mediaViewerTitle').innerText = item.title;
+            document.getElementById('mediaViewerText').innerText = item.text || 'لا يوجد نص مرافق.';
+            document.getElementById('mediaTranslationBox').classList.add('hidden');
+            document.getElementById('mediaTranslatedText').innerText = '';
+
+            const mediaArea = document.getElementById('mediaViewerMedia');
+            mediaArea.innerHTML = '';
+
+            if (item.baseAudio) {
+                mediaArea.innerHTML += `<audio src="${item.baseAudio}" controls class="w-full mb-3 rounded-xl" style="accent-color:#4f46e5"></audio>`;
+            }
+            if (item.videoUrl) {
+                // تحويل رابط يوتيوب إلى embed
+                let embedUrl = item.videoUrl;
+                const ytMatch = item.videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
+                if (ytMatch) embedUrl = `https://www.youtube.com/embed/${ytMatch[1]}`;
+                mediaArea.innerHTML += `<div class="rounded-xl overflow-hidden border mb-3" style="aspect-ratio:16/9"><iframe src="${embedUrl}" class="w-full h-full" allowfullscreen frameborder="0"></iframe></div>`;
+            } else if (item.baseVideo) {
+                mediaArea.innerHTML += `<video src="${item.baseVideo}" controls class="w-full rounded-xl mb-3 border" style="max-height:280px"></video>`;
+            }
+
+            openModal('mediaViewerModal');
+        };
+
+        window.translateMediaText = async () => {
+            const lang = document.getElementById('mediaTranslateLang').value;
+            if (!lang) {
+                document.getElementById('mediaTranslationBox').classList.add('hidden');
+                return;
+            }
+            if (!_currentMediaText) return;
+
+            document.getElementById('mediaTranslatingLoader').classList.remove('hidden');
+            document.getElementById('mediaTranslationBox').classList.add('hidden');
+
+            try {
+                const langMap = { ar: 'AR', dz: 'AR', en: 'EN', de: 'DE', es: 'ES' };
+                const targetLang = langMap[lang] || 'EN';
+                const resp = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(_currentMediaText.substring(0, 500))}&langpair=fr|${targetLang}`);
+                const data = await resp.json();
+                const translated = data?.responseData?.translatedText || '';
+                document.getElementById('mediaTranslatedText').innerText = translated || '⚠️ لم تتوفر الترجمة. حاولي مرة أخرى.';
+                document.getElementById('mediaTranslationBox').classList.remove('hidden');
+            } catch(e) {
+                document.getElementById('mediaTranslatedText').innerText = '⚠️ فشل الاتصال بخدمة الترجمة. تأكد من اتصالك بالإنترنت.';
+                document.getElementById('mediaTranslationBox').classList.remove('hidden');
+            }
+            document.getElementById('mediaTranslatingLoader').classList.add('hidden');
+        };
+
+        // تحميل المحتوى التعليمي عند الدخول للقسم
+        document.getElementById('media-section').addEventListener('transitionend', () => {});
+
+        // ============================================================
+        // تحديث updateUIForUser لإظهار قسم الأدوات
+        // ============================================================
+        const _origUpdateUI = updateUIForUser;
+        function updateUIForUser() {
+            if (currentUser) {
+                document.getElementById('headerAuthBtns').classList.add('hidden');
+                document.getElementById('headerUserInfo').classList.remove('hidden');
+                document.getElementById('headerUserName').innerText = currentUser.name;
+                document.getElementById('examsLockedMsg').classList.add('hidden');
+                document.getElementById('examsGrid').classList.remove('hidden');
+                document.getElementById('exercises-section').classList.remove('hidden');
+                document.getElementById('tools-section').classList.remove('hidden');
+                document.getElementById('media-section').classList.remove('hidden');
+                document.getElementById('navProfileBtn').classList.remove('hidden');
+                const navMedia = document.getElementById('navMediaBtn');
+                if (navMedia) navMedia.classList.remove('hidden');
+
+                const tcfType = currentUser.tcfType || 'ALL';
+                if (tcfType !== 'ALL') {
+                    document.querySelectorAll('#examsGrid > div').forEach(card => {
+                        const h3 = card.querySelector('h3');
+                        if (h3 && !h3.innerText.includes(tcfType.replace('TCF ',''))) card.style.display = 'none';
+                    });
+                }
+
+                const now = Date.now();
+                const isTrialActive = (currentUser.status === 'free' && currentUser.trialExpires > now);
+                const isVIPActive = (currentUser.status === 'VIP' && currentUser.trialExpires > now);
+
+                if (isTrialActive) {
+                    document.getElementById('trialCountdownBanner').classList.remove('hidden');
+                    startTrialClock(currentUser.trialExpires);
+                }
+
+                if (isTrialActive || isVIPActive) {
+                    document.getElementById('coursesLockedContainer').classList.add('hidden');
+                    document.getElementById('coursesAllowedContainer').classList.remove('hidden');
+                }
+
+                // تحقق من الشارات عند كل دخول
+                checkAndAwardBadges();
+                // تحميل Chart.js ديناميكياً
+                if (!window.Chart) {
+                    const s = document.createElement('script');
+                    s.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+                    document.head.appendChild(s);
+                }
+
+                // تحميل قائمة المحتوى التعليمي
+                switchMediaTab('articles');
+
+                // تحميل قائمة المحتوى في لوحة الإدارة إن كانت مفتوحة
+                loadAdminMediaPreview().catch(()=>{});
+            }
+        }
+        // تشغيل النسخة المحدثة
+        if (currentUser) updateUIForUser();
+
     </script>
 </body>
 </html>
