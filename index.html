@@ -288,9 +288,49 @@
                     <span class="text-3xl">🎙</span> Podcast & Articles
                     <span class="text-xs font-normal opacity-80">محتوى + ترجمة</span>
                 </button>
+                <button onclick="openModal('pomodoroModal')" class="bg-gradient-to-br from-red-500 to-orange-500 text-white p-5 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center gap-2 font-bold text-sm">
+                    <span class="text-3xl">🍅</span> Pomodoro
+                    <span class="text-xs font-normal opacity-80">مؤقت 25+5 دقيقة</span>
+                </button>
+            </div>
+
+            <!-- Daily Streak & Quote -->
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-gradient-to-br from-orange-50 to-yellow-50 border border-orange-200 rounded-2xl p-4 flex items-center gap-4">
+                    <span class="text-4xl">🔥</span>
+                    <div>
+                        <p class="text-xs font-bold text-orange-600 uppercase tracking-widest">سلسلة الأيام</p>
+                        <p class="text-3xl font-black text-orange-700"><span id="streakCount">0</span> <span class="text-base font-semibold">يوم متواصل</span></p>
+                        <p class="text-xs text-gray-500 mt-0.5">استمر في التدريب كل يوم!</p>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-4">
+                    <p class="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">💬 اقتباس اليوم</p>
+                    <p id="dailyQuoteText" class="text-sm font-bold text-gray-800 leading-relaxed italic"></p>
+                    <p id="dailyQuoteAuthor" class="text-xs text-gray-400 mt-1 font-medium"></p>
+                </div>
             </div>
         </div>
     </section>
+
+    <!-- ===== MODAL: Pomodoro Timer ===== -->
+    <div id="pomodoroModal" class="fixed inset-0 bg-black/70 z-50 hidden justify-center items-center p-4">
+        <div class="bg-white rounded-3xl w-full max-w-sm p-6 relative text-center">
+            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                <h3 class="text-lg font-black text-gray-900">🍅 مؤقت بومودورو</h3>
+                <button onclick="closeModal('pomodoroModal')" class="text-gray-400 text-2xl">&times;</button>
+            </div>
+            <p id="pomodoroLabel" class="text-sm font-bold text-orange-600 mb-2">📚 وقت المراجعة</p>
+            <div class="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-8 mb-4">
+                <span id="pomodoroClock" class="text-6xl font-black text-white font-mono">25:00</span>
+            </div>
+            <p class="text-xs text-gray-400 mb-4">25 دقيقة مراجعة مركّزة ثم 5 دقائق راحة</p>
+            <div class="flex gap-3 justify-center">
+                <button id="pomodoroBtn" onclick="togglePomodoro()" class="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-black rounded-xl shadow text-sm">▶ ابدأ</button>
+                <button onclick="resetPomodoro()" class="px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-sm">↺ إعادة</button>
+            </div>
+        </div>
+    </div>
 
     <div id="quizContainerArea" class="fixed inset-0 bg-gray-900/90 z-50 hidden justify-center items-center p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl w-full max-w-3xl shadow-2xl p-6 relative">
@@ -1012,10 +1052,10 @@
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
+    <!-- Firebase Compat CDN — fixes onclick handlers in mobile browsers -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script>
         const firebaseConfig = {
             apiKey: "AIzaSyA5AIEwQnsWUHaYhGSojffXFU-w6fl-_PM",
             authDomain: "tcf-ouadfel-platform-bfe92.firebaseapp.com",
@@ -1026,8 +1066,52 @@
             measurementId: "G-EYSX72Q8L6"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Compat wrappers — same API as modular
+        function doc(database, ...pathSegments) {
+            // Build path from segments
+            let ref = database;
+            for (let i = 0; i < pathSegments.length; i++) {
+                if (i % 2 === 0) ref = ref.collection(pathSegments[i]);
+                else ref = ref.doc(pathSegments[i]);
+            }
+            return ref;
+        }
+        function collection(database, ...pathSegments) {
+            let ref = database;
+            for (let i = 0; i < pathSegments.length; i++) {
+                if (i % 2 === 0) ref = ref.collection(pathSegments[i]);
+                else ref = ref.doc(pathSegments[i]);
+            }
+            return ref;
+        }
+        async function getDoc(ref) {
+            const snap = await ref.get();
+            return { exists: () => snap.exists, data: () => snap.data(), id: snap.id };
+        }
+        async function getDocs(ref) {
+            const snap = await ref.get();
+            const docs = [];
+            snap.forEach(d => docs.push({ id: d.id, data: () => d.data() }));
+            return { forEach: (fn) => docs.forEach(fn) };
+        }
+        async function setDoc(ref, data) { return ref.set(data, { merge: true }); }
+        async function updateDoc(ref, data) { return ref.update(data); }
+        async function deleteDoc(ref) { return ref.delete(); }
+        function onSnapshot(ref, callback) {
+            return ref.onSnapshot(snap => {
+                if (snap.docs) {
+                    // collection snapshot
+                    const wrapped = { forEach: (fn) => snap.docs.forEach(d => fn({ id: d.id, data: () => d.data() })) };
+                    callback(wrapped);
+                } else {
+                    // document snapshot
+                    callback({ exists: () => snap.exists, data: () => snap.data(), id: snap.id });
+                }
+            });
+        }
 
         let currentUser = null;
         let activeExamQuestions = [];
@@ -1085,7 +1169,11 @@
                 document.getElementById('examsLockedMsg').classList.add('hidden');
                 document.getElementById('examsGrid').classList.remove('hidden');
                 document.getElementById('exercises-section').classList.remove('hidden');
+                document.getElementById('tools-section').classList.remove('hidden');
+                document.getElementById('media-section').classList.remove('hidden');
                 document.getElementById('navProfileBtn').classList.remove('hidden');
+                const navMedia = document.getElementById('navMediaBtn');
+                if (navMedia) navMedia.classList.remove('hidden');
 
                 // فلترة بطاقات الامتحانات حسب نوع TCF المختار
                 const tcfType = currentUser.tcfType || 'ALL';
@@ -1116,6 +1204,18 @@
                     document.getElementById('coursesLockedContainer').classList.remove('hidden');
                     document.getElementById('coursesAllowedContainer').classList.add('hidden');
                 }
+
+                // تحقق من الشارات
+                checkAndAwardBadges();
+                // تحميل Chart.js
+                if (!window.Chart) {
+                    const s = document.createElement('script');
+                    s.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+                    document.head.appendChild(s);
+                }
+                // تحميل المحتوى التعليمي
+                switchMediaTab('articles');
+                loadAdminMediaPreview().catch(()=>{});
             }
         }
 
@@ -2477,63 +2577,116 @@
         document.getElementById('media-section').addEventListener('transitionend', () => {});
 
         // ============================================================
-        // تحديث updateUIForUser لإظهار قسم الأدوات
+        // 14. POMODORO TIMER — مؤقت بومودورو للمراجعة
         // ============================================================
-        const _origUpdateUI = updateUIForUser;
-        function updateUIForUser() {
-            if (currentUser) {
-                document.getElementById('headerAuthBtns').classList.add('hidden');
-                document.getElementById('headerUserInfo').classList.remove('hidden');
-                document.getElementById('headerUserName').innerText = currentUser.name;
-                document.getElementById('examsLockedMsg').classList.add('hidden');
-                document.getElementById('examsGrid').classList.remove('hidden');
-                document.getElementById('exercises-section').classList.remove('hidden');
-                document.getElementById('tools-section').classList.remove('hidden');
-                document.getElementById('media-section').classList.remove('hidden');
-                document.getElementById('navProfileBtn').classList.remove('hidden');
-                const navMedia = document.getElementById('navMediaBtn');
-                if (navMedia) navMedia.classList.remove('hidden');
+        let pomodoroInterval = null;
+        let pomodoroSeconds = 25 * 60;
+        let pomodoroRunning = false;
+        let pomodoroMode = 'work'; // work | break
 
-                const tcfType = currentUser.tcfType || 'ALL';
-                if (tcfType !== 'ALL') {
-                    document.querySelectorAll('#examsGrid > div').forEach(card => {
-                        const h3 = card.querySelector('h3');
-                        if (h3 && !h3.innerText.includes(tcfType.replace('TCF ',''))) card.style.display = 'none';
-                    });
-                }
-
-                const now = Date.now();
-                const isTrialActive = (currentUser.status === 'free' && currentUser.trialExpires > now);
-                const isVIPActive = (currentUser.status === 'VIP' && currentUser.trialExpires > now);
-
-                if (isTrialActive) {
-                    document.getElementById('trialCountdownBanner').classList.remove('hidden');
-                    startTrialClock(currentUser.trialExpires);
-                }
-
-                if (isTrialActive || isVIPActive) {
-                    document.getElementById('coursesLockedContainer').classList.add('hidden');
-                    document.getElementById('coursesAllowedContainer').classList.remove('hidden');
-                }
-
-                // تحقق من الشارات عند كل دخول
-                checkAndAwardBadges();
-                // تحميل Chart.js ديناميكياً
-                if (!window.Chart) {
-                    const s = document.createElement('script');
-                    s.src = 'https://cdn.jsdelivr.net/npm/chart.js';
-                    document.head.appendChild(s);
-                }
-
-                // تحميل قائمة المحتوى التعليمي
-                switchMediaTab('articles');
-
-                // تحميل قائمة المحتوى في لوحة الإدارة إن كانت مفتوحة
-                loadAdminMediaPreview().catch(()=>{});
+        window.togglePomodoro = () => {
+            if (pomodoroRunning) {
+                clearInterval(pomodoroInterval);
+                pomodoroRunning = false;
+                document.getElementById('pomodoroBtn').innerText = '▶ ابدأ';
+            } else {
+                pomodoroRunning = true;
+                document.getElementById('pomodoroBtn').innerText = '⏸ إيقاف';
+                pomodoroInterval = setInterval(() => {
+                    pomodoroSeconds--;
+                    const m = Math.floor(pomodoroSeconds / 60);
+                    const s = pomodoroSeconds % 60;
+                    document.getElementById('pomodoroClock').innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+                    if (pomodoroSeconds <= 0) {
+                        clearInterval(pomodoroInterval);
+                        pomodoroRunning = false;
+                        if (pomodoroMode === 'work') {
+                            pomodoroMode = 'break';
+                            pomodoroSeconds = 5 * 60;
+                            document.getElementById('pomodoroLabel').innerText = '☕ راحة 5 دقائق';
+                            document.getElementById('pomodoroBtn').innerText = '▶ ابدأ الراحة';
+                            showToast('🎉 أحسنت! خذ راحة 5 دقائق.');
+                        } else {
+                            pomodoroMode = 'work';
+                            pomodoroSeconds = 25 * 60;
+                            document.getElementById('pomodoroLabel').innerText = '📚 وقت المراجعة';
+                            document.getElementById('pomodoroBtn').innerText = '▶ ابدأ';
+                            showToast('💪 انتهت الراحة. هيا نراجع!');
+                        }
+                        document.getElementById('pomodoroClock').innerText = pomodoroMode === 'work' ? '25:00' : '05:00';
+                    }
+                }, 1000);
             }
+        };
+
+        window.resetPomodoro = () => {
+            clearInterval(pomodoroInterval);
+            pomodoroRunning = false;
+            pomodoroMode = 'work';
+            pomodoroSeconds = 25 * 60;
+            document.getElementById('pomodoroClock').innerText = '25:00';
+            document.getElementById('pomodoroLabel').innerText = '📚 وقت المراجعة';
+            document.getElementById('pomodoroBtn').innerText = '▶ ابدأ';
+        };
+
+        // ============================================================
+        // 15. DAILY STREAK — سلسلة الأيام المتواصلة
+        // ============================================================
+        function updateDailyStreak() {
+            const today = new Date().toDateString();
+            const lastVisit = localStorage.getItem('tcf_last_visit');
+            let streak = parseInt(localStorage.getItem('tcf_streak') || '0');
+            if (lastVisit === today) {
+                // نفس اليوم — لا تغيير
+            } else if (lastVisit === new Date(Date.now() - 86400000).toDateString()) {
+                streak++;
+                localStorage.setItem('tcf_streak', streak);
+                localStorage.setItem('tcf_last_visit', today);
+                if (streak > 1) showToast(`🔥 سلسلة ${streak} أيام متواصلة! رائع!`);
+            } else {
+                streak = 1;
+                localStorage.setItem('tcf_streak', streak);
+                localStorage.setItem('tcf_last_visit', today);
+            }
+            const el = document.getElementById('streakCount');
+            if (el) el.innerText = streak;
         }
-        // تشغيل النسخة المحدثة
-        if (currentUser) updateUIForUser();
+        updateDailyStreak();
+
+        // ============================================================
+        // 16. MOTIVATIONAL QUOTES — اقتباسات تحفيزية يومية
+        // ============================================================
+        const QUOTES = [
+            { text: "Le succès, c'est tomber sept fois et se relever huit.", author: "Proverbe japonais" },
+            { text: "La langue est la route menant à la culture.", author: "Edward Sapir" },
+            { text: "كل يوم تتعلم فيه شيئاً جديداً هو يوم لم يُهدر.", author: "حكمة عربية" },
+            { text: "La persévérance est la clé de tous les succès.", author: "Charles de Gaulle" },
+            { text: "Chaque expert a d'abord été un débutant.", author: "Helen Hayes" },
+            { text: "اللغة هي جواز السفر إلى العالم كله.", author: " " },
+            { text: "Il n'y a pas de raccourcis vers un endroit qui vaut la peine d'aller.", author: " " },
+            { text: "تعلّم لغة جديدة يعني امتلاك روح ثانية.", author: "شارلمان" },
+        ];
+
+        function showDailyQuote() {
+            const idx = new Date().getDate() % QUOTES.length;
+            const q = QUOTES[idx];
+            const el = document.getElementById('dailyQuoteText');
+            const au = document.getElementById('dailyQuoteAuthor');
+            if (el) el.innerText = `"${q.text}"`;
+            if (au) au.innerText = `— ${q.author}`;
+        }
+        showDailyQuote();
+
+        // ============================================================
+        // Toast helper
+        // ============================================================
+        function showToast(msg, color = 'bg-blue-600') {
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-6 left-1/2 -translate-x-1/2 ${color} text-white px-5 py-3 rounded-2xl shadow-xl font-bold text-sm z-[200] flex items-center gap-2`;
+            toast.innerText = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.5s'; setTimeout(() => toast.remove(), 500); }, 3500);
+        }
 
     </script>
 </body>
