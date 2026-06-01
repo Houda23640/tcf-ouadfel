@@ -3051,17 +3051,16 @@ const ADMIN_USERNAME = 'ouadfel';
 const ADMIN_PASSWORD = 'tcf2026';
 
 // ──────────────────────────────────────────
-// DATA STORE (in-memory – compatible Claude.ai)
+// DATA STORE (localStorage – persistent across sessions)
 // ──────────────────────────────────────────
-const _memStore = {};
-function saveData(key, val) { try { _memStore[key] = JSON.stringify(val); } catch(e){} }
-function loadData(key, def) { try { const d = _memStore[key]; return d ? JSON.parse(d) : def; } catch(e){ return def; } }
+function saveData(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch(e){} }
+function loadData(key, def) { try { const d = localStorage.getItem(key); return d ? JSON.parse(d) : def; } catch(e){ return def; } }
 
 // ──────────────────────────────────────────
 // USERS & SESSION
 // ──────────────────────────────────────────
 let currentUser = loadData('tcf_session', null);
-let isAdmin = loadData('tcf_admin', false);
+let isAdmin = loadData('tcf_admin', false) === true;
 
 function getUsers() { return loadData('tcf_users', []); }
 function saveUsers(u) { saveData('tcf_users', u); }
@@ -3159,7 +3158,8 @@ function userLogout() {
 // ──────────────────────────────────────────
 function doAdminLogin() {
   const user = document.getElementById('adminUser').value.trim();
-  const pass = document.getElementById('adminPass').value;
+  const pass = document.getElementById('adminPass').value.trim();
+  document.getElementById('adminErr').classList.remove('show');
   if (user === ADMIN_USERNAME && pass === ADMIN_PASSWORD) {
     isAdmin = true;
     saveData('tcf_admin', true);
