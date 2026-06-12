@@ -5,6 +5,63 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TCF Ouadfel – Préparation TCF Canada & France SO DAP – 2019</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, get, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  // ══════════════════════════════════════════
+  // ⚙️ إعدادات Firebase — ضعي بياناتك هنا
+  // ══════════════════════════════════════════
+  const firebaseConfig = {
+    apiKey: "AIzaSyDM8wdVyDW4wZsC9Lj1yhXPrj6eFveAVKA",
+    authDomain: "tcf-ouadfel.firebaseapp.com",
+    databaseURL: "https://tcf-ouadfel-default-rtdb.firebaseio.com",
+    projectId: "tcf-ouadfel",
+    storageBucket: "tcf-ouadfel.firebasestorage.app",
+    messagingSenderId: "271766076786",
+    appId: "1:271766076786:web:3c64eb682bd961c43e31eb",
+    measurementId: "G-3S5BVMW586"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // ══════════════════════════════════════════
+  // 🔄 دوال Firebase — تستبدل localStorage
+  // ══════════════════════════════════════════
+
+  // حفظ بيانات في Firebase
+  window.fbSave = async function(key, val) {
+    try {
+      await set(ref(db, key), val);
+    } catch(e) { console.error('fbSave error:', e); }
+  };
+
+  // قراءة بيانات من Firebase (مرة واحدة)
+  window.fbLoad = async function(key, def) {
+    try {
+      const snap = await get(ref(db, key));
+      return snap.exists() ? snap.val() : def;
+    } catch(e) { return def; }
+  };
+
+  // مراقبة البيانات في الوقت الحقيقي
+  window.fbWatch = function(key, callback) {
+    onValue(ref(db, key), (snap) => {
+      callback(snap.exists() ? snap.val() : null);
+    });
+  };
+
+  // حذف مفتاح
+  window.fbDelete = async function(key) {
+    try { await remove(ref(db, key)); } catch(e) {}
+  };
+
+  // إشعار بأن Firebase جاهز
+  window.firebaseReady = true;
+  window.dispatchEvent(new Event('firebase-ready'));
+</script>
 <style>
 :root {
   --bg: #0a0e1a;
@@ -265,6 +322,23 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
 .admin-photo-upload{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
 .admin-photo-preview{width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);}
 
+/* ═══ QUESTION BANK ADMIN ═══ */
+.qb-label{display:block;color:var(--text-muted);font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.35rem;margin-top:.75rem;}
+.file-upload-zone{display:block;background:var(--surface);border:2px dashed var(--border);color:var(--text-muted);font-size:.85rem;padding:.8rem 1rem;border-radius:8px;cursor:pointer;margin-bottom:.5rem;transition:.2s;}
+.file-upload-zone:hover{border-color:var(--accent);color:var(--accent);}
+.qb-form-panel{}
+.qb-item{display:flex;align-items:center;gap:.75rem;padding:.65rem .75rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:.5rem;font-size:.8rem;}
+.qb-item-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;}
+.qb-item-badge{background:var(--surface);border:1px solid var(--border);color:var(--text-muted);font-size:.7rem;padding:.15rem .5rem;border-radius:5px;white-space:nowrap;flex-shrink:0;}
+.abcd-selector{display:flex;gap:.5rem;margin-bottom:.75rem;}
+.abcd-btn{width:44px;height:44px;border-radius:8px;background:var(--surface);border:2px solid var(--border);color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:700;cursor:pointer;transition:.15s;}
+.abcd-btn.selected-A{background:rgba(6,214,160,.2);border-color:var(--green);color:var(--green);}
+.abcd-btn.selected-B{background:rgba(0,198,255,.2);border-color:var(--accent);color:var(--accent);}
+.abcd-btn.selected-C{background:rgba(244,162,97,.2);border-color:var(--gold);color:var(--gold);}
+.abcd-btn.selected-D{background:rgba(230,57,70,.2);border-color:var(--accent2);color:var(--accent2);}
+@keyframes qbFlash{0%{background:rgba(6,214,160,.3);}100%{background:var(--surface2);}}
+.qb-added-flash{animation:qbFlash 1.2s ease-out;}
+
 /* ═══ FAQ ═══ */
 .faq-section{max-width:800px;margin:2rem auto;padding:0 1rem;}
 .faq-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:.75rem;overflow:hidden;}
@@ -507,7 +581,7 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
 
 <nav>
   <div class="nav-inner">
-    <div class="nav-logo">TCF <span>Ouadfel</span> <span style="font-size:.7rem;color:var(--text-muted);font-family:'JetBrains Mono',monospace;">2019</span></div>
+    <div class="nav-logo">TCF <span>Ouadfel</span> <span style="font-size:.7rem;color:var(--text-muted);font-family:'JetBrains Mono',monospace;"><span id="navLiveDate"></span></span></div>
     <div class="nav-links">
       <button class="nav-btn active" data-section="oral" onclick="showSection('oral')">🎧 C. Orale</button>
       <button class="nav-btn" data-section="co" onclick="showSection('co')">📖 C. Écrite</button>
@@ -535,7 +609,7 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
     <div class="stat"><div class="stat-n">480</div><div class="stat-l">Tâches EE/EO</div></div>
     <div class="stat"><div class="stat-n">30 000+</div><div class="stat-l">Candidats</div></div>
     <div class="stat"><div class="stat-n">95%</div><div class="stat-l">Réussite</div></div>
-    <div class="stat"><div class="stat-n">7 ans</div><div class="stat-l">Expérience</div></div>
+    <div class="stat"><div class="stat-n" id="heroExpYears"></div><div class="stat-l">Expérience</div></div>
   </div>
 </section>
 
@@ -732,11 +806,11 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
   </div>
   <div class="founder-name">Mm H. Ouadfel</div>
   <div class="founder-title">Fondatrice de la plateforme</div>
-  <p style="color:rgba(255,255,255,.7);font-size:.88rem;max-width:480px;margin:.5rem auto 0;line-height:1.65;">Experte en préparation TCF Canada 🍁 & France 🇫🇷 depuis 2019, avec plus de 7 ans d'expérience. A accompagné plus de 30 000 candidats vers la réussite.</p>
+  <p style="color:rgba(255,255,255,.7);font-size:.88rem;max-width:480px;margin:.5rem auto 0;line-height:1.65;">Experte en préparation TCF Canada 🍁 & France 🇫🇷 depuis 2019, avec plus de <span id="founderExpYears"></span> ans d'expérience. A accompagné plus de 30 000 candidats vers la réussite.</p>
   <div class="founder-stats">
     <div class="stat"><div class="founder-stat-n">30 000+</div><div class="founder-stat-l">Candidats</div></div>
     <div class="stat"><div class="founder-stat-n">95%</div><div class="founder-stat-l">Réussite</div></div>
-    <div class="stat"><div class="founder-stat-n">7 ans</div><div class="founder-stat-l">d'expérience</div></div>
+    <div class="stat"><div class="founder-stat-n" id="founderStatYears"></div><div class="founder-stat-l">d'expérience</div></div>
   </div>
 </div>
 
@@ -914,6 +988,7 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
     <!-- Stories management -->
     <div class="admin-section">
       <h3>📸 إدارة الستوريات</h3>
+      <p style="color:var(--text-muted);font-size:.83rem;margin-bottom:.75rem;">الستوريات تظهر مباشرة للطلاب فور الإضافة ولا تُخزَّن هنا</p>
       <div class="story-form">
         <input class="admin-input" id="storyLabel" placeholder="عنوان الستوري">
         <select class="admin-input" id="storyType">
@@ -923,9 +998,12 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
         <label for="storyImgInput" style="display:block;background:var(--surface);border:1px dashed var(--border);color:var(--text-muted);padding:.7rem 1rem;border-radius:8px;cursor:pointer;font-size:.88rem;margin-bottom:.7rem;">📷 اختر صورة الستوري</label>
         <input type="file" id="storyImgInput" accept="image/*" style="display:none" onchange="previewStoryImg(this)">
         <img id="storyImgPreview" style="width:60px;height:60px;border-radius:50%;object-fit:cover;display:none;margin-bottom:.7rem;border:2px solid var(--accent);">
-        <button class="admin-btn success" onclick="adminAddStory()">➕ إضافة الستوري</button>
+        <button class="admin-btn success" onclick="adminAddStory()">➕ إضافة الستوري (تظهر فوراً للطلاب)</button>
       </div>
-      <div id="adminStoriesList"></div>
+      <div style="margin-top:.75rem;">
+        <button class="admin-btn danger small" onclick="adminClearStories()">🗑️ مسح جميع الستوريات</button>
+        <span style="color:var(--text-muted);font-size:.8rem;margin-right:.5rem;" id="storiesCountBadge"></span>
+      </div>
     </div>
 
     <!-- Students management -->
@@ -949,10 +1027,239 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
       </div>
     </div>
 
-    <!-- Receipts -->
-    <div class="admin-section">
-      <h3>📨 إيصالات الدفع المرفوعة</h3>
-      <div id="adminReceiptsList" style="display:flex;gap:1rem;flex-wrap:wrap;"></div>
+    <!-- Receipts — مخفية من الإدارة، تظهر مباشرة للطلاب -->
+    <!-- (الإيصالات تُرسل مباشرة عبر WhatsApp ولا تُعرض هنا) -->
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- QUESTION BANK MANAGEMENT                               -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="admin-section" id="qbankSection">
+      <h3>🗂️ بنك الأسئلة – إضافة وإدارة الأسئلة</h3>
+      <p style="color:var(--text-muted);font-size:.83rem;margin-bottom:1rem;">الأسئلة المضافة تُحفظ في Firebase وتظهر فوراً للطلاب بدون إعادة تحميل</p>
+
+      <!-- Tabs for each section -->
+      <div id="qbTabBtns" style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem;">
+        <button class="admin-btn active" onclick="qbShowTab('co')" id="qbTab-co">🎧 Compréhension Orale</button>
+        <button class="admin-btn" onclick="qbShowTab('ce')" id="qbTab-ce">📖 Compréhension Écrite</button>
+        <button class="admin-btn" onclick="qbShowTab('sl')" id="qbTab-sl">🔤 Structures de Langue</button>
+        <button class="admin-btn" onclick="qbShowTab('ee')" id="qbTab-ee">✍️ Expression Écrite</button>
+        <button class="admin-btn" onclick="qbShowTab('eo')" id="qbTab-eo">🎤 Expression Orale</button>
+      </div>
+
+      <!-- ─── CO: Compréhension Orale ─── -->
+      <div id="qbPanel-co" class="qb-form-panel">
+        <div style="background:rgba(0,198,255,.07);border:1px solid var(--accent);border-radius:10px;padding:1.25rem;margin-bottom:1.25rem;">
+          <div style="font-size:.82rem;color:var(--accent);font-weight:700;margin-bottom:.75rem;">🎧 إضافة سؤال – Compréhension Orale</div>
+          <label class="qb-label">📎 رفع ملف (صوت أو صورة)</label>
+          <label for="co-file-upload" class="file-upload-zone">📁 Choisir un fichier (MP3, WAV, JPG, PNG)
+            <input type="file" id="co-file-upload" accept="audio/*,image/*" style="display:none" onchange="qbHandleFile('co',this)">
+          </label>
+          <div id="co-file-preview" style="margin-bottom:.5rem;"></div>
+          <label class="qb-label">📝 النص / الترانسكريبت (يُقرأ بالصوت)</label>
+          <textarea id="co-text" class="admin-input" rows="3" placeholder="اكتب هنا النص الذي سيُقرأ صوتياً للطالب..."></textarea>
+          <label class="qb-label">❓ السؤال</label>
+          <input id="co-q" class="admin-input" placeholder="اكتب السؤال هنا...">
+          <label class="qb-label">🔤 الخيارات الأربعة</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.75rem;">
+            <input id="co-opt0" class="admin-input" placeholder="A – الخيار الأول" style="margin:0">
+            <input id="co-opt1" class="admin-input" placeholder="B – الخيار الثاني" style="margin:0">
+            <input id="co-opt2" class="admin-input" placeholder="C – الخيار الثالث" style="margin:0">
+            <input id="co-opt3" class="admin-input" placeholder="D – الخيار الرابع" style="margin:0">
+          </div>
+          <label class="qb-label">✅ الإجابة الصحيحة</label>
+          <input type="hidden" id="co-answer" value="0">
+          <div class="abcd-selector">
+            <button type="button" class="abcd-btn selected-A" onclick="selectAnswer('co',0,this)">A</button>
+            <button type="button" class="abcd-btn" onclick="selectAnswer('co',1,this)">B</button>
+            <button type="button" class="abcd-btn" onclick="selectAnswer('co',2,this)">C</button>
+            <button type="button" class="abcd-btn" onclick="selectAnswer('co',3,this)">D</button>
+          </div>
+          <label class="qb-label">📊 مستوى السؤال</label>
+          <select id="co-level" class="admin-input">
+            <option value="A1">A1 – Débutant</option>
+            <option value="A2">A2 – Élémentaire</option>
+            <option value="B1" selected>B1 – Intermédiaire</option>
+            <option value="B2">B2 – Intermédiaire supérieur</option>
+            <option value="C1">C1 – Avancé</option>
+            <option value="C2">C2 – Maîtrise</option>
+          </select>
+          <label class="qb-label">🎯 إضافة إلى</label>
+          <select id="co-exam" class="admin-input">
+            <option value="canada">TCF Canada 🍁</option>
+            <option value="sodap">TCF SO/DAP 🇫🇷</option>
+            <option value="both">كلاهما</option>
+          </select>
+          <button class="admin-btn success" style="margin-top:.75rem;" onclick="qbAddQuestion('co')">➕ إضافة إلى البنك فوراً ⚡</button>
+        </div>
+        <div style="font-weight:700;font-size:.85rem;color:var(--text-muted);margin-bottom:.5rem;">الأسئلة المضافة — TCF Canada 🍁 (<span id="co-count-canada">0</span>) | TCF SO/DAP 🇫🇷 (<span id="co-count-sodap">0</span>)</div>
+        <div id="co-qlist" style="max-height:320px;overflow-y:auto;"></div>
+      </div>
+
+      <!-- ─── CE: Compréhension Écrite ─── -->
+      <div id="qbPanel-ce" class="qb-form-panel" style="display:none;">
+        <div style="background:rgba(0,198,255,.07);border:1px solid var(--accent);border-radius:10px;padding:1.25rem;margin-bottom:1.25rem;">
+          <div style="font-size:.82rem;color:var(--accent);font-weight:700;margin-bottom:.75rem;">📖 إضافة سؤال – Compréhension Écrite</div>
+          <label class="qb-label">📎 رفع ملف (صورة أو PDF)</label>
+          <label for="ce-file-upload" class="file-upload-zone">📁 Choisir un fichier (JPG, PNG, PDF)
+            <input type="file" id="ce-file-upload" accept="image/*,.pdf" style="display:none" onchange="qbHandleFile('ce',this)">
+          </label>
+          <div id="ce-file-preview" style="margin-bottom:.5rem;"></div>
+          <label class="qb-label">📰 عنوان النص</label>
+          <input id="ce-title" class="admin-input" placeholder="عنوان النص أو الوثيقة...">
+          <label class="qb-label">📄 النص المقروء</label>
+          <textarea id="ce-text" class="admin-input" rows="4" placeholder="اكتب النص الكامل هنا..."></textarea>
+          <label class="qb-label">❓ السؤال</label>
+          <input id="ce-q" class="admin-input" placeholder="اكتب السؤال هنا...">
+          <label class="qb-label">🔤 الخيارات الأربعة</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.75rem;">
+            <input id="ce-opt0" class="admin-input" placeholder="A – الخيار الأول" style="margin:0">
+            <input id="ce-opt1" class="admin-input" placeholder="B – الخيار الثاني" style="margin:0">
+            <input id="ce-opt2" class="admin-input" placeholder="C – الخيار الثالث" style="margin:0">
+            <input id="ce-opt3" class="admin-input" placeholder="D – الخيار الرابع" style="margin:0">
+          </div>
+          <label class="qb-label">✅ الإجابة الصحيحة</label>
+          <input type="hidden" id="ce-answer" value="0">
+          <div class="abcd-selector">
+            <button type="button" class="abcd-btn selected-A" onclick="selectAnswer('ce',0,this)">A</button>
+            <button type="button" class="abcd-btn" onclick="selectAnswer('ce',1,this)">B</button>
+            <button type="button" class="abcd-btn" onclick="selectAnswer('ce',2,this)">C</button>
+            <button type="button" class="abcd-btn" onclick="selectAnswer('ce',3,this)">D</button>
+          </div>
+          <label class="qb-label">📊 المستوى</label>
+          <select id="ce-level" class="admin-input">
+            <option value="A1">A1</option><option value="A2">A2</option>
+            <option value="B1" selected>B1</option><option value="B2">B2</option>
+            <option value="C1">C1</option><option value="C2">C2</option>
+          </select>
+          <label class="qb-label">🎯 إضافة إلى</label>
+          <select id="ce-exam" class="admin-input">
+            <option value="canada">TCF Canada 🍁</option>
+            <option value="sodap">TCF SO/DAP 🇫🇷</option>
+            <option value="both">كلاهما</option>
+          </select>
+          <button class="admin-btn success" style="margin-top:.75rem;" onclick="qbAddQuestion('ce')">➕ إضافة إلى البنك فوراً ⚡</button>
+        </div>
+        <div style="font-weight:700;font-size:.85rem;color:var(--text-muted);margin-bottom:.5rem;">الأسئلة المضافة — TCF Canada 🍁 (<span id="ce-count-canada">0</span>) | TCF SO/DAP 🇫🇷 (<span id="ce-count-sodap">0</span>)</div>
+        <div id="ce-qlist" style="max-height:320px;overflow-y:auto;"></div>
+      </div>
+
+      <!-- ─── SL: Structures de Langue ─── -->
+      <div id="qbPanel-sl" class="qb-form-panel" style="display:none;">
+        <div style="background:rgba(0,198,255,.07);border:1px solid var(--accent);border-radius:10px;padding:1.25rem;margin-bottom:1.25rem;">
+          <div style="font-size:.82rem;color:var(--accent);font-weight:700;margin-bottom:.75rem;">🔤 إضافة سؤال – Structures de Langue</div>
+          <label class="qb-label">📎 رفع ملف (صورة)</label>
+          <label for="sl-file-upload" class="file-upload-zone">📁 Choisir un fichier (JPG, PNG)
+            <input type="file" id="sl-file-upload" accept="image/*" style="display:none" onchange="qbHandleFile('sl',this)">
+          </label>
+          <div id="sl-file-preview" style="margin-bottom:.5rem;"></div>
+          <label class="qb-label">✏️ الجملة (ضع ___ مكان الفراغ)</label>
+          <input id="sl-sentence" class="admin-input" placeholder="مثال: Il ___ parti hier matin.">
+          <label class="qb-label">🏷️ نوع البنية النحوية</label>
+          <input id="sl-type" class="admin-input" placeholder="مثال: Passé composé, Subjonctif...">
+          <label class="qb-label">🔤 الخيارات الأربعة</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.75rem;">
+            <input id="sl-opt0" class="admin-input" placeholder="A" style="margin:0">
+            <input id="sl-opt1" class="admin-input" placeholder="B" style="margin:0">
+            <input id="sl-opt2" class="admin-input" placeholder="C" style="margin:0">
+            <input id="sl-opt3" class="admin-input" placeholder="D" style="margin:0">
+          </div>
+          <label class="qb-label">✅ الإجابة الصحيحة</label>
+          <input type="hidden" id="sl-answer" value="0">
+          <div class="abcd-selector">
+            <button type="button" class="abcd-btn selected-A" onclick="selectAnswer('sl',0,this)">A</button>
+            <button type="button" class="abcd-btn" onclick="selectAnswer('sl',1,this)">B</button>
+            <button type="button" class="abcd-btn" onclick="selectAnswer('sl',2,this)">C</button>
+            <button type="button" class="abcd-btn" onclick="selectAnswer('sl',3,this)">D</button>
+          </div>
+          <label class="qb-label">📊 المستوى</label>
+          <select id="sl-level" class="admin-input">
+            <option value="A1">A1</option><option value="A2">A2</option>
+            <option value="B1" selected>B1</option><option value="B2">B2</option>
+            <option value="C1">C1</option><option value="C2">C2</option>
+          </select>
+          <label class="qb-label">🎯 إضافة إلى</label>
+          <select id="sl-exam" class="admin-input">
+            <option value="sodap">TCF SO/DAP 🇫🇷</option>
+            <option value="both">كلاهما (Canada + SO/DAP)</option>
+          </select>
+          <button class="admin-btn success" style="margin-top:.75rem;" onclick="qbAddQuestion('sl')">➕ إضافة إلى البنك فوراً ⚡</button>
+        </div>
+        <div style="font-weight:700;font-size:.85rem;color:var(--text-muted);margin-bottom:.5rem;">الأسئلة المضافة — TCF SO/DAP 🇫🇷 (<span id="sl-count">0</span>)</div>
+        <div id="sl-qlist" style="max-height:320px;overflow-y:auto;"></div>
+      </div>
+
+      <!-- ─── EE: Expression Écrite ─── -->
+      <div id="qbPanel-ee" class="qb-form-panel" style="display:none;">
+        <div style="background:rgba(0,198,255,.07);border:1px solid var(--accent);border-radius:10px;padding:1.25rem;margin-bottom:1.25rem;">
+          <div style="font-size:.82rem;color:var(--accent);font-weight:700;margin-bottom:.75rem;">✍️ إضافة tâche – Expression Écrite</div>
+          <label class="qb-label">📎 رفع ملف (صورة أو PDF)</label>
+          <label for="ee-file-upload" class="file-upload-zone">📁 Choisir un fichier (JPG, PNG, PDF)
+            <input type="file" id="ee-file-upload" accept="image/*,.pdf" style="display:none" onchange="qbHandleFile('ee',this)">
+          </label>
+          <div id="ee-file-preview" style="margin-bottom:.5rem;"></div>
+          <label class="qb-label">📌 رقم التâche</label>
+          <select id="ee-task" class="admin-input">
+            <option value="1">Tâche 1</option>
+            <option value="2">Tâche 2</option>
+            <option value="3">Tâche 3</option>
+          </select>
+          <label class="qb-label">📋 Consigne (التعليمة)</label>
+          <textarea id="ee-consigne" class="admin-input" rows="3" placeholder="اكتب التعليمة الكاملة للطالب..."></textarea>
+          <label class="qb-label">💡 Exemple 1 (نموذج إجابة أول)</label>
+          <textarea id="ee-ex1" class="admin-input" rows="3" placeholder="اكتب النموذج الأول هنا..."></textarea>
+          <label class="qb-label">💡 Exemple 2 (نموذج إجابة ثاني)</label>
+          <textarea id="ee-ex2" class="admin-input" rows="3" placeholder="اكتب النموذج الثاني هنا..."></textarea>
+          <label class="qb-label">🎯 إضافة إلى</label>
+          <select id="ee-exam" class="admin-input">
+            <option value="canada">TCF Canada 🍁</option>
+            <option value="sodap">TCF SO/DAP 🇫🇷</option>
+            <option value="both">كلاهما</option>
+          </select>
+          <button class="admin-btn success" style="margin-top:.75rem;" onclick="qbAddQuestion('ee')">➕ إضافة إلى البنك فوراً ⚡</button>
+        </div>
+        <div style="font-weight:700;font-size:.85rem;color:var(--text-muted);margin-bottom:.5rem;">التâches المضافة — TCF Canada 🍁 (<span id="ee-count-canada">0</span>) | TCF SO/DAP 🇫🇷 (<span id="ee-count-sodap">0</span>)</div>
+        <div id="ee-qlist" style="max-height:320px;overflow-y:auto;"></div>
+      </div>
+
+      <!-- ─── EO: Expression Orale ─── -->
+      <div id="qbPanel-eo" class="qb-form-panel" style="display:none;">
+        <div style="background:rgba(0,198,255,.07);border:1px solid var(--accent);border-radius:10px;padding:1.25rem;margin-bottom:1.25rem;">
+          <div style="font-size:.82rem;color:var(--accent);font-weight:700;margin-bottom:.75rem;">🎤 إضافة tâche – Expression Orale</div>
+          <label class="qb-label">📎 رفع ملف (صوت أو صورة)</label>
+          <label for="eo-file-upload" class="file-upload-zone">📁 Choisir un fichier (MP3, WAV, JPG, PNG)
+            <input type="file" id="eo-file-upload" accept="audio/*,image/*" style="display:none" onchange="qbHandleFile('eo',this)">
+          </label>
+          <div id="eo-file-preview" style="margin-bottom:.5rem;"></div>
+          <label class="qb-label">📌 رقم التâche</label>
+          <select id="eo-task" class="admin-input">
+            <option value="1">Tâche 1</option>
+            <option value="2">Tâche 2</option>
+            <option value="3">Tâche 3</option>
+          </select>
+          <label class="qb-label">📋 Consigne (التعليمة)</label>
+          <textarea id="eo-consigne" class="admin-input" rows="3" placeholder="اكتب التعليمة الكاملة للطالب..."></textarea>
+          <label class="qb-label">💡 Exemple 1 (نموذج إجابة أول)</label>
+          <textarea id="eo-ex1" class="admin-input" rows="3" placeholder="اكتب النموذج الأول هنا..."></textarea>
+          <label class="qb-label">💡 Exemple 2 (نموذج إجابة ثاني)</label>
+          <textarea id="eo-ex2" class="admin-input" rows="3" placeholder="اكتب النموذج الثاني هنا..."></textarea>
+          <div style="background:rgba(0,198,255,.1);border:1px solid var(--accent);border-radius:8px;padding:.75rem 1rem;font-size:.82rem;color:var(--accent);margin-top:.5rem;">
+            ℹ️ Expression Orale تُضاف فقط إلى <strong>TCF Canada 🍁</strong>
+          </div>
+          <button class="admin-btn success" style="margin-top:.75rem;" onclick="qbAddQuestion('eo')">➕ إضافة إلى بنك TCF Canada فوراً ⚡</button>
+        </div>
+        <div style="font-weight:700;font-size:.85rem;color:var(--text-muted);margin-bottom:.5rem;">التâches المضافة — TCF Canada 🍁 (<span id="eo-count">0</span>)</div>
+        <div id="eo-qlist" style="max-height:320px;overflow-y:auto;"></div>
+      </div>
+
+      <!-- Clear / Export / Import -->
+      <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border);display:flex;gap:.75rem;flex-wrap:wrap;">
+        <button class="admin-btn danger" onclick="qbClearAll()">🗑️ مسح كل أسئلة الإدارة</button>
+        <button class="admin-btn" onclick="qbExportBank()">⬇️ تصدير بنك الأسئلة (JSON)</button>
+        <label style="display:inline-flex;align-items:center;gap:.4rem;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.5rem 1rem;border-radius:8px;cursor:pointer;font-size:.85rem;">
+          ⬆️ استيراد JSON
+          <input type="file" accept=".json" style="display:none" onchange="qbImportBank(this)">
+        </label>
+      </div>
     </div>
   </div>
 </div>
@@ -961,7 +1268,7 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
 <footer>
   <div style="max-width:900px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:2rem;text-align:right;padding-bottom:2rem;border-bottom:1px solid var(--border);">
     <div>
-      <div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--accent);margin-bottom:.75rem;">Pack TCF Ouadfel – 2019</div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--accent);margin-bottom:.75rem;">Pack TCF Ouadfel – <span id="footerYear1"></span></div>
       <p style="line-height:1.65;">La meilleure préparation au TCF Canada 🍁 et France 🇫🇷. Conçue et animée par <strong>Mm H.Ouadfel</strong>, experte en formation linguistique.</p>
       <div style="margin-top:.75rem;">📞 0563 090 449</div>
     </div>
@@ -979,7 +1286,7 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
       </div>
     </div>
   </div>
-  <p style="margin-top:1.5rem;">© 2019–2025 <strong>Pack TCF Ouadfel</strong> – Mm H.Ouadfel – Tous droits réservés.</p>
+  <p style="margin-top:1.5rem;">© 2019–<span id="footerYear2"></span> <strong>Pack TCF Ouadfel</strong> – Mm H.Ouadfel – Tous droits réservés.</p>
   <p style="margin-top:.4rem;">🇩🇿 Fait en Algérie pour le Canada 🍁 et la France 🇫🇷</p>
 </footer>
 
@@ -3136,10 +3443,96 @@ const ADMIN_USERNAME = 'ouadfel';
 const ADMIN_PASSWORD = 'tcf2026';
 
 // ──────────────────────────────────────────
-// DATA STORE (localStorage – persistent across sessions)
+// DATA STORE — Firebase (مشترك بين جميع المستخدمين) + localStorage (كاحتياطي)
 // ──────────────────────────────────────────
-function saveData(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch(e){} }
-function loadData(key, def) { try { const d = localStorage.getItem(key); return d !== null ? JSON.parse(d) : def; } catch(e){ return def; } }
+
+// مفاتيح Firebase: tcf_users → firebase/users, tcf_stories → firebase/stories ...
+function fbKey(key) {
+  return 'tcf/' + key.replace(/^tcf_/, '');
+}
+
+// ── مفاتيح بنك الأسئلة (نضعها هنا لأن firebase-ready يحتاجها) ──
+const QB_KEYS = { co:'tcf_qbank_co', ce:'tcf_qbank_ce', sl:'tcf_qbank_sl', ee:'tcf_qbank_ee', eo:'tcf_qbank_eo' };
+
+// حفظ: في Firebase (للمشاركة) وفي localStorage (للسرعة)
+function saveData(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch(e){}
+  if (window.firebaseReady && window.fbSave) {
+    window.fbSave(fbKey(key), val).catch(()=>{});
+  }
+}
+
+// قراءة: من localStorage أولاً (سريع) ثم نزامن مع Firebase
+function loadData(key, def) {
+  try {
+    const d = localStorage.getItem(key);
+    const local = d !== null ? JSON.parse(d) : def;
+    // زامن من Firebase في الخلفية
+    if (window.firebaseReady && window.fbLoad) {
+      window.fbLoad(fbKey(key), def).then(fbVal => {
+        if (fbVal !== def) {
+          try { localStorage.setItem(key, JSON.stringify(fbVal)); } catch(e){}
+        }
+      }).catch(()=>{});
+    }
+    return local;
+  } catch(e){ return def; }
+}
+
+// تهيئة Firebase عند الجاهزية: جلب البيانات وتحديث الواجهة
+window.addEventListener('firebase-ready', async () => {
+  // جلب المستخدمين
+  const fbUsers = await window.fbLoad('tcf/users', null);
+  if (fbUsers) {
+    try { localStorage.setItem('tcf_users', JSON.stringify(fbUsers)); } catch(e){}
+  }
+  // جلب الستوريات
+  const fbStories = await window.fbLoad('tcf/stories', null);
+  if (fbStories) {
+    try { localStorage.setItem('tcf_stories', JSON.stringify(fbStories)); } catch(e){}
+    renderStoriesBar();
+  }
+  // جلب الباكات
+  const fbPacks = await window.fbLoad('tcf/packs', null);
+  if (fbPacks) {
+    try { localStorage.setItem('tcf_packs', JSON.stringify(fbPacks)); } catch(e){}
+    renderPacks();
+  }
+  // جلب صورة المدربة
+  const fbPhoto = await window.fbLoad('tcf/founder_photo', null);
+  if (fbPhoto) {
+    try { localStorage.setItem('tcf_founder_photo', JSON.stringify(fbPhoto)); } catch(e){}
+    renderFounderPhoto();
+  }
+  // ── جلب بنك الأسئلة من Firebase وإدخاله في البنوك الحية ──
+  for (const section of ['co','ce','sl','ee','eo']) {
+    try {
+      const fbData = await window.fbLoad('tcf/qbank/' + section, null);
+      if (fbData) {
+        localStorage.setItem(QB_KEYS[section], JSON.stringify(fbData));
+      }
+    } catch(e){}
+  }
+  qbLoadAllIntoLiveBanks();
+  qbWatchFirebase(); // مراقبة التغييرات في الوقت الحقيقي
+  // مراقبة المستخدمين في الوقت الحقيقي (مفيد للأدمين)
+  window.fbWatch('tcf/users', (users) => {
+    if (!users) return;
+    try { localStorage.setItem('tcf_users', JSON.stringify(users)); } catch(e){}
+    // تحديث حالة المستخدم الحالي
+    if (currentUser) {
+      const fresh = Array.isArray(users) ? users.find(u => u.id === currentUser.id) : null;
+      if (fresh) {
+        currentUser = fresh;
+        try { localStorage.setItem('tcf_session', JSON.stringify(fresh)); } catch(e){}
+        renderNav();
+        checkFrozen();
+      }
+    }
+    // تحديث لوحة الأدمين إذا كانت مفتوحة
+    if (isAdmin) renderAdminPanel();
+  });
+});
 
 // ──────────────────────────────────────────
 // USERS & SESSION
@@ -3541,6 +3934,8 @@ function renderAdminPanel() {
   const photo = loadData('tcf_founder_photo', null);
   const prev = document.getElementById('adminPhotoPreview');
   if (photo && prev) { prev.src = photo; prev.classList.remove('hidden'); }
+  // Init question bank
+  initQBank();
 }
 
 function renderAdminPacks() {
@@ -3645,19 +4040,10 @@ function adminToggleFreeze(userId) {
 }
 
 function renderAdminStories() {
+  // Update stories count badge only (no list in admin)
   const stories = getStories();
-  const list = document.getElementById('adminStoriesList');
-  if (!list) return;
-  if (!stories.length) { list.innerHTML = '<p style="color:var(--text-muted);font-size:.85rem;">لا توجد ستوريات بعد</p>'; return; }
-  list.innerHTML = stories.map((s,i) => `
-    <div style="display:flex;align-items:center;gap:.75rem;padding:.6rem 0;border-bottom:1px solid var(--border);">
-      <img src="${s.img}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid var(--border);">
-      <div style="flex:1;font-size:.83rem;">
-        <span style="font-weight:600;">${s.label || 'بدون عنوان'}</span>
-        <span style="color:var(--text-muted);margin-right:.5rem;">${s.type === 'result' ? '🏆 دائمة' : '⏱ 24 ساعة'}</span>
-      </div>
-      <button class="admin-btn danger small" onclick="adminDeleteStory(${i})">حذف</button>
-    </div>`).join('');
+  const badge = document.getElementById('storiesCountBadge');
+  if (badge) badge.textContent = stories.length ? `(${stories.length} ستوري حالياً)` : '(لا توجد ستوريات)';
 }
 
 function adminAddStory() {
@@ -3674,12 +4060,20 @@ function adminAddStory() {
   document.getElementById('storyImgInput').value = '';
   renderAdminStories();
   renderStoriesBar();
+  alert('✅ تمت إضافة الستوري! تظهر الآن للطلاب فوراً.');
 }
 
 function adminDeleteStory(idx) {
   const stories = getStories();
   stories.splice(idx, 1);
   saveStories(stories);
+  renderAdminStories();
+  renderStoriesBar();
+}
+
+function adminClearStories() {
+  if (!confirm('⚠️ حذف جميع الستوريات؟')) return;
+  saveStories([]);
   renderAdminStories();
   renderStoriesBar();
 }
@@ -3700,6 +4094,365 @@ function renderAdminReceipts() {
 function previewImg(src) {
   document.getElementById('imgPreviewSrc').src = src;
   openModal('imgPreviewModal');
+}
+
+// ══════════════════════════════════════════
+// QUESTION BANK ADMIN SYSTEM (Firebase-backed)
+// ══════════════════════════════════════════
+
+// QB_KEYS is defined earlier (near firebase-ready listener);
+
+// ── Get bank (from localStorage cache, Firebase auto-syncs) ──
+function qbGet(section) {
+  try { return JSON.parse(localStorage.getItem(QB_KEYS[section]) || '[]'); }
+  catch(e) { return []; }
+}
+
+// ── Save bank (localStorage + Firebase) ──
+async function qbSave(section, arr) {
+  localStorage.setItem(QB_KEYS[section], JSON.stringify(arr));
+  if (window.firebaseReady && window.fbSave) {
+    try { await window.fbSave('tcf/qbank/' + section, arr); } catch(e){}
+  }
+}
+
+// ── Watch Firebase for real-time question updates (students see changes instantly) ──
+function qbWatchFirebase() {
+  ['co','ce','sl','ee','eo'].forEach(section => {
+    if (window.fbWatch) {
+      window.fbWatch('tcf/qbank/' + section, (data) => {
+        if (data) {
+          localStorage.setItem(QB_KEYS[section], JSON.stringify(data));
+          qbLoadAllIntoLiveBanks();
+          if (isAdmin) {
+            qbRenderList(section);
+            qbUpdateCounts();
+          }
+        }
+      });
+    }
+  });
+}
+
+// ── Tab switching ──
+let _qbActiveTab = 'co';
+function qbShowTab(tab) {
+  ['co','ce','sl','ee','eo'].forEach(t => {
+    const panel = document.getElementById('qbPanel-' + t);
+    const btn = document.getElementById('qbTab-' + t);
+    if (panel) panel.style.display = t === tab ? '' : 'none';
+    if (btn) btn.classList.toggle('active', t === tab);
+  });
+  _qbActiveTab = tab;
+  qbRenderList(tab);
+}
+
+// ── File handler: converts file to base64, shows preview ──
+function qbHandleFile(section, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  const previewEl = document.getElementById(section + '-file-preview');
+  reader.onload = e => {
+    const data = e.target.result;
+    input._dataUri = data;
+    input._fileName = file.name;
+    input._fileType = file.type;
+    if (!previewEl) return;
+    if (file.type.startsWith('image/')) {
+      previewEl.innerHTML = `<img src="${data}" style="max-width:200px;max-height:140px;border-radius:8px;border:2px solid var(--accent);margin-top:.4rem;">`;
+    } else if (file.type.startsWith('audio/')) {
+      previewEl.innerHTML = `<audio controls style="margin-top:.4rem;width:100%;"><source src="${data}" type="${file.type}"></audio>`;
+    } else {
+      previewEl.innerHTML = `<div style="padding:.5rem;background:var(--surface2);border-radius:6px;font-size:.82rem;color:var(--gold);">📄 ${file.name}</div>`;
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── Read field value ──
+function qbVal(id) {
+  const el = document.getElementById(id);
+  return el ? el.value.trim() : '';
+}
+
+// ── ABCD Answer Selector ──
+function selectAnswer(section, idx, clickedBtn) {
+  const letters = ['A','B','C','D'];
+  const hidden = document.getElementById(section + '-answer');
+  if (hidden) hidden.value = idx;
+  const container = clickedBtn.parentElement;
+  container.querySelectorAll('.abcd-btn').forEach((btn, i) => {
+    btn.className = 'abcd-btn' + (i === idx ? ' selected-' + letters[i] : '');
+  });
+}
+
+// ── Add question (saved to Firebase → visible to students instantly) ──
+async function qbAddQuestion(section) {
+  const bank = qbGet(section);
+  let item = { id: Date.now(), addedAt: new Date().toLocaleDateString('fr-FR') };
+
+  const fileInput = document.getElementById(section + '-file-upload');
+  if (fileInput && fileInput._dataUri) {
+    item.fileUri = fileInput._dataUri;
+    item.fileName = fileInput._fileName;
+    item.fileType = fileInput._fileType || '';
+  }
+
+  if (section === 'co') {
+    const text = qbVal('co-text'), q = qbVal('co-q');
+    const opts = [qbVal('co-opt0'), qbVal('co-opt1'), qbVal('co-opt2'), qbVal('co-opt3')];
+    if (!q || opts.some(o => !o)) { alert('⚠️ يرجى ملء السؤال والخيارات الأربعة'); return; }
+    item = { ...item, text, q, opts, a: parseInt(qbVal('co-answer')), level: qbVal('co-level'), exam: qbVal('co-exam') };
+    ['co-text','co-q','co-opt0','co-opt1','co-opt2','co-opt3'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    const coHidden = document.getElementById('co-answer'); if(coHidden) coHidden.value='0';
+    const coSel = document.querySelector('#qbPanel-co .abcd-selector');
+    if(coSel) { const btns=coSel.querySelectorAll('.abcd-btn'); btns.forEach((b,i)=>{ b.className='abcd-btn'+(i===0?' selected-A':''); }); }
+
+  } else if (section === 'ce') {
+    const title = qbVal('ce-title'), text = qbVal('ce-text'), q = qbVal('ce-q');
+    const opts = [qbVal('ce-opt0'), qbVal('ce-opt1'), qbVal('ce-opt2'), qbVal('ce-opt3')];
+    if (!text || !q || opts.some(o => !o)) { alert('⚠️ يرجى ملء النص والسؤال والخيارات الأربعة'); return; }
+    item = { ...item, title, text, q, opts, a: parseInt(qbVal('ce-answer')), level: qbVal('ce-level'), exam: qbVal('ce-exam') };
+    ['ce-title','ce-text','ce-q','ce-opt0','ce-opt1','ce-opt2','ce-opt3'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    const ceHidden = document.getElementById('ce-answer'); if(ceHidden) ceHidden.value='0';
+    const ceSel = document.querySelector('#qbPanel-ce .abcd-selector');
+    if(ceSel) { const btns=ceSel.querySelectorAll('.abcd-btn'); btns.forEach((b,i)=>{ b.className='abcd-btn'+(i===0?' selected-A':''); }); }
+
+  } else if (section === 'sl') {
+    const s = qbVal('sl-sentence'), type = qbVal('sl-type');
+    const opts = [qbVal('sl-opt0'), qbVal('sl-opt1'), qbVal('sl-opt2'), qbVal('sl-opt3')];
+    if (!s || opts.some(o => !o)) { alert('⚠️ يرجى ملء الجملة والخيارات الأربعة'); return; }
+    item = { ...item, s, type, opts, a: parseInt(qbVal('sl-answer')), level: qbVal('sl-level'), exam: qbVal('sl-exam') };
+    ['sl-sentence','sl-type','sl-opt0','sl-opt1','sl-opt2','sl-opt3'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    const slHidden = document.getElementById('sl-answer'); if(slHidden) slHidden.value='0';
+    const slSel = document.querySelector('#qbPanel-sl .abcd-selector');
+    if(slSel) { const btns=slSel.querySelectorAll('.abcd-btn'); btns.forEach((b,i)=>{ b.className='abcd-btn'+(i===0?' selected-A':''); }); }
+
+  } else if (section === 'ee') {
+    const consigne = qbVal('ee-consigne');
+    if (!consigne) { alert('⚠️ يرجى كتابة الـ Consigne'); return; }
+    item = { ...item, task: qbVal('ee-task'), consigne, ex1: qbVal('ee-ex1'), ex2: qbVal('ee-ex2'), exam: qbVal('ee-exam') };
+    ['ee-consigne','ee-ex1','ee-ex2'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+
+  } else if (section === 'eo') {
+    const consigne = qbVal('eo-consigne');
+    if (!consigne) { alert('⚠️ يرجى كتابة الـ Consigne'); return; }
+    item = { ...item, task: qbVal('eo-task'), consigne, ex1: qbVal('eo-ex1'), ex2: qbVal('eo-ex2'), exam: 'canada' };
+    ['eo-consigne','eo-ex1','eo-ex2'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  }
+
+  // Clear file preview
+  const fp = document.getElementById(section + '-file-preview');
+  if (fp) fp.innerHTML = '';
+  if (fileInput) { fileInput.value = ''; fileInput._dataUri = null; }
+
+  bank.push(item);
+  await qbSave(section, bank); // saves to Firebase → students see it instantly
+  qbLoadAllIntoLiveBanks();   // inject into live series
+  qbRenderList(section);
+  qbUpdateCounts();
+
+  // Flash success button
+  const btn = document.querySelector(`#qbPanel-${section} .admin-btn.success`);
+  if (btn) { const orig = btn.textContent; btn.textContent = '✅ تمت الإضافة! يراها الطلاب الآن'; btn.style.background='var(--accent)'; setTimeout(()=>{ btn.textContent=orig; btn.style.background=''; },2000); }
+}
+
+// ── Shuffle array (Fisher-Yates) ──
+function shuffleArray(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ── Distribute admin questions randomly across all series ──
+function qbDistributeAcrossSeries(series, adminQuestions) {
+  if (!series || !series.length || !adminQuestions || !adminQuestions.length) return;
+  series.forEach(s => {
+    if (s && s.questions) {
+      s.questions = s.questions.filter(q => !q._admin);
+    }
+  });
+  const shuffled = shuffleArray(adminQuestions);
+  shuffled.forEach((q, i) => {
+    const seriesIndex = i % series.length;
+    if (series[seriesIndex] && series[seriesIndex].questions) {
+      series[seriesIndex].questions.push(Object.assign({}, q, { _admin: true }));
+    }
+  });
+}
+
+// ── Load all saved questions into live banks (called on page load & after Firebase sync) ──
+function qbLoadAllIntoLiveBanks() {
+  try {
+    // CO – Canada
+    const coCanadaBank = qbGet('co').filter(i => i.exam === 'canada' || i.exam === 'both');
+    if (typeof CO_CANADA_SERIES !== 'undefined') {
+      qbDistributeAcrossSeries(CO_CANADA_SERIES, coCanadaBank.map(item => {
+        const q = { level: item.level, text: item.text || '', q: item.q, opts: item.opts, a: item.a };
+        if (item.fileUri) { q.fileUri = item.fileUri; q.fileType = item.fileType || ''; }
+        return q;
+      }));
+    }
+    // CO – SO/DAP
+    const coSodapBank = qbGet('co').filter(i => i.exam === 'sodap' || i.exam === 'both');
+    if (typeof CO_SODAP_SERIES !== 'undefined') {
+      qbDistributeAcrossSeries(CO_SODAP_SERIES, coSodapBank.map(item => {
+        const q = { level: item.level, text: item.text || '', q: item.q, opts: item.opts, a: item.a };
+        if (item.fileUri) { q.fileUri = item.fileUri; q.fileType = item.fileType || ''; }
+        return q;
+      }));
+    }
+    // CE – Canada
+    const ceCanadaBank = qbGet('ce').filter(i => i.exam === 'canada' || i.exam === 'both');
+    if (typeof CE_CANADA_SERIES !== 'undefined') {
+      qbDistributeAcrossSeries(CE_CANADA_SERIES, ceCanadaBank.map(item => {
+        const q = { level: item.level, title: item.title || '', text: item.text, q: item.q, opts: item.opts, a: item.a };
+        if (item.fileUri) { q.fileUri = item.fileUri; q.fileType = item.fileType || ''; }
+        return q;
+      }));
+    }
+    // CE – SO/DAP
+    const ceSodapBank = qbGet('ce').filter(i => i.exam === 'sodap' || i.exam === 'both');
+    if (typeof CE_SODAP_SERIES !== 'undefined') {
+      qbDistributeAcrossSeries(CE_SODAP_SERIES, ceSodapBank.map(item => {
+        const q = { level: item.level, title: item.title || '', text: item.text, q: item.q, opts: item.opts, a: item.a };
+        if (item.fileUri) { q.fileUri = item.fileUri; q.fileType = item.fileType || ''; }
+        return q;
+      }));
+    }
+    // SL
+    const slBank = qbGet('sl');
+    if (typeof SL_SERIES_DATA !== 'undefined') {
+      qbDistributeAcrossSeries(SL_SERIES_DATA, slBank.map(item => ({ level: item.level, s: item.s, type: item.type, opts: item.opts, a: item.a })));
+    }
+  } catch(e) { /* silent */ }
+}
+
+// ── Render list of added questions ──
+function qbRenderList(section) {
+  const listEl = document.getElementById(section + '-qlist');
+  if (!listEl) return;
+  const bank = qbGet(section);
+  if (!bank.length) {
+    listEl.innerHTML = '<p style="color:var(--text-muted);font-size:.82rem;padding:.5rem;">لا توجد أسئلة مضافة بعد.</p>';
+    return;
+  }
+  listEl.innerHTML = bank.map((item, i) => {
+    let preview = '';
+    if (section === 'co') preview = `<strong>Q:</strong> ${item.q || ''} | <strong>Niveau:</strong> ${item.level || ''} | <strong>Exam:</strong> ${item.exam || ''}`;
+    else if (section === 'ce') preview = `<strong>Titre:</strong> ${item.title || ''} | <strong>Q:</strong> ${item.q || ''} | <strong>Niveau:</strong> ${item.level || ''}`;
+    else if (section === 'sl') preview = `<strong>Phrase:</strong> ${item.s || ''} | <strong>Type:</strong> ${item.type || ''} | <strong>Niveau:</strong> ${item.level || ''}`;
+    else if (section === 'ee') preview = `<strong>Tâche ${item.task}:</strong> ${(item.consigne||'').substring(0,80)}...`;
+    else if (section === 'eo') preview = `<strong>Tâche ${item.task}:</strong> ${(item.consigne||'').substring(0,80)}...`;
+    let mediaHtml = '';
+    if (item.fileUri) {
+      if (item.fileType && item.fileType.startsWith('image/')) {
+        mediaHtml = `<img src="${item.fileUri}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;border:1px solid var(--border);flex-shrink:0;">`;
+      } else if (item.fileType && item.fileType.startsWith('audio/')) {
+        mediaHtml = `<span style="font-size:1.3rem;flex-shrink:0;">🔊</span>`;
+      } else {
+        mediaHtml = `<span style="font-size:1.1rem;flex-shrink:0;">📄</span>`;
+      }
+    }
+    return `<div class="qb-item ${i === bank.length-1 ? 'qb-added-flash' : ''}">
+      ${mediaHtml}
+      <div class="qb-item-text">
+        <strong>${section.toUpperCase()} #${i+1} · ${item.addedAt || ''}</strong><br>
+        ${preview}
+      </div>
+      <span class="qb-item-badge">${item.level || (item.task ? 'Tâche '+item.task : '')}</span>
+      <button class="admin-btn danger small" onclick="qbDeleteItem('${section}',${i})" style="flex-shrink:0;">حذف</button>
+    </div>`;
+  }).join('');
+}
+
+// ── Delete item from bank ──
+async function qbDeleteItem(section, idx) {
+  if (!confirm('حذف هذا السؤال؟')) return;
+  const bank = qbGet(section);
+  bank.splice(idx, 1);
+  await qbSave(section, bank);
+  qbLoadAllIntoLiveBanks();
+  qbRenderList(section);
+  qbUpdateCounts();
+}
+
+// ── Update counts in tabs (counts question-slots per exam target; "both" counts toward both) ──
+function qbUpdateCounts() {
+  // CO / CE / EE: split into Canada and SO/DAP slot counts
+  ['co','ce','ee'].forEach(s => {
+    const bank = qbGet(s);
+    let canadaN = 0, sodapN = 0;
+    bank.forEach(item => {
+      if (item.exam === 'canada' || item.exam === 'both') canadaN++;
+      if (item.exam === 'sodap' || item.exam === 'both') sodapN++;
+    });
+    const elC = document.getElementById(s + '-count-canada');
+    if (elC) elC.textContent = canadaN;
+    const elS = document.getElementById(s + '-count-sodap');
+    if (elS) elS.textContent = sodapN;
+  });
+  // SL: always TCF SO/DAP (item.exam is 'sodap' or 'both', both still belong to SO/DAP bank)
+  const slEl = document.getElementById('sl-count');
+  if (slEl) slEl.textContent = qbGet('sl').length;
+  // EO: TCF Canada only
+  const eoEl = document.getElementById('eo-count');
+  if (eoEl) eoEl.textContent = qbGet('eo').length;
+}
+
+// ── Clear all ──
+async function qbClearAll() {
+  if (!confirm('⚠️ سيتم مسح جميع أسئلة الإدارة المضافة. هل أنت متأكد؟')) return;
+  for (const s of ['co','ce','sl','ee','eo']) { await qbSave(s, []); }
+  ['co','ce','sl','ee','eo'].forEach(s => qbRenderList(s));
+  qbUpdateCounts();
+  qbLoadAllIntoLiveBanks();
+  alert('✅ تم مسح جميع الأسئلة المضافة.');
+}
+
+// ── Export bank as JSON ──
+function qbExportBank() {
+  const all = {};
+  ['co','ce','sl','ee','eo'].forEach(s => all[s] = qbGet(s));
+  const json = JSON.stringify(all, null, 2);
+  const a = document.createElement('a');
+  a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(json);
+  a.download = 'tcf_question_bank_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+}
+
+// ── Import bank from JSON ──
+async function qbImportBank(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      for (const s of ['co','ce','sl','ee','eo']) {
+        if (Array.isArray(data[s])) {
+          const existing = qbGet(s);
+          await qbSave(s, [...existing, ...data[s]]);
+        }
+      }
+      ['co','ce','sl','ee','eo'].forEach(s => qbRenderList(s));
+      qbUpdateCounts();
+      qbLoadAllIntoLiveBanks();
+      alert('✅ تم استيراد الأسئلة بنجاح! يراها الطلاب الآن فوراً.');
+    } catch(err) { alert('❌ ملف JSON غير صالح.'); }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+// ── Initialize question bank when admin panel is rendered ──
+function initQBank() {
+  qbUpdateCounts();
+  qbRenderList('co'); // default tab shown
 }
 
 // ──────────────────────────────────────────
@@ -3793,11 +4546,39 @@ function submitRecu() {
 // INIT
 // ═══════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
+
+  // ── التاريخ والسنوات التلقائية ──
+  (function updateDynamicDates() {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const yearsExp = currentYear - 2019;
+
+    // التاريخ في الشعار (الـ nav)
+    const months = ['جانفي','فيفري','مارس','أفريل','ماي','جوان','جويلية','أوت','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+    const navEl = document.getElementById('navLiveDate');
+    if (navEl) navEl.textContent = now.getDate() + ' ' + months[now.getMonth()] + ' ' + currentYear;
+
+    // السنة في الفوتر
+    const fy1 = document.getElementById('footerYear1');
+    if (fy1) fy1.textContent = currentYear;
+    const fy2 = document.getElementById('footerYear2');
+    if (fy2) fy2.textContent = currentYear;
+
+    // سنوات الخبرة (2026-2019=7, 2027-2019=8 ...)
+    const heroY = document.getElementById('heroExpYears');
+    if (heroY) heroY.textContent = yearsExp + ' ans';
+    const founderP = document.getElementById('founderExpYears');
+    if (founderP) founderP.textContent = yearsExp;
+    const founderS = document.getElementById('founderStatYears');
+    if (founderS) founderS.textContent = yearsExp + ' ans';
+  })();
+
   applyTheme();
   renderNav();
   renderFounderPhoto();
   renderStoriesBar();
   renderPacks();
+  qbLoadAllIntoLiveBanks(); // inject saved admin questions into live banks
   showSection('oral');
   // close modals on overlay click
   document.querySelectorAll('.auth-modal-overlay').forEach(el => {
