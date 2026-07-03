@@ -35,7 +35,11 @@
   window.fbSave = async function(key, val) {
     try {
       await set(ref(db, key), val);
-    } catch(e) { console.error('fbSave error:', e); }
+      return true;
+    } catch(e) {
+      console.error('fbSave error:', e);
+      throw e; // نُعيد رمي الخطأ ليعرف الكود المستدعي أن الحفظ فشل فعلاً
+    }
   };
 
   // قراءة بيانات من Firebase (مرة واحدة)
@@ -603,13 +607,10 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
 <section id="hero">
   <div class="hero-badge">TCF Canada 🍁 &amp; France 🇫🇷 – Préparation Officielle</div>
   <h1>Préparez votre <span>TCF</span><br>avec confiance</h1>
-  <p>360 séries complètes · 480 Tâches · 30 000+ candidats · A2→C2 progressif · Canada &amp; France</p>
+  <p>360 séries complètes · 480 Tâches · A2→C2 progressif · Canada &amp; France</p>
   <div class="hero-stats">
     <div class="stat"><div class="stat-n">360</div><div class="stat-l">Séries</div></div>
     <div class="stat"><div class="stat-n">480</div><div class="stat-l">Tâches EE/EO</div></div>
-    <div class="stat"><div class="stat-n">30 000+</div><div class="stat-l">Candidats</div></div>
-    <div class="stat"><div class="stat-n">95%</div><div class="stat-l">Réussite</div></div>
-    <div class="stat"><div class="stat-n" id="heroExpYears"></div><div class="stat-l">Expérience</div></div>
   </div>
 </section>
 
@@ -806,12 +807,7 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
   </div>
   <div class="founder-name">Mm H. Ouadfel</div>
   <div class="founder-title">Fondatrice de la plateforme</div>
-  <p style="color:rgba(255,255,255,.7);font-size:.88rem;max-width:480px;margin:.5rem auto 0;line-height:1.65;">Experte en préparation TCF Canada 🍁 & France 🇫🇷 depuis 2019, avec plus de <span id="founderExpYears"></span> ans d'expérience. A accompagné plus de 30 000 candidats vers la réussite.</p>
-  <div class="founder-stats">
-    <div class="stat"><div class="founder-stat-n">30 000+</div><div class="founder-stat-l">Candidats</div></div>
-    <div class="stat"><div class="founder-stat-n">95%</div><div class="founder-stat-l">Réussite</div></div>
-    <div class="stat"><div class="founder-stat-n" id="founderStatYears"></div><div class="founder-stat-l">d'expérience</div></div>
-  </div>
+  <p style="color:rgba(255,255,255,.7);font-size:.88rem;max-width:480px;margin:.5rem auto 0;line-height:1.65;">Experte en préparation TCF Canada 🍁 & France 🇫🇷, accompagnement personnalisé vers la réussite.</p>
 </div>
 
 <!-- ══════════════ NOS PACKS ══════════════ -->
@@ -1286,7 +1282,7 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
       </div>
     </div>
   </div>
-  <p style="margin-top:1.5rem;">© 2019–<span id="footerYear2"></span> <strong>Pack TCF Ouadfel</strong> – Mm H.Ouadfel – Tous droits réservés.</p>
+  <p style="margin-top:1.5rem;">© <span id="footerYear2"></span> <strong>Pack TCF Ouadfel</strong> – Mm H.Ouadfel – Tous droits réservés.</p>
   <p style="margin-top:.4rem;">🇩🇿 Fait en Algérie pour le Canada 🍁 et la France 🇫🇷</p>
 </footer>
 
@@ -3739,15 +3735,37 @@ function changeLang(lang) {
 // ──────────────────────────────────────────
 function getPacks() {
   const saved = loadData('tcf_packs', null);
-  if (saved && saved.length > 0) return saved;
+  // نتحقق أن البيانات "وصلت فعلاً" (مصفوفة، حتى لو فارغة بعد حذف كل العروض)
+  // وليس فقط أنها غير فارغة. هذا يمنع عودة العرض الافتراضي (Gold 5000)
+  // بعد أن يحذفه الأدمين نهائياً.
+  // ملاحظة مهمة: Firebase Realtime Database يحذف تلقائياً أي عقدة تُحفظ
+  // كمصفوفة فارغة []، لذلك نستعمل عنصر "placeholder" وهمي عند الحذف الكامل
+  // كي لا تختفي العقدة ويعود العرض الافتراضي من جديد. نُخفيه هنا دائماً.
+  if (Array.isArray(saved)) return saved.filter(p => p && !p._placeholder);
+  // ⚠️ لا نكتب هذا العرض الافتراضي في Firebase أبداً هنا، لأن هذه الدالة
+  // تُستدعى عند كل تحميل صفحة على أي جهاز (حتى أجهزة الطلاب الجدد التي
+  // لم تُزامَن بعد مع Firebase). كتابته هنا كانت تمحو الـ packs الحقيقية
+  // التي أضافتها الأدمين وتستبدلها بهذا الـ pack الوحيد الافتراضي.
+  // نعرضه محلياً فقط كحل احتياطي مؤقت؛ renderPacks() سيُعاد استدعاؤها
+  // تلقائياً بمجرد وصول البيانات الحقيقية من Firebase (انظر firebase-ready).
   const def = [
     { id:1, name:'Gold', price:5000, duration:'1moi', features:['TCF Canada', 'Accès 360 séries complètes', 'Correction détaillée'] }
   ];
-  // Only save default if nothing was ever saved
-  if (!saved) saveData('tcf_packs', def);
   return def;
 }
-function savePacks(p) { saveData('tcf_packs', p); }
+function savePacks(p) { return savePacksSync(p); }
+// نضيف placeholder وهمي عند القائمة الفارغة لمنع Firebase من حذف العقدة بالكامل
+function packsForStorage(p) {
+  return (p && p.length) ? p : [{ _placeholder: true, id: 0 }];
+}
+// نسخة تنتظر تأكيد الحفظ في Firebase قبل إخبار الأدمين أن العملية نجحت فعلاً
+async function savePacksSync(p) {
+  const toStore = packsForStorage(p);
+  try { localStorage.setItem('tcf_packs', JSON.stringify(toStore)); } catch(e){}
+  if (window.firebaseReady && window.fbSave) {
+    await window.fbSave(fbKey('tcf_packs'), toStore); // يرمي خطأ إذا فشل الحفظ الفعلي
+  }
+}
 
 function renderPacks() {
   const container = document.getElementById('packsContainer');
@@ -3951,7 +3969,7 @@ function renderAdminPacks() {
     </tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);">لا توجد عروض</td></tr>';
 }
 
-function adminAddPack() {
+async function adminAddPack() {
   const name = document.getElementById('packName').value.trim();
   const price = parseInt(document.getElementById('packPrice').value);
   const duration = document.getElementById('packDuration').value.trim() || '1moi';
@@ -3964,18 +3982,27 @@ function adminAddPack() {
   } else {
     packs.push({ id: Date.now(), name, price, duration, features: feats });
   }
-  savePacks(packs);
-  ['packName','packPrice','packDuration','packFeatures'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  try { localStorage.setItem('tcf_packs', JSON.stringify(packsForStorage(packs))); } catch(e){}
   renderAdminPacks();
   renderPacks();
+  ['packName','packPrice','packDuration','packFeatures'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  // نتأكد أن الحفظ وصل فعلاً لـ Firebase (وإلا لن يراه الطلاب على أجهزتهم)
+  if (window.firebaseReady && window.fbSave) {
+    try { await window.fbSave(fbKey('tcf_packs'), packsForStorage(packs)); }
+    catch(e) { alert('⚠️ تم الحفظ محلياً فقط، لكن فشل الحفظ على السيرفر (Firebase). لن يرى الطلاب هذا العرض على أجهزتهم. تحقق من اتصال الإنترنت أو من قواعد Firebase.'); }
+  }
 }
 
-function adminDeletePack(id) {
+async function adminDeletePack(id) {
   if (!confirm('حذف هذا العرض؟')) return;
   const packs = getPacks().filter(p => p.id !== id);
-  savePacks(packs);
+  try { localStorage.setItem('tcf_packs', JSON.stringify(packsForStorage(packs))); } catch(e){}
   renderAdminPacks();
   renderPacks();
+  if (window.firebaseReady && window.fbSave) {
+    try { await window.fbSave(fbKey('tcf_packs'), packsForStorage(packs)); }
+    catch(e) { alert('⚠️ تم الحذف محلياً فقط، لكن فشل حفظ الحذف على السيرفر (Firebase). قد يعود العرض للظهور عند إعادة تحميل الصفحة أو على أجهزة أخرى. تحقق من اتصال الإنترنت أو من قواعد Firebase.'); }
+  }
 }
 
 function renderAdminUsers() {
@@ -4329,7 +4356,43 @@ function qbLoadAllIntoLiveBanks() {
     if (typeof SL_SERIES_DATA !== 'undefined') {
       qbDistributeAcrossSeries(SL_SERIES_DATA, slBank.map(item => ({ level: item.level, s: item.s, type: item.type, opts: item.opts, a: item.a })));
     }
+    // EE – Canada / SO-DAP (كانت الأسئلة تُحفظ لكن لا تظهر أبداً للطالب)
+    const eeBank = qbGet('ee');
+    if (typeof EE_CANADA_DATA !== 'undefined' && typeof EE_DAP_DATA !== 'undefined') {
+      qbInjectTasksIntoSeries(EE_CANADA_DATA, eeBank.filter(i => i.exam === 'canada' || i.exam === 'both'));
+      qbInjectTasksIntoSeries(EE_DAP_DATA, eeBank.filter(i => i.exam === 'dap' || i.exam === 'both'));
+    }
+    // EO (كانت الأسئلة تُحفظ لكن لا تظهر أبداً للطالب)
+    const eoBank = qbGet('eo');
+    if (typeof EO_DATA !== 'undefined') {
+      qbInjectTasksIntoSeries(EO_DATA, eoBank);
+    }
+    // إذا كانت واجهة EE أو EO معروضة حالياً، نعيد رسمها فوراً كي يرى الأدمين/الطالب التغيير بدون تحديث الصفحة
+    if (document.getElementById('ee-content') && typeof renderEE_section === 'function') renderEE_section();
+    if (document.getElementById('eo-content') && typeof renderEO_section === 'function') renderEO_section();
   } catch(e) { /* silent */ }
+}
+
+// ── حقن أسئلة EE/EO المضافة من الأدمين كـ "tâches" إضافية داخل السلاسل الثابتة ──
+// نزيل أولاً أي حقن سابق (يحمل _admin:true) قبل إعادة التوزيع، لتفادي التكرار عند كل تحميل
+function qbInjectTasksIntoSeries(seriesArr, adminItems) {
+  if (!seriesArr || !seriesArr.length) return;
+  seriesArr.forEach(s => { if (s && s.taches) s.taches = s.taches.filter(t => !t._admin); });
+  if (!adminItems || !adminItems.length) return;
+  const shuffled = shuffleArray(adminItems);
+  shuffled.forEach((item, i) => {
+    const s = seriesArr[i % seriesArr.length];
+    if (!s) return;
+    if (!s.taches) s.taches = [];
+    s.taches.push({
+      type: '✍️ Question ajoutée par l\'admin',
+      _admin: true,
+      tasks: [{
+        consigne: item.consigne || '',
+        exemples: [item.ex1 || '(pas d\'exemple fourni)', item.ex2 || ''].filter(Boolean)
+      }]
+    });
+  });
 }
 
 // ── Render list of added questions ──
