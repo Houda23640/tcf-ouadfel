@@ -3570,11 +3570,28 @@ function fbKey(key) {
 // ── مفاتيح بنك الأسئلة (نضعها هنا لأن firebase-ready يحتاجها) ──
 const QB_KEYS = { co:'tcf_qbank_co', ce:'tcf_qbank_ce', sl:'tcf_qbank_sl', ee:'tcf_qbank_ee', eo:'tcf_qbank_eo' };
 
+// ⚠️ حارس السباق (race guard): يمنع loadData من الكتابة فوق تغيير محلي حديث
+// لم يصل بعد تأكيده إلى Firebase. بدون هذا، أي قراءة تبدأ قبل اكتمال الحفظ
+// يمكن أن تُرجع نسخة قديمة من Firebase وتمحو التفعيل/الحذف الذي قام به الأدمن للتو.
+const _pendingWrites = {}; // key -> عدد عمليات الحفظ الجارية على هذا المفتاح
+function _markPending(key) { _pendingWrites[key] = (_pendingWrites[key] || 0) + 1; }
+function _clearPending(key) { _pendingWrites[key] = Math.max(0, (_pendingWrites[key] || 0) - 1); }
+function _isPending(key) { return (_pendingWrites[key] || 0) > 0; }
+
 // حفظ: في Firebase (للمشاركة) وفي localStorage (للسرعة)
-function saveData(key, val) {
+// الآن async وتُعيد Promise حقيقي، بحيث يستطيع الكود المستدعي انتظار اكتمال
+// الحفظ الفعلي في Firebase قبل إعادة الرسم (بدل الاعتماد فقط على الكتابة المحلية).
+async function saveData(key, val) {
   try { localStorage.setItem(key, JSON.stringify(val)); } catch(e){}
   if (window.firebaseReady && window.fbSave) {
-    window.fbSave(fbKey(key), val).catch(()=>{});
+    _markPending(key);
+    try {
+      await window.fbSave(fbKey(key), val);
+    } catch(e) {
+      // فشل الحفظ الفعلي: لا نُخفي الخطأ، لكن لا نكسر الواجهة أيضاً
+    } finally {
+      _clearPending(key);
+    }
   }
 }
 
@@ -3583,10 +3600,11 @@ function loadData(key, def) {
   try {
     const d = localStorage.getItem(key);
     const local = d !== null ? JSON.parse(d) : def;
-    // زامن من Firebase في الخلفية
-    if (window.firebaseReady && window.fbLoad) {
+    // زامن من Firebase في الخلفية — لكن فقط إن لم يكن هناك حفظ جارٍ على نفس المفتاح،
+    // وإلا فقد نُرجع نسخة قديمة ونمحو تغييراً محلياً حديثاً (وهو أصل المشكلة).
+    if (window.firebaseReady && window.fbLoad && !_isPending(key)) {
       window.fbLoad(fbKey(key), def).then(fbVal => {
-        if (fbVal !== def) {
+        if (fbVal !== def && !_isPending(key)) {
           try { localStorage.setItem(key, JSON.stringify(fbVal)); } catch(e){}
         }
       }).catch(()=>{});
@@ -3698,15 +3716,23 @@ function getUsers() {
 //  • أدمن مسجّل الدخول → يكتب القائمة الكاملة (مسموح له بقاعدة الأمان)
 //  • طالبة عادية → نكتشف أن التغيير يخص سجلّها فقط (وهو واقع الحال دائماً في مسارات الطالبات)
 //    ونكتب فقط على tcf/users/{uid_الخاصة_بها}، بدل محاولة الكتابة على القائمة كاملة (سيُرفض حتماً).
-function saveUsers(u) {
+// الآن async وتُعيد Promise: يجب على كل مكان يستدعي saveUsers لتفعيل/حذف/تجميد
+// حساب طالب أن ينتظرها (await) قبل إعادة رسم لوحة الأدمن، وإلا فقد تُعاد القراءة
+// من Firebase قبل وصول الكتابة فعلياً، فيظهر الحساب وكأنه لم يتغيّر.
+async function saveUsers(u) {
   try { localStorage.setItem('tcf_users', JSON.stringify(u)); } catch(e){}
   if (!(window.firebaseReady && window.fbSave)) return;
 
   if (isAdmin) {
     // الأدمن مخوَّل بقاعدة الأمان للكتابة على tcf/users كاملة
-    window.fbSave(fbKey('tcf_users'), u).catch(()=>{
+    _markPending('tcf_users');
+    try {
+      await window.fbSave(fbKey('tcf_users'), u);
+    } catch(e) {
       alert('⚠️ فشل حفظ التغيير على الخادم (Firebase). تحقق من اتصال الإنترنت.');
-    });
+    } finally {
+      _clearPending('tcf_users');
+    }
     return;
   }
 
@@ -3714,14 +3740,19 @@ function saveUsers(u) {
   // (currentUser مصدره Auth الحقيقي، لذا uid موثوق ولا يمكن انتحاله من الواجهة).
   if (!currentUser) return; // لا يوجد مستخدم مسجّل دخوله؛ لا كتابة أصلاً (يطابق قاعدة auth != null)
   const ownRecord = Array.isArray(u) ? u.find(x => x.id === currentUser.id) : null;
-  if (!ownRecord) {
-    // حالة حذف حساب: السجل لم يعد موجوداً في القائمة الممرَّرة → نحذفه من Firebase بدل كتابته
-    window.fbDelete('tcf/users/' + currentUser.id).catch(()=>{});
-    return;
-  }
-  window.fbSave('tcf/users/' + currentUser.id, ownRecord).catch(()=>{
+  _markPending('tcf_users');
+  try {
+    if (!ownRecord) {
+      // حالة حذف حساب: السجل لم يعد موجوداً في القائمة الممرَّرة → نحذفه من Firebase بدل كتابته
+      await window.fbDelete('tcf/users/' + currentUser.id);
+    } else {
+      await window.fbSave('tcf/users/' + currentUser.id, ownRecord);
+    }
+  } catch(e) {
     alert('⚠️ فشل حفظ التغيير على الخادم (Firebase). تحقق من اتصال الإنترنت.');
-  });
+  } finally {
+    _clearPending('tcf_users');
+  }
 }
 
 // يُستدعى تلقائياً من Firebase عند: تحميل الصفحة، تسجيل دخول، تسجيل خروج، انتهاء الجلسة
@@ -4344,7 +4375,7 @@ function renderAdminUsers() {
   }).join('');
 }
 
-function adminActivateVIP(userId) {
+async function adminActivateVIP(userId) {
   const months = prompt('مدد التفعيل بالشهور (مثال: 1 أو 2):', '1');
   if (!months) return;
   const m = parseInt(months) || 1;
@@ -4354,7 +4385,9 @@ function adminActivateVIP(userId) {
   const expiry = new Date(Date.now() + m * 30 * 24 * 60 * 60 * 1000);
   users[idx].status = 'vip';
   users[idx].expiryDate = expiry.toLocaleDateString('fr-FR');
-  saveUsers(users);
+  // ننتظر اكتمال الحفظ الفعلي في Firebase قبل إعادة الرسم، وإلا فقد تُقرأ نسخة
+  // قديمة أثناء إعادة الرسم وتُظهر الحساب وكأنه لم يُفعَّل.
+  await saveUsers(users);
   // Update local view if the affected account is the one currently logged in
   if (currentUser && currentUser.id === userId) {
     currentUser = users[idx];
@@ -4364,12 +4397,12 @@ function adminActivateVIP(userId) {
   alert('✅ تم تفعيل VIP للطالب بنجاح!');
 }
 
-function adminToggleFreeze(userId) {
+async function adminToggleFreeze(userId) {
   const users = getUsers();
   const idx = users.findIndex(u => u.id === userId);
   if (idx === -1) return;
   users[idx].frozen = !users[idx].frozen;
-  saveUsers(users);
+  await saveUsers(users);
   if (currentUser && currentUser.id === userId) {
     currentUser = users[idx];
     checkFrozen();
@@ -4382,10 +4415,12 @@ function adminToggleFreeze(userId) {
 // لكنه لا يحذف حساب Firebase Authentication نفسه (يبقى بإمكانه إنشاء حساب جديد بنفس الإيميل لاحقاً
 // إن أراد، بما أن حساب Auth القديم صار "يتيماً" بلا سجل بيانات). حذف حساب Auth نفسه يتطلب صلاحيات
 // خادم (Admin SDK) لا يمكن تشغيلها بأمان من كود المتصفح — راجع الشرح المرفق بعد هذا الكود.
-function adminDeleteUser(userId, userName) {
+async function adminDeleteUser(userId, userName) {
   if (!confirm(`⚠️ هل أنت متأكدة من حذف حساب "${userName}" نهائياً؟\n\nسيفقد الطالب الوصول فوراً ولن تتمكني من استرجاع بياناته إلا من نسخة احتياطية (Export Backup).`)) return;
   const users = getUsers().filter(u => u.id !== userId);
-  saveUsers(users);
+  // ننتظر اكتمال الحذف الفعلي من Firebase قبل إعادة الرسم، وإلا فقد تُقرأ نسخة
+  // قديمة تتضمن الحساب المحذوف فتظهر وكأن الحذف لم يحدث.
+  await saveUsers(users);
   if (currentUser && currentUser.id === userId) {
     currentUser = null; // الأدمن حذف حسابه الخاص بالخطأ أو حالة نادرة أخرى
   }
