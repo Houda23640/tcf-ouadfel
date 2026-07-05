@@ -9,7 +9,6 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, ref, set, get, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
   // ══════════════════════════════════════════
   // ⚙️ إعدادات Firebase — ضعي بياناتك هنا
@@ -27,38 +26,6 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
-  const auth = getAuth(app);
-
-  // ══════════════════════════════════════════
-  // 🔐 دوال Firebase Authentication (مصادقة حقيقية على الخادم)
-  // ══════════════════════════════════════════
-
-  // تسجيل حساب جديد بالبريد وكلمة السر — يُنشئ المستخدم فعلياً في نظام Firebase Auth
-  window.fbSignUp = async function(email, pass) {
-    const cred = await createUserWithEmailAndPassword(auth, email, pass);
-    return cred.user.uid;
-  };
-
-  // تسجيل الدخول ببريد وكلمة سر موجودين — Firebase يتحقق منهما على الخادم، لا في كودنا
-  window.fbSignIn = async function(email, pass) {
-    const cred = await signInWithEmailAndPassword(auth, email, pass);
-    return cred.user.uid;
-  };
-
-  // تسجيل الخروج
-  window.fbSignOut = async function() {
-    await signOut(auth);
-  };
-
-  // إعلام الكود عندما تتغيّر حالة تسجيل الدخول (بما فيها عند فتح الصفحة أول مرة)
-  window.fbOnAuthChange = function(callback) {
-    onAuthStateChanged(auth, (user) => callback(user));
-  };
-
-  // إحضار توكن هوية المستخدم الحالي (يُستخدم لإثبات هويته لقواعد Realtime Database)
-  window.fbCurrentUid = function() {
-    return auth.currentUser ? auth.currentUser.uid : null;
-  };
 
   // ══════════════════════════════════════════
   // 🔄 دوال Firebase — تستبدل localStorage
@@ -644,7 +611,6 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
   <div class="hero-stats">
     <div class="stat"><div class="stat-n">360</div><div class="stat-l">Séries</div></div>
     <div class="stat"><div class="stat-n">480</div><div class="stat-l">Tâches EE/EO</div></div>
-    <div class="stat"><div class="stat-n" id="heroExpYears">7 ans</div><div class="stat-l">Expérience</div></div>
   </div>
 </section>
 
@@ -841,8 +807,7 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
   </div>
   <div class="founder-name">Mm H. Ouadfel</div>
   <div class="founder-title">Fondatrice de la plateforme</div>
-  <p style="color:rgba(255,255,255,.7);font-size:.88rem;max-width:480px;margin:.5rem auto 0;line-height:1.65;">Experte en préparation TCF Canada 🍁 & France 🇫🇷, avec <span id="founderExpYears">7</span> ans d'expérience, accompagnement personnalisé vers la réussite.</p>
-  <div style="color:var(--gold);font-size:.85rem;font-weight:600;margin-top:.5rem;" id="founderStatYears">7 ans</div>
+  <p style="color:rgba(255,255,255,.7);font-size:.88rem;max-width:480px;margin:.5rem auto 0;line-height:1.65;">Experte en préparation TCF Canada 🍁 & France 🇫🇷, accompagnement personnalisé vers la réussite.</p>
 </div>
 
 <!-- ══════════════ NOS PACKS ══════════════ -->
@@ -1385,13 +1350,6 @@ function _pickBaseVoice(persona) {
   return match || _cachedFrVoices[0];
 }
 
-// ── حماية من مشكلة تكرار الصوت *2 في Chrome ──
-// المتصفح (خاصة Chrome) لا ينفّذ cancel() بشكل فوري/متزامن؛
-// فإذا نادينا speak() مباشرة بعده، قد يبقى النداء القديم في الطابور
-// ويُنطق مرتين. نضيف "رمز" (token) فريد لكل نداء ونؤخّر speak() قليلاً
-// حتى يكتمل cancel()، ونتجاهل أي نداء onend قديم متجاوَز.
-let _speechToken = 0;
-
 // ── Fonction principale : avance au personnage suivant et parle ──
 function speak(text, onEnd) {
   if (!window.speechSynthesis) { if (onEnd) onEnd(); return; }
@@ -1399,23 +1357,23 @@ function speak(text, onEnd) {
 
   _personaIdx = (_personaIdx + 1) % VOICE_PERSONAS.length;
   const persona = VOICE_PERSONAS[_personaIdx];
-  const myToken = ++_speechToken;
 
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang   = 'fr-FR';
+  utt.pitch  = persona.pitch;
+  utt.rate   = persona.rate;
+  utt.volume = 1;
+
+  const base = _pickBaseVoice(persona);
+  if (base) utt.voice = base;
+
+  if (onEnd) utt.onend = onEnd;
+
+  // Afficher le personnage actif dans le badge nav
   const badge = document.getElementById('voice-persona-badge');
   if (badge) badge.textContent = persona.name;
 
-  setTimeout(() => {
-    if (myToken !== _speechToken) return; // نداء أحدث سبقه، تجاهل هذا
-    const utt = new SpeechSynthesisUtterance(text);
-    utt.lang   = 'fr-FR';
-    utt.pitch  = persona.pitch;
-    utt.rate   = persona.rate;
-    utt.volume = 1;
-    const base = _pickBaseVoice(persona);
-    if (base) utt.voice = base;
-    utt.onend = () => { if (myToken === _speechToken && onEnd) onEnd(); };
-    window.speechSynthesis.speak(utt);
-  }, 80);
+  window.speechSynthesis.speak(utt);
 }
 
 // Variante avec index forcé (pour rejouer une question sans changer de voix)
@@ -1424,23 +1382,17 @@ function speakWithPersona(text, idx, onEnd) {
   window.speechSynthesis.cancel();
   _personaIdx = idx % VOICE_PERSONAS.length;
   const persona = VOICE_PERSONAS[_personaIdx];
-  const myToken = ++_speechToken;
-
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'fr-FR'; utt.pitch = persona.pitch; utt.rate = persona.rate; utt.volume = 1;
+  const base = _pickBaseVoice(persona);
+  if (base) utt.voice = base;
+  if (onEnd) utt.onend = onEnd;
   const badge = document.getElementById('voice-persona-badge');
   if (badge) badge.textContent = persona.name;
-
-  setTimeout(() => {
-    if (myToken !== _speechToken) return; // نداء أحدث سبقه، تجاهل هذا
-    const utt = new SpeechSynthesisUtterance(text);
-    utt.lang = 'fr-FR'; utt.pitch = persona.pitch; utt.rate = persona.rate; utt.volume = 1;
-    const base = _pickBaseVoice(persona);
-    if (base) utt.voice = base;
-    utt.onend = () => { if (myToken === _speechToken && onEnd) onEnd(); };
-    window.speechSynthesis.speak(utt);
-  }, 80);
+  window.speechSynthesis.speak(utt);
 }
 
-function stopSpeech() { _speechToken++; if (window.speechSynthesis) window.speechSynthesis.cancel(); }
+function stopSpeech() { if (window.speechSynthesis) window.speechSynthesis.cancel(); }
 
 
 // ═══════════════════════════════════════════
@@ -2454,8 +2406,6 @@ const EE_CANADA_TACHES = [
      exemples:["Madame, Monsieur,\n\nJe me permets de revenir vers vous concernant ma candidature au poste de technicien en radiologie, suite à notre entretien du 14 juin dernier.\n\nJe comprends que vos délais de décision peuvent être influencés par de nombreux facteurs, et je ne souhaite nullement vous brusquer. Cependant, ayant toujours un vif intérêt pour ce poste et pour votre établissement, je tenais à renouveler ma candidature et à confirmer ma disponibilité immédiate.\n\nSi vous souhaitez des informations complémentaires, des lettres de recommandation de mes anciens responsables, ou simplement un second entretien, je suis entièrement disponible selon votre convenance.\n\nDans l'attente de votre réponse, je vous adresse mes sincères salutations.\n\nYounes Benamara"]}
   ]}
 ];
-const EE_CANADA_DATA = [];
-for (let s = 0; s < 40; s++) EE_CANADA_DATA.push({ series: s + 1, taches: EE_CANADA_TACHES });
 
 // ═══════════════════════════════════════════
 // EE DATA - TCF SO/DAP specific
@@ -3483,9 +3433,10 @@ function toggleEx(btn, id) {
 // ═══════════════════════════════════════════
 
 // ──────────────────────────────────────────
-// (كلمات السر وحساب الأدمن أصبحت تُدار بالكامل عبر Firebase Authentication الحقيقي —
-// انظر ADMIN_EMAIL وwindow.fbSignUp / window.fbSignIn أعلى وأسفل هذا الملف)
+// ADMIN CREDENTIALS (easy to change)
 // ──────────────────────────────────────────
+const ADMIN_USERNAME = 'ouadfel';
+const ADMIN_PASSWORD = 'tcf2026';
 
 // ──────────────────────────────────────────
 // DATA STORE — Firebase (مشترك بين جميع المستخدمين) + localStorage (كاحتياطي)
@@ -3526,10 +3477,10 @@ function loadData(key, def) {
 
 // تهيئة Firebase عند الجاهزية: جلب البيانات وتحديث الواجهة
 window.addEventListener('firebase-ready', async () => {
-  // جلب المستخدمين (يدعم الشكل الجديد object والقديم array)
+  // جلب المستخدمين
   const fbUsers = await window.fbLoad('tcf/users', null);
   if (fbUsers) {
-    try { localStorage.setItem('tcf_users', JSON.stringify(usersObjToArray(fbUsers))); } catch(e){}
+    try { localStorage.setItem('tcf_users', JSON.stringify(fbUsers)); } catch(e){}
   }
   // جلب الستوريات
   const fbStories = await window.fbLoad('tcf/stories', null);
@@ -3561,13 +3512,12 @@ window.addEventListener('firebase-ready', async () => {
   qbLoadAllIntoLiveBanks();
   qbWatchFirebase(); // مراقبة التغييرات في الوقت الحقيقي
   // مراقبة المستخدمين في الوقت الحقيقي (مفيد للأدمين)
-  window.fbWatch('tcf/users', (usersRaw) => {
-    if (!usersRaw) return;
-    const users = usersObjToArray(usersRaw); // يدعم الشكل الجديد (object بمفاتيح uid) والقديم (array) معاً
+  window.fbWatch('tcf/users', (users) => {
+    if (!users) return;
     try { localStorage.setItem('tcf_users', JSON.stringify(users)); } catch(e){}
     // تحديث حالة المستخدم الحالي
     if (currentUser) {
-      const fresh = users.find(u => u.id === currentUser.id) || null;
+      const fresh = Array.isArray(users) ? users.find(u => u.id === currentUser.id) : null;
       if (fresh) {
         currentUser = fresh;
         try { localStorage.setItem('tcf_session', JSON.stringify(fresh)); } catch(e){}
@@ -3597,60 +3547,8 @@ if (currentUser) saveData('tcf_session', currentUser);
 
 let isAdmin = loadData('tcf_admin', false) === true;
 
-// ══════════════════════════════════════════
-// 👥 تخزين المستخدمين: object مفتاحه uid (لا مصفوفة)
-// ══════════════════════════════════════════
-// السبب: قواعد Firebase الدقيقة تسمح لكل طالب بالكتابة فقط في
-// tcf/users/{uid} الخاص به. لو بقي التخزين مصفوفة، كل حفظ كان
-// سيحاول الكتابة على tcf/users كاملاً فيُرفض من القواعد لأي طالب
-// غير الأدمن. usersObjToArray/usersArrToObj تتعاملان مع الشكلين
-// (القديم مصفوفة، الجديد object) حتى تُرحَّل البيانات تلقائياً.
-function usersObjToArray(obj) {
-  if (Array.isArray(obj)) return obj.filter(u => u && !u._placeholder);
-  if (obj && typeof obj === 'object') return Object.values(obj).filter(u => u && !u._placeholder);
-  return [];
-}
-function getUsers() { return usersObjToArray(loadData('tcf_users', {})); }
-// حفظ مستخدم واحد فقط في مساره الخاص (uid) — لا يكتب على بقية الطلاب إطلاقاً
-async function saveOneUser(u) {
-  if (!u || !u.id) return;
-  const arr = getUsers();
-  const idx = arr.findIndex(x => x.id === u.id);
-  if (idx === -1) arr.push(u); else arr[idx] = u;
-  try { localStorage.setItem('tcf_users', JSON.stringify(arr)); } catch(e){}
-  if (window.firebaseReady && window.fbSave) {
-    await window.fbSave('tcf/users/' + u.id, u); // يكتب فقط في tcf/users/{uid} الخاص به
-  }
-}
-// نُبقي على الاسم القديم saveUsers للتوافق مع أي استدعاء متبقٍّ يمرّر مصفوفة كاملة
-// (تُستخدم فقط من مسار الأدمن الذي يملك صلاحية الكتابة الكاملة، مثل استرجاع نسخة احتياطية)
-async function saveUsersFullArray(arr) {
-  try { localStorage.setItem('tcf_users', JSON.stringify(arr)); } catch(e){}
-  if (window.firebaseReady && window.fbSave) {
-    const obj = {};
-    arr.forEach(u => { if (u && u.id) obj[u.id] = u; });
-    await window.fbSave('tcf/users', obj);
-  }
-}
-function saveUsers(u) { saveData('tcf_users', u); } // localStorage فقط، للتوافق الخلفي السريع
-
-// ── مهم جداً: قبل أي تعديل (تسجيل مستخدم جديد، تفعيل VIP، تجميد...) ──
-// يجب سحب أحدث نسخة من قائمة المستخدمين من Firebase أولاً،
-// لأن الاعتماد فقط على localStorage قد يكون قديماً (غير مُزامَن بعد)
-// وحفظه فوق Firebase قد يمحو حسابات أُنشئت من أجهزة/متصفحات أخرى.
-async function getUsersFresh() {
-  if (window.firebaseReady && window.fbLoad) {
-    try {
-      const fbUsers = await window.fbLoad('tcf/users', null);
-      if (fbUsers) {
-        const arr = usersObjToArray(fbUsers);
-        try { localStorage.setItem('tcf_users', JSON.stringify(arr)); } catch(e){}
-        return arr;
-      }
-    } catch(e){}
-  }
-  return getUsers();
-}
+function getUsers() { return loadData('tcf_users', []); }
+function saveUsers(u) { saveData('tcf_users', u); }
 
 function renderNav() {
   const nr = document.getElementById('navRight');
@@ -3694,74 +3592,46 @@ function openModal(id) { document.getElementById(id).classList.add('show'); }
 function closeModal(id) { document.getElementById(id).classList.remove('show'); }
 function switchModal(from, to) { closeModal(from); openModal(to); }
 
-async function doLogin() {
+function doLogin() {
   const email = document.getElementById('loginEmail').value.trim();
   const pass = document.getElementById('loginPass').value;
-  const errEl = document.getElementById('loginErr');
-  errEl.classList.remove('show');
-  try {
-    const uid = await window.fbSignIn(email, pass); // Firebase يتحقق من البريد وكلمة السر على الخادم
-    const users = await getUsersFresh();
-    let u = users.find(x => x.id === uid);
-    if (!u) {
-      // أول دخول بعد إنشاء الحساب في Firebase Auth، لكن سجل المستخدم الإضافي (الاسم، الحالة...) غير موجود بعد
-      u = {
-        id: uid, name: email.split('@')[0], email,
-        status: 'free',
-        expiryDate: new Date(Date.now() + 3*24*60*60*1000).toLocaleDateString('fr-FR'),
-        frozen: false, receipt: null,
-        createdAt: new Date().toLocaleDateString('fr-FR')
-      };
-      users.push(u);
-      await saveOneUser(u);
-    }
-    currentUser = u;
-    saveData('tcf_session', u);
-    closeModal('loginModal');
-    renderNav();
-    renderPacks();
-    checkFrozen();
-  } catch (e) {
-    errEl.textContent = 'Email ou mot de passe incorrect.';
-    errEl.classList.add('show');
-  }
+  const users = getUsers();
+  const u = users.find(u => (u.email === email || u.name === email) && u.password === pass);
+  if (!u) { document.getElementById('loginErr').classList.add('show'); return; }
+  currentUser = u; // always use fresh copy from users list
+  saveData('tcf_session', u);
+  closeModal('loginModal');
+  renderNav();
+  renderPacks();
+  checkFrozen();
 }
 
-async function doRegister() {
+function doRegister() {
   const name = document.getElementById('regName').value.trim();
   const email = document.getElementById('regEmail').value.trim();
   const pass = document.getElementById('regPass').value;
   const errEl = document.getElementById('registerErr');
-  errEl.classList.remove('show');
   if (!name || !email || !pass) { errEl.textContent='Remplissez tous les champs.'; errEl.classList.add('show'); return; }
-  if (pass.length < 6) { errEl.textContent='Le mot de passe doit contenir au moins 6 caractères.'; errEl.classList.add('show'); return; }
-  try {
-    const uid = await window.fbSignUp(email, pass); // Firebase ينشئ الحساب فعلياً ويتحقق من صحة البريد وقوة كلمة السر
-    const newUser = {
-      id: uid, name, email,
-      status: 'free',
-      expiryDate: new Date(Date.now() + 3*24*60*60*1000).toLocaleDateString('fr-FR'),
-      frozen: false,
-      receipt: null,
-      createdAt: new Date().toLocaleDateString('fr-FR')
-    };
-    await saveOneUser(newUser);
-    currentUser = newUser;
-    saveData('tcf_session', newUser);
-    closeModal('registerModal');
-    renderNav();
-    renderPacks();
-  } catch (e) {
-    if (e.code === 'auth/email-already-in-use') errEl.textContent = 'Email déjà utilisé.';
-    else if (e.code === 'auth/invalid-email') errEl.textContent = 'Email invalide.';
-    else if (e.code === 'auth/weak-password') errEl.textContent = 'Mot de passe trop faible (6 caractères minimum).';
-    else errEl.textContent = 'Erreur d\'inscription. Réessayez.';
-    errEl.classList.add('show');
-  }
+  const users = getUsers();
+  if (users.find(u => u.email === email)) { errEl.textContent='Email déjà utilisé.'; errEl.classList.add('show'); return; }
+  const newUser = {
+    id: Date.now(), name, email, password: pass,
+    status: 'free',
+    expiryDate: new Date(Date.now() + 3*24*60*60*1000).toLocaleDateString('fr-FR'),
+    frozen: false,
+    receipt: null,
+    createdAt: new Date().toLocaleDateString('fr-FR')
+  };
+  users.push(newUser);
+  saveUsers(users);
+  currentUser = newUser;
+  saveData('tcf_session', newUser);
+  closeModal('registerModal');
+  renderNav();
+  renderPacks();
 }
 
-async function userLogout() {
-  await window.fbSignOut();
+function userLogout() {
   currentUser = null;
   saveData('tcf_session', null);
   renderNav();
@@ -3771,34 +3641,23 @@ async function userLogout() {
 // ──────────────────────────────────────────
 // ADMIN AUTH
 // ──────────────────────────────────────────
-// ⚠️ الأدمن الآن هو حساب Firebase Auth حقيقي (بريد + كلمة سر)، وليس كلمة سر مكتوبة في الكود.
-// أنشئ هذا البريد يدوياً مرة واحدة من Firebase Console → Authentication → Add user،
-// وضع بريدك هنا بدل المثال أدناه — هذا البريد فقط سيُمنح صلاحية الأدمن.
-const ADMIN_EMAIL = 'PapichaPapicha@gmail.com'; // ← بريد الأدمن الحقيقي في Firebase Auth
-
-async function doAdminLogin() {
-  const emailOrUser = document.getElementById('adminUser').value.trim();
-  const pass = document.getElementById('adminPass').value;
-  const errEl = document.getElementById('adminErr');
-  errEl.classList.remove('show');
-  // نسمح بإدخال البريد كاملاً أو باسم المستخدم قبل @ فقط، تسهيلاً
-  const email = emailOrUser.includes('@') ? emailOrUser : ADMIN_EMAIL;
-  if (email !== ADMIN_EMAIL) { errEl.classList.add('show'); return; }
-  try {
-    await window.fbSignIn(email, pass); // Firebase يتحقق من كلمة السر على الخادم، لا في كودنا
+function doAdminLogin() {
+  const user = document.getElementById('adminUser').value.trim();
+  const pass = document.getElementById('adminPass').value.trim();
+  document.getElementById('adminErr').classList.remove('show');
+  if (user === ADMIN_USERNAME && pass === ADMIN_PASSWORD) {
     isAdmin = true;
     saveData('tcf_admin', true);
     closeModal('adminModal');
     renderNav();
     renderAdminPanel();
     setTimeout(() => { document.getElementById('adminPanelSection').scrollIntoView({behavior:'smooth'}); }, 300);
-  } catch (e) {
-    errEl.classList.add('show');
+  } else {
+    document.getElementById('adminErr').classList.add('show');
   }
 }
 
-async function adminLogout() {
-  await window.fbSignOut();
+function adminLogout() {
   isAdmin = false;
   saveData('tcf_admin', false);
   renderNav();
@@ -3831,7 +3690,7 @@ function adminImportBackup(input) {
   reader.onload = e => {
     try {
       const backup = JSON.parse(e.target.result);
-      if (backup.users) saveUsersFullArray(backup.users); // كتابة كاملة، مسموحة للأدمن فقط حسب قواعد Firebase
+      if (backup.users) saveUsers(backup.users);
       if (backup.stories) saveStories(backup.stories);
       if (backup.packs) savePacks(backup.packs);
       if (backup.founderPhoto) saveData('tcf_founder_photo', backup.founderPhoto);
@@ -3895,20 +3754,6 @@ function getPacks() {
   return def;
 }
 function savePacks(p) { return savePacksSync(p); }
-// نفس مبدأ getUsersFresh: نسحب أحدث نسخة من الباكات من Firebase قبل أي تعديل
-// (إضافة/حذف عرض) لتجنّب حفظ نسخة محلية قديمة فوق العروض الحقيقية.
-async function getPacksFresh() {
-  if (window.firebaseReady && window.fbLoad) {
-    try {
-      const fbPacks = await window.fbLoad(fbKey('tcf_packs'), null);
-      if (Array.isArray(fbPacks)) {
-        try { localStorage.setItem('tcf_packs', JSON.stringify(fbPacks)); } catch(e){}
-        return fbPacks.filter(p => p && !p._placeholder);
-      }
-    } catch(e){}
-  }
-  return getPacks();
-}
 // نضيف placeholder وهمي عند القائمة الفارغة لمنع Firebase من حذف العقدة بالكامل
 function packsForStorage(p) {
   return (p && p.length) ? p : [{ _placeholder: true, id: 0 }];
@@ -3948,15 +3793,15 @@ function previewReceipt(input) {
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = async e => {
+  reader.onload = e => {
     const prev = document.getElementById('receiptPreview');
     prev.src = e.target.result;
     prev.style.display = 'block';
     // Save to user
     if (currentUser) {
-      currentUser.receipt = e.target.result;
-      saveData('tcf_session', currentUser);
-      await saveOneUser(currentUser);
+      const users = getUsers();
+      const idx = users.findIndex(u => u.id === currentUser.id);
+      if (idx !== -1) { users[idx].receipt = e.target.result; saveUsers(users); }
     }
   };
   reader.readAsDataURL(file);
@@ -3991,20 +3836,6 @@ function canAccessSerie(index) {
 // ──────────────────────────────────────────
 function getStories() { return loadData('tcf_stories', []); }
 function saveStories(s) { saveData('tcf_stories', s); }
-// نفس مبدأ getUsersFresh/getPacksFresh: نسحب أحدث نسخة من الستوريات من Firebase
-// قبل أي إضافة/حذف لتجنّب محو ستوريات أُضيفت من جهاز/متصفح آخر.
-async function getStoriesFresh() {
-  if (window.firebaseReady && window.fbLoad) {
-    try {
-      const fbStories = await window.fbLoad(fbKey('tcf_stories'), null);
-      if (Array.isArray(fbStories)) {
-        try { localStorage.setItem('tcf_stories', JSON.stringify(fbStories)); } catch(e){}
-        return fbStories;
-      }
-    } catch(e){}
-  }
-  return getStories();
-}
 
 function renderStoriesBar() {
   const bar = document.getElementById('storiesBar');
@@ -4116,6 +3947,7 @@ function renderAdminPanel() {
   renderAdminPacks();
   renderAdminUsers();
   renderAdminStories();
+  renderAdminReceipts();
   // Show existing founder photo
   const photo = loadData('tcf_founder_photo', null);
   const prev = document.getElementById('adminPhotoPreview');
@@ -4143,7 +3975,7 @@ async function adminAddPack() {
   const duration = document.getElementById('packDuration').value.trim() || '1moi';
   const feats = document.getElementById('packFeatures').value.split(',').map(f=>f.trim()).filter(Boolean);
   if (!name || !price) { alert('اسم العرض والسعر مطلوبان'); return; }
-  const packs = await getPacksFresh();
+  const packs = getPacks();
   const existing = packs.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
   if (existing !== -1) {
     packs[existing] = { ...packs[existing], price, duration, features: feats };
@@ -4163,7 +3995,7 @@ async function adminAddPack() {
 
 async function adminDeletePack(id) {
   if (!confirm('حذف هذا العرض؟')) return;
-  const packs = (await getPacksFresh()).filter(p => p.id !== id);
+  const packs = getPacks().filter(p => p.id !== id);
   try { localStorage.setItem('tcf_packs', JSON.stringify(packsForStorage(packs))); } catch(e){}
   renderAdminPacks();
   renderPacks();
@@ -4199,17 +4031,17 @@ function renderAdminUsers() {
   }).join('');
 }
 
-async function adminActivateVIP(userId) {
+function adminActivateVIP(userId) {
   const months = prompt('مدد التفعيل بالشهور (مثال: 1 أو 2):', '1');
   if (!months) return;
   const m = parseInt(months) || 1;
-  const users = await getUsersFresh();
+  const users = getUsers();
   const idx = users.findIndex(u => u.id === userId);
-  if (idx === -1) { alert('⚠️ لم يتم العثور على هذا الطالب (قد تكون البيانات تغيّرت). أعد تحميل الصفحة وحاول مجدداً.'); renderAdminUsers(); return; }
+  if (idx === -1) return;
   const expiry = new Date(Date.now() + m * 30 * 24 * 60 * 60 * 1000);
   users[idx].status = 'vip';
   users[idx].expiryDate = expiry.toLocaleDateString('fr-FR');
-  await saveOneUser(users[idx]);
+  saveUsers(users);
   // Update session if current user — always use the saved object
   if (currentUser && currentUser.id === userId) {
     currentUser = users[idx];
@@ -4220,12 +4052,12 @@ async function adminActivateVIP(userId) {
   alert('✅ تم تفعيل VIP للطالب بنجاح!');
 }
 
-async function adminToggleFreeze(userId) {
-  const users = await getUsersFresh();
+function adminToggleFreeze(userId) {
+  const users = getUsers();
   const idx = users.findIndex(u => u.id === userId);
-  if (idx === -1) { alert('⚠️ لم يتم العثور على هذا الطالب (قد تكون البيانات تغيّرت). أعد تحميل الصفحة وحاول مجدداً.'); renderAdminUsers(); return; }
+  if (idx === -1) return;
   users[idx].frozen = !users[idx].frozen;
-  await saveOneUser(users[idx]);
+  saveUsers(users);
   if (currentUser && currentUser.id === userId) {
     currentUser = users[idx];
     saveData('tcf_session', currentUser);
@@ -4241,12 +4073,12 @@ function renderAdminStories() {
   if (badge) badge.textContent = stories.length ? `(${stories.length} ستوري حالياً)` : '(لا توجد ستوريات)';
 }
 
-async function adminAddStory() {
+function adminAddStory() {
   const label = document.getElementById('storyLabel').value.trim();
   const type = document.getElementById('storyType').value;
   const prevEl = document.getElementById('storyImgPreview');
   if (!prevEl.src || prevEl.style.display === 'none') { alert('الرجاء اختيار صورة للستوري'); return; }
-  const stories = await getStoriesFresh();
+  const stories = getStories();
   stories.push({ label, type, img: prevEl.src, createdAt: Date.now() });
   saveStories(stories);
   document.getElementById('storyLabel').value = '';
@@ -4258,8 +4090,8 @@ async function adminAddStory() {
   alert('✅ تمت إضافة الستوري! تظهر الآن للطلاب فوراً.');
 }
 
-async function adminDeleteStory(idx) {
-  const stories = await getStoriesFresh();
+function adminDeleteStory(idx) {
+  const stories = getStories();
   stories.splice(idx, 1);
   saveStories(stories);
   renderAdminStories();
@@ -4271,6 +4103,19 @@ function adminClearStories() {
   saveStories([]);
   renderAdminStories();
   renderStoriesBar();
+}
+
+function renderAdminReceipts() {
+  const users = getUsers().filter(u => u.receipt);
+  const el = document.getElementById('adminReceiptsList');
+  if (!el) return;
+  if (!users.length) { el.innerHTML = '<p style="color:var(--text-muted);font-size:.85rem;">لا توجد إيصالات مرفوعة بعد</p>'; return; }
+  el.innerHTML = users.map(u => `
+    <div style="text-align:center;">
+      <img src="${u.receipt}" class="receipt-thumb" onclick="previewImg('${u.receipt}')" style="width:70px;height:70px;">
+      <div style="font-size:.72rem;color:var(--text-muted);margin-top:.3rem;">${u.name}</div>
+      <button class="admin-btn success small" style="margin-top:.3rem;" onclick="adminActivateVIP(${u.id})">تفعيل VIP</button>
+    </div>`).join('');
 }
 
 function previewImg(src) {
@@ -4288,21 +4133,6 @@ function previewImg(src) {
 function qbGet(section) {
   try { return JSON.parse(localStorage.getItem(QB_KEYS[section]) || '[]'); }
   catch(e) { return []; }
-}
-
-// نفس مبدأ getUsersFresh: نسحب أحدث نسخة من بنك الأسئلة من Firebase قبل أي
-// إضافة/حذف/استيراد لتجنّب محو أسئلة أُضيفت من جهاز/متصفح آخر.
-async function qbGetFresh(section) {
-  if (window.firebaseReady && window.fbLoad) {
-    try {
-      const fbData = await window.fbLoad('tcf/qbank/' + section, null);
-      if (Array.isArray(fbData)) {
-        try { localStorage.setItem(QB_KEYS[section], JSON.stringify(fbData)); } catch(e){}
-        return fbData;
-      }
-    } catch(e){}
-  }
-  return qbGet(section);
 }
 
 // ── Save bank (localStorage + Firebase) ──
@@ -4386,6 +4216,7 @@ function selectAnswer(section, idx, clickedBtn) {
 
 // ── Add question (saved to Firebase → visible to students instantly) ──
 async function qbAddQuestion(section) {
+  const bank = qbGet(section);
   let item = { id: Date.now(), addedAt: new Date().toLocaleDateString('fr-FR') };
 
   const fileInput = document.getElementById(section + '-file-upload');
@@ -4443,7 +4274,6 @@ async function qbAddQuestion(section) {
   if (fp) fp.innerHTML = '';
   if (fileInput) { fileInput.value = ''; fileInput._dataUri = null; }
 
-  const bank = await qbGetFresh(section);
   bank.push(item);
   await qbSave(section, bank); // saves to Firebase → students see it instantly
   qbLoadAllIntoLiveBanks();   // inject into live series
@@ -4606,7 +4436,7 @@ function qbRenderList(section) {
 // ── Delete item from bank ──
 async function qbDeleteItem(section, idx) {
   if (!confirm('حذف هذا السؤال؟')) return;
-  const bank = await qbGetFresh(section);
+  const bank = qbGet(section);
   bank.splice(idx, 1);
   await qbSave(section, bank);
   qbLoadAllIntoLiveBanks();
@@ -4668,7 +4498,7 @@ async function qbImportBank(input) {
       const data = JSON.parse(e.target.result);
       for (const s of ['co','ce','sl','ee','eo']) {
         if (Array.isArray(data[s])) {
-          const existing = await qbGetFresh(s);
+          const existing = qbGet(s);
           await qbSave(s, [...existing, ...data[s]]);
         }
       }
@@ -4742,7 +4572,7 @@ function updateRecuSummary() {
   wrap.style.display = 'block';
 }
 
-async function submitRecu() {
+function submitRecu() {
   const nom = document.getElementById('recu-nom').value.trim();
   const tel = document.getElementById('recu-tel').value.trim();
   const email = document.getElementById('recu-email').value.trim();
@@ -4753,21 +4583,19 @@ async function submitRecu() {
     alert('⚠️ يرجى ملء جميع الحقول الإلزامية (*)');
     return;
   }
-  // Save to user if logged in — يكتب فقط في مسار هذا المستخدم (tcf/users/{uid})
+  // Save to user if logged in
   if (currentUser) {
-    currentUser.receiptForm = { nom, tel, email, ville: document.getElementById('recu-ville').value.trim(), pack, mode, montant, submittedAt: new Date().toLocaleDateString('fr-FR') };
-    const fileEl = document.getElementById('recu-file');
-    if (fileEl && fileEl.files[0]) {
-      const dataUrl = await new Promise((resolve, reject) => {
+    const users = getUsers();
+    const idx = users.findIndex(u => u.id === currentUser.id);
+    if (idx !== -1) {
+      users[idx].receiptForm = { nom, tel, email, ville: document.getElementById('recu-ville').value.trim(), pack, mode, montant, submittedAt: new Date().toLocaleDateString('fr-FR') };
+      const fileEl = document.getElementById('recu-file');
+      if (fileEl && fileEl.files[0]) {
         const reader = new FileReader();
-        reader.onload = e => resolve(e.target.result);
-        reader.onerror = reject;
+        reader.onload = e => { users[idx].receipt = e.target.result; saveUsers(users); };
         reader.readAsDataURL(fileEl.files[0]);
-      });
-      currentUser.receipt = dataUrl;
+      } else { saveUsers(users); }
     }
-    saveData('tcf_session', currentUser);
-    await saveOneUser(currentUser);
   }
   updateRecuSummary();
   // WhatsApp message
@@ -4823,34 +4651,6 @@ document.addEventListener('DOMContentLoaded', () => {
   ['recu-nom','recu-tel','recu-email','recu-ville','recu-pack','recu-mode','recu-montant'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('input', updateRecuSummary);
-  });
-
-  // ── تأكيد جلسة تسجيل الدخول من Firebase Auth الحقيقي (لا نثق بـ localStorage فقط) ──
-  // Firebase نفسه يعيد ربط الجلسة تلقائياً عند إعادة فتح الصفحة، ونحن هنا فقط نطابق
-  // ذلك مع بيانات المستخدم في قاعدتنا (الاسم، الحالة VIP/free، إلخ).
-  window.fbOnAuthChange(async (fbUser) => {
-    if (!fbUser) {
-      // لا يوجد أي جلسة Firebase صالحة حالياً → تصفير أي جلسة قديمة مزوّرة في localStorage
-      if (currentUser) { currentUser = null; saveData('tcf_session', null); renderNav(); renderPacks(); }
-      if (isAdmin) { isAdmin = false; saveData('tcf_admin', false); renderNav(); }
-      return;
-    }
-    if (fbUser.email === ADMIN_EMAIL) {
-      isAdmin = true;
-      saveData('tcf_admin', true);
-      renderNav();
-      renderAdminPanel();
-      return;
-    }
-    const users = await getUsersFresh();
-    const u = users.find(x => x.id === fbUser.uid);
-    if (u) {
-      currentUser = u;
-      saveData('tcf_session', u);
-      renderNav();
-      renderPacks();
-      checkFrozen();
-    }
   });
 });
 </script>
