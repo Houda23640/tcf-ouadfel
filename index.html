@@ -4441,7 +4441,7 @@ function renderAdminReceipts() {
     <div style="text-align:center;">
       <img src="${u.receipt}" class="receipt-thumb" onclick="previewImg('${u.receipt}')" style="width:70px;height:70px;">
       <div style="font-size:.72rem;color:var(--text-muted);margin-top:.3rem;">${u.name}</div>
-      <button class="admin-btn success small" style="margin-top:.3rem;" onclick="adminActivateVIP(${u.id})">تفعيل VIP</button>
+      <button class="admin-btn success small" style="margin-top:.3rem;" onclick="adminActivateVIP('${u.id}')">تفعيل VIP</button>
     </div>`).join('');
 }
 
