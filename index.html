@@ -3726,12 +3726,32 @@ function getUsers() {
   return Array.isArray(u) ? u : Object.values(u || {});
 }
 
+// ⚠️⚠️ إصلاح جوهري (كان سبب بقاء الطالب "مقفول" رغم تفعيل VIP من الإدارة):
+// كل طالبة تقرأ/تراقب حالتها الخاصة حصراً من المسار tcf/users/{uid_الحقيقي}.
+// لكن عندما كانت الإدارة تحفظ القائمة الكاملة، كانت تُرسل مصفوفة (Array) عادية
+// إلى Firebase على المسار tcf/users مباشرة. Firebase يخزّن المصفوفات بمفاتيح
+// رقمية (0, 1, 2...) وليس بمعرّفات الطلاب (uid) — فهذا كان *يمحو بالكامل* كل
+// المسارات الفرعية tcf/users/{uid} التي تعتمد عليها كل طالبة! فتصل الإدارة إلى
+// "نجاح" الحفظ محلياً وفي القائمة الكاملة، لكن الطالبة (التي تقرأ فقط من
+// tcf/users/{uid}) لا تجد شيئاً هناك بعد الآن، فيسقط كودها احتياطياً على النسخة
+// القديمة المخزّنة محلياً على جهازها (قبل التفعيل) — فتبقى مقفولة رغم التفعيل.
+// الحل: نحوّل القائمة دائماً إلى كائن (Object) مفتاحه uid كل طالبة قبل إرسالها
+// لـ Firebase، فيبقى المسار tcf/users/{uid} سليماً ومطابقاً تماماً لما تكتبه كل
+// طالبة بنفسها على سجلّها الخاص.
+function usersForStorage(users) {
+  const obj = {};
+  (Array.isArray(users) ? users : Object.values(users || {})).forEach(u => {
+    if (u && u.id) obj[u.id] = u;
+  });
+  return obj;
+}
+
 // ⚠️ القواعد الجديدة تسمح لكل طالبة بالكتابة فقط على tcf/users/{uid_الخاص_بها}،
 // بينما الأدمن وحده يملك صلاحية الكتابة على tcf/users كمسار كامل (القائمة بأكملها).
 // saveUsers() تُستدعى من ~15 مكانًا مختلفًا بنمط "اقرأ القائمة كاملة → عدّل عنصرًا → احفظ القائمة كاملة".
 // بدل تعديل كل تلك الأماكن، نجعل saveUsers ذكية: تحفظ محلياً (localStorage) القائمة الكاملة دائماً
 // (لتبقى لوحة الأدمين وقوائم التصدير تعمل من الكاش)، لكن الكتابة الفعلية إلى Firebase تُوجَّه بحسب الحالة:
-//  • أدمن مسجّل الدخول → يكتب القائمة الكاملة (مسموح له بقاعدة الأمان)
+//  • أدمن مسجّل الدخول → يكتب القائمة الكاملة (مسموح له بقاعدة الأمان) — ككائن مفتاحه uid (انظر usersForStorage)
 //  • طالبة عادية → نكتشف أن التغيير يخص سجلّها فقط (وهو واقع الحال دائماً في مسارات الطالبات)
 //    ونكتب فقط على tcf/users/{uid_الخاصة_بها}، بدل محاولة الكتابة على القائمة كاملة (سيُرفض حتماً).
 function saveUsers(u) {
@@ -3742,8 +3762,9 @@ function saveUsers(u) {
   }
 
   if (isAdmin) {
-    // الأدمن مخوَّل بقاعدة الأمان للكتابة على tcf/users كاملة
-    window.fbSave(fbKey('tcf_users'), u).catch((e)=>{
+    // الأدمن مخوَّل بقاعدة الأمان للكتابة على tcf/users كاملة — نرسلها ككائن مفتاحه uid
+    // (وليس مصفوفة) حتى لا تُمحى مسارات tcf/users/{uid} التي تعتمد عليها كل طالبة.
+    window.fbSave(fbKey('tcf_users'), usersForStorage(u)).catch((e)=>{
       console.error('saveUsers (admin) fbSave failed:', e);
       alert('❌ فشل حفظ التغيير على الخادم (Firebase)!\nالتفعيل/التعديل ظهر عندك محلياً فقط ولن يصل للطالبة أبداً حتى تُصلَح المشكلة.\n\nتفصيل الخطأ: ' + (e && e.message ? e.message : e) + '\n\nالسبب الأكثر شيوعاً: قواعد أمان Firebase (Rules) لا تسمح لحسابك بالكتابة على tcf/users، أو مشكلة اتصال بالإنترنت.');
     });
@@ -4509,7 +4530,9 @@ async function adminActivateVIP(userId) {
   // ستستقبل التحديث. إن فشل الحفظ في Firebase، saveUsers نفسها ستُظهر رسالة الخطأ.
   let ok = true;
   if (window.firebaseReady && window.fbSave && isAdmin) {
-    try { await window.fbSave(fbKey('tcf_users'), users); }
+    // ⚠️ يجب الحفظ ككائن مفتاحه uid (usersForStorage) وليس كمصفوفة، وإلا يُمحى
+    // مسار tcf/users/{uid} الذي تقرأ منه الطالبة حالتها الخاصة (انظر شرح saveUsers أعلاه).
+    try { await window.fbSave(fbKey('tcf_users'), usersForStorage(users)); }
     catch(e) { ok = false; console.error('adminActivateVIP save failed:', e); }
     try { localStorage.setItem('tcf_users', JSON.stringify(users)); } catch(e){}
   } else {
