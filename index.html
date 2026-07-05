@@ -57,9 +57,18 @@
   };
 
   // مراقبة البيانات في الوقت الحقيقي
+  // ⚠️ إصلاح مهم: onValue تقبل معامِلاً ثالثاً (cancelCallback) يُستدعى عند رفض القراءة
+  // (مثلاً: قواعد الأمان في Firebase Rules لا تسمح بقراءة هذا المسار لهذا المستخدم) أو عند
+  // انقطاع الاتصال. بدون هذا المعامل، كانت أي مراقبة تفشل تفشل *بصمت تام* — لا خطأ في
+  // الـ Console، لا تنبيه، لا شيء — فتبقى الواجهة عالقة على آخر قيمة معروفة إلى الأبد (مثلاً:
+  // طالبة تُفعَّل لها VIP فعلياً في Firebase، لكن جهازها لا يستقبل التحديث لأن قاعدة أمان ما
+  // تمنعه، فتبقى السلاسل مقفلة عندها رغم أن كل شيء "نجح" من جهة الإدارة). الآن أي فشل من هذا
+  // النوع يظهر بوضوح في الـ Console (F12) بدل أن يختفي بصمت.
   window.fbWatch = function(key, callback) {
     onValue(ref(db, key), (snap) => {
       callback(snap.exists() ? snap.val() : null);
+    }, (error) => {
+      console.error('⚠️ fbWatch: فشلت مراقبة المسار "' + key + '" — الأرجح أن قواعد أمان Firebase (Rules) تمنع القراءة، أو انقطع الاتصال. تفصيل الخطأ:', error);
     });
   };
 
@@ -3664,35 +3673,15 @@ async function loadSharedFirebaseData() {
   }
   qbLoadAllIntoLiveBanks();
   qbWatchFirebase(); // مراقبة التغييرات في الوقت الحقيقي
-  // المسار الصحيح مطابق لما تكتبه saveUsers فعلياً: fbKey('tcf_users') → 'tcf/users'
-  window.fbWatch('tcf/users', (users) => {
-    if (!users) return;
-    // ⚠️ Firebase Realtime Database يحوّل الـ Array تلقائياً إلى Object ({0:..,1:..})
-    // إن كانت المفاتيح غير متسلسلة أو تحتوي فجوات. نجبرها هنا إلى Array نظيف
-    // قبل الحفظ، وإلا ستنكسر users.push() وكل دوال الـ Array الأخرى لاحقاً.
-    const usersArr = Array.isArray(users) ? users : Object.values(users);
-    try { localStorage.setItem('tcf_users', JSON.stringify(usersArr)); } catch(e){}
-    // تحديث حالة المستخدم الحالي (بدون كتابة أي "جلسة" — currentUser مصدره Auth فقط)
-    if (currentUser) {
-      const fresh = usersArr.find(u => u.id === currentUser.id);
-      if (fresh) {
-        currentUser = fresh;
-        renderNav();
-        checkFrozen();
-        // ⚠️ renderNav() تحدّث فقط الشريط العلوي (شارة VIP)، ولا تعيد رسم أزرار
-        // اختيار السلاسل (🔒) في كل قسم — وهي المكان الذي يُقرأ فيه canAccessSerie()
-        // فعلياً. بدون هذا، يبقى الطالب يرى السلاسل مقفلة حتى يُعيد تحميل الصفحة يدوياً
-        // رغم أن تفعيل VIP وصل بالفعل. نعيد رسم كل قسم فقط إن كان عنصره موجوداً في الصفحة حالياً.
-        if (document.getElementById('oral-series-btns')) renderCO_section();
-        if (document.getElementById('eo-series-btns')) renderEO_section();
-        if (document.getElementById('sl-series-btns')) renderSL_section();
-        if (document.getElementById('ee-series-btns')) renderEE_section();
-        if (document.getElementById('ce-tab-canada') || document.getElementById('ce-tab-sodap')) renderCE_section();
-      }
-    }
-    // تحديث لوحة الأدمين إذا كانت مفتوحة
-    if (isAdmin) renderAdminPanel();
-  });
+  // ⚠️⚠️ إصلاح مهم: كانت مراقبة tcf/users الكاملة (fbWatch على المسار الكامل) تُسجَّل هنا
+  // لكل زائر للصفحة، حتى لو لم يكن مسجّلاً دخوله أو كان طالباً عادياً — بينما قواعد الأمان
+  // (بحسب التصميم المعتمد في كل هذا الملف) تسمح بقراءة المسار الكامل tcf/users للأدمن فقط؛
+  // الطالبة تقرأ سجلّها الخاص فقط عبر tcf/users/{uid} (انظر المراقبة المخصّصة لها أسفل هذا
+  // الملف في handleAuthStateChange). نتيجة ذلك: كل طالبة (وكل زائر غير مسجّل) كانت تحصل تلقائياً
+  // على "PERMISSION_DENIED" صامتة عند كل تحميل صفحة من مراقبة لا تخصّها ولا تفيدها أصلاً (لأن
+  // تحديث حالتها الحقيقي يأتي من مراقبتها الخاصة لا من هذه)، مما يُصعّب تتبّع الأخطاء الحقيقية
+  // في الـ Console. الحل: نقلنا هذه المراقبة إلى handleAuthStateChange، فتُسجَّل فقط بعد
+  // التأكد الفعلي أن الحساب أدمن (isAdmin === true) — وهو الوحيد المخوَّل بقراءتها من الأساس.
 }
 
 // تهيئة Firebase عند الجاهزية:
@@ -3829,6 +3818,20 @@ function handleAuthStateChange(authUser) {
           renderAdminPanel();
         }
       } catch(e){}
+      // ── مراقبة tcf/users كاملة في الوقت الحقيقي — للأدمن فقط (نُقلت من loadSharedFirebaseData،
+      // انظر الشرح هناك) — تُحدّث لوحة الأدمين تلقائياً إذا تغيّرت البيانات من جهاز آخر (مثلاً
+      // الأدمن نفسها مسجّلة دخولها على الحاسوب والهاتف في نفس الوقت) ──
+      if (window.fbWatch) {
+        window.fbWatch('tcf/users', (users) => {
+          if (!users) return;
+          // ⚠️ Firebase Realtime Database يحوّل الـ Array تلقائياً إلى Object ({0:..,1:..}) إن
+          // كانت المفاتيح غير متسلسلة. نجبرها هنا إلى Array نظيف قبل الحفظ، وإلا ستنكسر
+          // users.push() وكل دوال الـ Array الأخرى لاحقاً.
+          const usersArr = Array.isArray(users) ? users : Object.values(users);
+          try { localStorage.setItem('tcf_users', JSON.stringify(usersArr)); } catch(e){}
+          if (isAdmin) renderAdminPanel();
+        });
+      }
       return;
     }
     // ليس أدمن → طالب عادي: اجلب سجله *مباشرة من Firebase* عبر مساره الخاص المسموح
@@ -4001,10 +4004,18 @@ async function doRegister() {
       receipt: null,
       createdAt: new Date().toLocaleDateString('fr-FR')
     };
+    // ⚠️⚠️ إصلاح حرج: كنّا نستدعي saveUsers(users) وهنا currentUser لا يزال null (كان يُضبط في
+    // السطر التالي فقط). saveUsers() لغير الأدمن تتحقق أولاً من currentUser لتعرف أي سجل
+    // تكتبه على tcf/users/{uid} — فتجده null وتتوقف فوراً (return) دون أي كتابة فعلية إلى
+    // Firebase! يبقى سجل الطالبة الجديدة محفوظاً في localStorage على جهازها فقط، ولا يصل
+    // إطلاقاً إلى tcf/users/{uid} على الخادم. فحين تفتح الإدارة لوحتها من جهاز آخر، لا تجد
+    // هذه الطالبة أصلاً، أو حتى لو وجدتها لاحقاً بطريقة أخرى، فإن تفعيل VIP قد لا يصل بثقة
+    // لأن نسخة الخادم من سجلّها غير موجودة لتبدأ منها. الحل: نضبط currentUser *قبل* استدعاء
+    // saveUsers مباشرة، حتى تعرف الدالة فوراً أن هذا سجلّها الخاص وتكتبه على tcf/users/{uid}.
+    currentUser = newUser;
     const users = getUsers();
     users.push(newUser);
     saveUsers(users);
-    currentUser = newUser; // تحديث فوري (لا ننتظر onAuthStateChanged لتحسين سرعة الاستجابة)
     closeModal('registerModal');
     document.getElementById('regName').value = '';
     document.getElementById('regEmail').value = '';
@@ -4143,7 +4154,21 @@ function adminImportBackup(input) {
 // ──────────────────────────────────────────
 // THEME TOGGLE
 // ──────────────────────────────────────────
-let darkMode = loadData('tcf_dark', true);
+// ⚠️ إصلاح (الخطأ الفعلي "tcf/dark و tcf/lang: ولا قاعدة أصلاً"):
+// الوضع الليلي/النهاري ولغة الواجهة تفضيلان شخصيان خاصان بكل جهاز/زائر — وليسا بيانات
+// مشتركة بين الجميع مثل packs/stories/qbank. الكود القديم كان يمرّرهما عبر saveData/loadData
+// (نفس الدالة العامة المستعملة للبيانات المشتركة)، فكان يحاول كتابتهما فعلياً على
+// tcf/dark و tcf/lang في Firebase. لا توجد ولا يجب أن توجد قاعدة أمان لهذين المسارين:
+// لو فتحناهما بقراءة/كتابة عامة، لأصبح بإمكان أي زائر تغيير مظهر أو لغة الموقع عند
+// *كل الزوار الآخرين* في نفس اللحظة — سلوك غير مرغوب إطلاقاً لتفضيل شخصي بحت. لذلك
+// كانت كل محاولة كتابة تُرفض بصمت من Firebase (Permission Denied) وتُظهر تنبيه "فشل حفظ
+// التغيير على الخادم" المخيف لمجرد تبديل الوضع الليلي أو تغيير اللغة، رغم أن التخزين
+// المحلي (localStorage) كان ينجح دائماً وهو كل ما نحتاجه هنا فعلاً.
+// الحل: نخزّنهما محلياً فقط (localStorage) مباشرة، بدون أي محاولة مزامنة مع Firebase.
+let darkMode = (function() {
+  try { const d = localStorage.getItem('tcf_dark'); return d !== null ? JSON.parse(d) : true; }
+  catch(e) { return true; }
+})();
 function applyTheme() {
   document.body.classList.toggle('light-mode', !darkMode);
   const btn = document.getElementById('themeBtn');
@@ -4151,7 +4176,7 @@ function applyTheme() {
 }
 function toggleTheme() {
   darkMode = !darkMode;
-  saveData('tcf_dark', darkMode);
+  try { localStorage.setItem('tcf_dark', JSON.stringify(darkMode)); } catch(e){}
   applyTheme();
 }
 
@@ -4159,7 +4184,7 @@ function toggleTheme() {
 // LANGUAGE (basic UI labels)
 // ──────────────────────────────────────────
 function changeLang(lang) {
-  saveData('tcf_lang', lang);
+  try { localStorage.setItem('tcf_lang', JSON.stringify(lang)); } catch(e){}
   // Direction
   document.documentElement.dir = (lang === 'ar' || lang === 'dz') ? 'rtl' : 'ltr';
 }
