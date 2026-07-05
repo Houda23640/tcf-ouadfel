@@ -16,17 +16,17 @@
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
   // ══════════════════════════════════════════
-  // ⚙️ إعدادات Firebase — ضعي بياناتك هنا
+  // ⚙️ إعدادات Firebase — المشروع الجديد tcfouadfel
   // ══════════════════════════════════════════
   const firebaseConfig = {
-    apiKey: "AIzaSyDM8wdVyDW4wZsC9Lj1yhXPrj6eFveAVKA",
-    authDomain: "tcf-ouadfel.firebaseapp.com",
-    databaseURL: "https://tcf-ouadfel-default-rtdb.firebaseio.com",
-    projectId: "tcf-ouadfel",
-    storageBucket: "tcf-ouadfel.firebasestorage.app",
-    messagingSenderId: "271766076786",
-    appId: "1:271766076786:web:3c64eb682bd961c43e31eb",
-    measurementId: "G-3S5BVMW586"
+    apiKey: "AIzaSyDsudTDW6pRfmxIJ-a35rnojOQ2el4UICE",
+    authDomain: "tcfouadfel.firebaseapp.com",
+    databaseURL: "https://tcfouadfel-default-rtdb.firebaseio.com",
+    projectId: "tcfouadfel",
+    storageBucket: "tcfouadfel.firebasestorage.app",
+    messagingSenderId: "491905116453",
+    appId: "1:491905116453:web:a86c347f5be637d96d92cc",
+    measurementId: "G-VEF8DMDSST"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -3595,13 +3595,19 @@ function loadData(key, def) {
   } catch(e){ return def; }
 }
 
-// تهيئة Firebase عند الجاهزية: جلب البيانات وتحديث الواجهة
-window.addEventListener('firebase-ready', async () => {
-  // جلب المستخدمين
-  const fbUsers = await window.fbLoad('tcf/users', null);
-  if (fbUsers) {
-    try { localStorage.setItem('tcf_users', JSON.stringify(fbUsers)); } catch(e){}
-  }
+// ⚠️ قواعد الأمان النهائية مبنية على المسارات (path-based)، وليست قاعدة واحدة عامة:
+//  - tcf/packs, tcf/stories, tcf/founder_photo, tcf/qbank → قراءة مفتوحة للجميع، كتابة للأدمن فقط.
+//  - tcf/users → كل طالبة تقرأ/تكتب فقط سجلّها الخاص (tcf/users/{uid})؛ الأدمن وحده يقرأ/يكتب القائمة كاملة.
+//  - admins/ → قراءة لأي مسجّل دخول، وكتابة ممنوعة تماماً من الكود (تُضاف يدوياً من Console فقط).
+// لذلك: البيانات العامة تُجلب فوراً هنا بلا شرط تسجيل دخول، أما بيانات users فتُدار من handleAuthStateChange
+// (كل مستخدم يقرأ سجلّه الخاص فقط بعد تأكيد Auth، أو الأدمن يقرأ القائمة كاملة).
+let sharedDataLoaded = false;
+
+// جلب البيانات العامة (packs/stories/photo/qbank) — تُستدعى فوراً عند جاهزية Firebase،
+// بغض النظر عن تسجيل الدخول، لأن قراءتها مفتوحة للجميع بقاعدة الأمان.
+async function loadSharedFirebaseData() {
+  if (sharedDataLoaded) return; // مرة واحدة فقط لكل تحميل صفحة
+  sharedDataLoaded = true;
   // جلب الستوريات
   const fbStories = await window.fbLoad('tcf/stories', null);
   if (fbStories) {
@@ -3647,7 +3653,15 @@ window.addEventListener('firebase-ready', async () => {
     // تحديث لوحة الأدمين إذا كانت مفتوحة
     if (isAdmin) renderAdminPanel();
   });
-  // ── الربط الفعلي بحالة تسجيل الدخول: يُستدعى تلقائياً عند تحميل الصفحة وعند أي دخول/خروج ──
+}
+
+// تهيئة Firebase عند الجاهزية:
+// - البيانات العامة (packs/stories/founder_photo/qbank) قراءتها مفتوحة للجميع بقاعدة الأمان
+//   (".read": true)، لذا تُجلب فوراً هنا حتى يراها الزائر قبل أي تسجيل دخول.
+// - بيانات users محمية (لكل طالبة سجلّها فقط)، لذا منطقها يبقى داخل handleAuthStateChange
+//   الذي يُستدعى بعد أول تأكيد فعلي من Auth (سواء كان زائراً بلا حساب أو مستخدماً مسجّلاً).
+window.addEventListener('firebase-ready', () => {
+  loadSharedFirebaseData();
   window.fbOnAuthChange(handleAuthStateChange);
 });
 
@@ -3666,7 +3680,40 @@ let currentUser = null; // يُملأ فعلياً بعد استجابة fbOnAut
 let isAdmin = false;    // يُحدَّد حصراً بوجود uid ضمن admins/ في قاعدة البيانات، وليس بكلمة سر محلية
 
 function getUsers() { return loadData('tcf_users', []); }
-function saveUsers(u) { saveData('tcf_users', u); }
+
+// ⚠️ القواعد الجديدة تسمح لكل طالبة بالكتابة فقط على tcf/users/{uid_الخاص_بها}،
+// بينما الأدمن وحده يملك صلاحية الكتابة على tcf/users كمسار كامل (القائمة بأكملها).
+// saveUsers() تُستدعى من ~15 مكانًا مختلفًا بنمط "اقرأ القائمة كاملة → عدّل عنصرًا → احفظ القائمة كاملة".
+// بدل تعديل كل تلك الأماكن، نجعل saveUsers ذكية: تحفظ محلياً (localStorage) القائمة الكاملة دائماً
+// (لتبقى لوحة الأدمين وقوائم التصدير تعمل من الكاش)، لكن الكتابة الفعلية إلى Firebase تُوجَّه بحسب الحالة:
+//  • أدمن مسجّل الدخول → يكتب القائمة الكاملة (مسموح له بقاعدة الأمان)
+//  • طالبة عادية → نكتشف أن التغيير يخص سجلّها فقط (وهو واقع الحال دائماً في مسارات الطالبات)
+//    ونكتب فقط على tcf/users/{uid_الخاصة_بها}، بدل محاولة الكتابة على القائمة كاملة (سيُرفض حتماً).
+function saveUsers(u) {
+  try { localStorage.setItem('tcf_users', JSON.stringify(u)); } catch(e){}
+  if (!(window.firebaseReady && window.fbSave)) return;
+
+  if (isAdmin) {
+    // الأدمن مخوَّل بقاعدة الأمان للكتابة على tcf/users كاملة
+    window.fbSave(fbKey('tcf_users'), u).catch(()=>{
+      alert('⚠️ فشل حفظ التغيير على الخادم (Firebase). تحقق من اتصال الإنترنت.');
+    });
+    return;
+  }
+
+  // طالبة عادية: لا يمكنها كتابة القائمة كاملة، فقط سجلّها الخاص. نحدّد سجلّها من currentUser
+  // (currentUser مصدره Auth الحقيقي، لذا uid موثوق ولا يمكن انتحاله من الواجهة).
+  if (!currentUser) return; // لا يوجد مستخدم مسجّل دخوله؛ لا كتابة أصلاً (يطابق قاعدة auth != null)
+  const ownRecord = Array.isArray(u) ? u.find(x => x.id === currentUser.id) : null;
+  if (!ownRecord) {
+    // حالة حذف حساب: السجل لم يعد موجوداً في القائمة الممرَّرة → نحذفه من Firebase بدل كتابته
+    window.fbDelete('tcf/users/' + currentUser.id).catch(()=>{});
+    return;
+  }
+  window.fbSave('tcf/users/' + currentUser.id, ownRecord).catch(()=>{
+    alert('⚠️ فشل حفظ التغيير على الخادم (Firebase). تحقق من اتصال الإنترنت.');
+  });
+}
 
 // يُستدعى تلقائياً من Firebase عند: تحميل الصفحة، تسجيل دخول، تسجيل خروج، انتهاء الجلسة
 function handleAuthStateChange(authUser) {
