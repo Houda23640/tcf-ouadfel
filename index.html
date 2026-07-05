@@ -3675,6 +3675,7 @@ async function loadSharedFirebaseData() {
         if (document.getElementById('oral-series-btns')) renderCO_section();
         if (document.getElementById('eo-series-btns')) renderEO_section();
         if (document.getElementById('sl-series-btns')) renderSL_section();
+        if (document.getElementById('ee-series-btns')) renderEE_section();
         if (document.getElementById('ce-tab-canada') || document.getElementById('ce-tab-sodap')) renderCE_section();
       }
     }
@@ -4288,14 +4289,29 @@ async function uploadFounderPhoto(input) {
   if (!file) return;
   try {
     const compressed = await compressImageFile(file, 600, 0.75);
-    saveData('tcf_founder_photo', compressed);
+    renderFounderPhotoPreviewOnly(compressed); // معاينة فورية محلية فقط، ليست تأكيد حفظ
+    await saveDataSync('tcf_founder_photo', compressed); // ننتظر فعلاً تأكيد Firebase قبل اعتبار العملية ناجحة
     renderFounderPhoto();
-    const prev = document.getElementById('adminPhotoPreview');
-    if (prev) { prev.src = compressed; prev.classList.remove('hidden'); }
+    alert('✅ تم حفظ الصورة وستظهر الآن لجميع الطلاب على كل الأجهزة.');
   } catch(e) {
-    alert('❌ تعذّر معالجة الصورة. جرّبي صورة أخرى.');
+    alert('⚠️ فشل حفظ الصورة على الخادم (Firebase)!\nستبقى ظاهرة فقط على هذا الجهاز ولن تصل للحاسوب أو الأجهزة الأخرى.\n\nالسبب المحتمل: حجم الصورة أو الاتصال بالإنترنت. جرّبي صورة أخرى أو تحققي من الشبكة.\n\nتفصيل الخطأ: ' + (e && e.message ? e.message : e));
   } finally {
     input.value = '';
+  }
+}
+
+// معاينة محلية فقط في لوحة الأدمين (لا تلمس Firebase) — تُستخدم فور اختيار الصورة قبل تأكيد الحفظ
+function renderFounderPhotoPreviewOnly(dataUrl) {
+  const prev = document.getElementById('adminPhotoPreview');
+  if (prev) { prev.src = dataUrl; prev.classList.remove('hidden'); }
+}
+
+// نسخة من saveData تنتظر فعلاً تأكيد Firebase وترمي خطأ حقيقياً عند الفشل،
+// بعكس saveData العادية التي لا تُعيد أي Promise قابل للانتظار من طرف المستدعي.
+async function saveDataSync(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch(e){}
+  if (window.firebaseReady && window.fbSave) {
+    await window.fbSave(fbKey(key), val); // يرمي خطأ إن فشل الحفظ الفعلي، فيصل للمستدعي عبر catch
   }
 }
 
