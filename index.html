@@ -3746,6 +3746,17 @@ function usersForStorage(users) {
   return obj;
 }
 
+// ⚠️ إصلاح سباق التزامن الإضافي: نفس مبدأ queuedPacksSave أعلاه، لكن لقائمة
+// الطلاب الكاملة (tcf/users). بدونه، لو فعّلت الإدارة VIP لطالبة ثم لطالبة أخرى
+// بسرعة (قبل اكتمال أول طلب شبكة)، قد يصل رد الطلب الأقدم بعد الأحدث فيمحو
+// تفعيل الطالبة الثانية من Firebase رغم ظهوره ناجحاً عند الإدارة مباشرة.
+let _usersWriteChain = Promise.resolve();
+function queuedUsersSave(payload) {
+  const p = _usersWriteChain.then(() => window.fbSave(fbKey('tcf_users'), payload));
+  _usersWriteChain = p.catch(() => {});
+  return p;
+}
+
 // ⚠️ القواعد الجديدة تسمح لكل طالبة بالكتابة فقط على tcf/users/{uid_الخاص_بها}،
 // بينما الأدمن وحده يملك صلاحية الكتابة على tcf/users كمسار كامل (القائمة بأكملها).
 // saveUsers() تُستدعى من ~15 مكانًا مختلفًا بنمط "اقرأ القائمة كاملة → عدّل عنصرًا → احفظ القائمة كاملة".
@@ -3763,8 +3774,9 @@ function saveUsers(u) {
 
   if (isAdmin) {
     // الأدمن مخوَّل بقاعدة الأمان للكتابة على tcf/users كاملة — نرسلها ككائن مفتاحه uid
-    // (وليس مصفوفة) حتى لا تُمحى مسارات tcf/users/{uid} التي تعتمد عليها كل طالبة.
-    window.fbSave(fbKey('tcf_users'), usersForStorage(u)).catch((e)=>{
+    // (وليس مصفوفة) حتى لا تُمحى مسارات tcf/users/{uid} التي تعتمد عليها كل طالبة،
+    // وعبر قائمة انتظار (queuedUsersSave) حتى لا تتضارب كتابتان متتاليتان سريعتان.
+    queuedUsersSave(usersForStorage(u)).catch((e)=>{
       console.error('saveUsers (admin) fbSave failed:', e);
       alert('❌ فشل حفظ التغيير على الخادم (Firebase)!\nالتفعيل/التعديل ظهر عندك محلياً فقط ولن يصل للطالبة أبداً حتى تُصلَح المشكلة.\n\nتفصيل الخطأ: ' + (e && e.message ? e.message : e) + '\n\nالسبب الأكثر شيوعاً: قواعد أمان Firebase (Rules) لا تسمح لحسابك بالكتابة على tcf/users، أو مشكلة اتصال بالإنترنت.');
     });
@@ -4452,6 +4464,22 @@ function renderAdminPacks() {
     </tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);">لا توجد عروض</td></tr>';
 }
 
+// ⚠️ إصلاح سباق التزامن (كان سبب: "أضفت باقتين، ظهرت واحدة فقط"):
+// كانت كل عملية إضافة/حذف عرض تُرسل طلب حفظ مستقل إلى Firebase دون انتظار
+// الطلب السابق. فإذا أضافت الإدارة عرضاً ثم عرضاً آخر بسرعة (قبل اكتمال أول
+// طلب شبكة)، قد يصل رد الطلب الأول (الذي يحمل بيانات أقدم بعرض واحد فقط)
+// إلى الخادم *بعد* الطلب الثاني (الأحدث)، فيستبدل الأحدث بالأقدم — فتختفي
+// إحدى الإضافتين من Firebase رغم ظهورهما محلياً عند الإضافة مباشرة.
+// الحل: قائمة انتظار (queue) تُجبر كل عملية حفظ لـ tcf_packs على الانتظار
+// حتى تكتمل العملية السابقة تماماً قبل إرسال التالية، فيستحيل وصول رد قديم
+// بعد رد أحدث.
+let _packsWriteChain = Promise.resolve();
+function queuedPacksSave(payload) {
+  const p = _packsWriteChain.then(() => window.fbSave(fbKey('tcf_packs'), payload));
+  _packsWriteChain = p.catch(() => {}); // نُبقي السلسلة حية حتى لو فشلت عملية، ليستمر التالية
+  return p;
+}
+
 async function adminAddPack() {
   const name = document.getElementById('packName').value.trim();
   const price = parseInt(document.getElementById('packPrice').value);
@@ -4471,7 +4499,7 @@ async function adminAddPack() {
   ['packName','packPrice','packDuration','packFeatures'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
   // نتأكد أن الحفظ وصل فعلاً لـ Firebase (وإلا لن يراه الطلاب على أجهزتهم)
   if (window.firebaseReady && window.fbSave) {
-    try { await window.fbSave(fbKey('tcf_packs'), packsForStorage(packs)); }
+    try { await queuedPacksSave(packsForStorage(packs)); }
     catch(e) { alert('⚠️ تم الحفظ محلياً فقط، لكن فشل الحفظ على السيرفر (Firebase). لن يرى الطلاب هذا العرض على أجهزتهم. تحقق من اتصال الإنترنت أو من قواعد Firebase.'); }
   }
 }
@@ -4483,7 +4511,7 @@ async function adminDeletePack(id) {
   renderAdminPacks();
   renderPacks();
   if (window.firebaseReady && window.fbSave) {
-    try { await window.fbSave(fbKey('tcf_packs'), packsForStorage(packs)); }
+    try { await queuedPacksSave(packsForStorage(packs)); }
     catch(e) { alert('⚠️ تم الحذف محلياً فقط، لكن فشل حفظ الحذف على السيرفر (Firebase). قد يعود العرض للظهور عند إعادة تحميل الصفحة أو على أجهزة أخرى. تحقق من اتصال الإنترنت أو من قواعد Firebase.'); }
   }
 }
@@ -4532,7 +4560,7 @@ async function adminActivateVIP(userId) {
   if (window.firebaseReady && window.fbSave && isAdmin) {
     // ⚠️ يجب الحفظ ككائن مفتاحه uid (usersForStorage) وليس كمصفوفة، وإلا يُمحى
     // مسار tcf/users/{uid} الذي تقرأ منه الطالبة حالتها الخاصة (انظر شرح saveUsers أعلاه).
-    try { await window.fbSave(fbKey('tcf_users'), usersForStorage(users)); }
+    try { await queuedUsersSave(usersForStorage(users)); }
     catch(e) { ok = false; console.error('adminActivateVIP save failed:', e); }
     try { localStorage.setItem('tcf_users', JSON.stringify(users)); } catch(e){}
   } else {
