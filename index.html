@@ -3652,6 +3652,14 @@ async function loadSharedFirebaseData() {
         currentUser = fresh;
         renderNav();
         checkFrozen();
+        // ⚠️ renderNav() تحدّث فقط الشريط العلوي (شارة VIP)، ولا تعيد رسم أزرار
+        // اختيار السلاسل (🔒) في كل قسم — وهي المكان الذي يُقرأ فيه canAccessSerie()
+        // فعلياً. بدون هذا، يبقى الطالب يرى السلاسل مقفلة حتى يُعيد تحميل الصفحة يدوياً
+        // رغم أن تفعيل VIP وصل بالفعل. نعيد رسم كل قسم فقط إن كان عنصره موجوداً في الصفحة حالياً.
+        if (document.getElementById('oral-series-btns')) renderCO_section();
+        if (document.getElementById('eo-series-btns')) renderEO_section();
+        if (document.getElementById('sl-series-btns')) renderSL_section();
+        if (document.getElementById('ce-tab-canada') || document.getElementById('ce-tab-sodap')) renderCE_section();
       }
     }
     // تحديث لوحة الأدمين إذا كانت مفتوحة
