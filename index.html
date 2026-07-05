@@ -3640,10 +3640,14 @@ async function loadSharedFirebaseData() {
   // ⚠️ تحقق من المسار: إن كانت بياناتك الفعلية على tcf/users بدل users مباشرة، بدّل المسار هنا وفي fbKey()
   window.fbWatch('users', (users) => {
     if (!users) return;
-    try { localStorage.setItem('tcf_users', JSON.stringify(users)); } catch(e){}
+    // ⚠️ Firebase Realtime Database يحوّل الـ Array تلقائياً إلى Object ({0:..,1:..})
+    // إن كانت المفاتيح غير متسلسلة أو تحتوي فجوات. نجبرها هنا إلى Array نظيف
+    // قبل الحفظ، وإلا ستنكسر users.push() وكل دوال الـ Array الأخرى لاحقاً.
+    const usersArr = Array.isArray(users) ? users : Object.values(users);
+    try { localStorage.setItem('tcf_users', JSON.stringify(usersArr)); } catch(e){}
     // تحديث حالة المستخدم الحالي (بدون كتابة أي "جلسة" — currentUser مصدره Auth فقط)
     if (currentUser) {
-      const fresh = Array.isArray(users) ? users.find(u => u.id === currentUser.id) : null;
+      const fresh = usersArr.find(u => u.id === currentUser.id);
       if (fresh) {
         currentUser = fresh;
         renderNav();
@@ -3679,7 +3683,12 @@ function getFreshUser(uid) {
 let currentUser = null; // يُملأ فعلياً بعد استجابة fbOnAuthChange (انظر أسفل الملف)
 let isAdmin = false;    // يُحدَّد حصراً بوجود uid ضمن admins/ في قاعدة البيانات، وليس بكلمة سر محلية
 
-function getUsers() { return loadData('tcf_users', []); }
+function getUsers() {
+  const u = loadData('tcf_users', []);
+  // خط دفاع احتياطي: أياً كان مصدر البيانات، اضمن أن الناتج array دائماً
+  // حتى لا تنكسر users.push()/.find()/.filter() في باقي الكود
+  return Array.isArray(u) ? u : Object.values(u || {});
+}
 
 // ⚠️ القواعد الجديدة تسمح لكل طالبة بالكتابة فقط على tcf/users/{uid_الخاص_بها}،
 // بينما الأدمن وحده يملك صلاحية الكتابة على tcf/users كمسار كامل (القائمة بأكملها).
