@@ -3630,18 +3630,29 @@ async function loadSharedFirebaseData() {
     try { localStorage.setItem('tcf_stories', JSON.stringify(fbStories)); } catch(e){}
     renderStoriesBar();
   }
-  // جلب الباكات
+  // جلب الباكات (fbLoad أولاً كضمان سريع، ثم fbWatch مستقل حتى لا يبقى أي جهاز
+  // عالقاً على القيمة الافتراضية Gold 5000 إذا تأخر أو فشل طلب سابق في السلسلة)
   const fbPacks = await window.fbLoad('tcf/packs', null);
   if (fbPacks) {
     try { localStorage.setItem('tcf_packs', JSON.stringify(fbPacks)); } catch(e){}
     renderPacks();
   }
-  // جلب صورة المدربة
+  window.fbWatch('tcf/packs', (p) => {
+    if (!p) return;
+    try { localStorage.setItem('tcf_packs', JSON.stringify(p)); } catch(e){}
+    renderPacks();
+  });
+  // جلب صورة المدربة (fbLoad + fbWatch مستقل لنفس سبب الباكات أعلاه)
   const fbPhoto = await window.fbLoad('tcf/founder_photo', null);
   if (fbPhoto) {
     try { localStorage.setItem('tcf_founder_photo', JSON.stringify(fbPhoto)); } catch(e){}
     renderFounderPhoto();
   }
+  window.fbWatch('tcf/founder_photo', (photo) => {
+    if (!photo) return;
+    try { localStorage.setItem('tcf_founder_photo', JSON.stringify(photo)); } catch(e){}
+    renderFounderPhoto();
+  });
   // ── جلب بنك الأسئلة من Firebase وإدخاله في البنوك الحية ──
   for (const section of ['co','ce','sl','ee','eo']) {
     try {
@@ -3755,6 +3766,12 @@ function saveUsers(u) {
 }
 
 // يُستدعى تلقائياً من Firebase عند: تحميل الصفحة، تسجيل دخول، تسجيل خروج، انتهاء الجلسة
+//
+// ⚠️ إصلاح جوهري: كنّا نستدعي getUsers() هنا، وهي تقرأ من localStorage أولاً (كاش قد يكون
+// قديماً جداً أو فارغاً كلياً على أي جهاز/متصفح لم يزره الطالب من قبل). فكانت الطالبة تدخل
+// حسابها فتجد حالتها القديمة (free) رغم أن الأدمن فعّل VIP فعلاً في Firebase. الحل: نقرأ
+// مباشرة وبشكل حصري سجلّها الخاص من المسار المسموح لها قراءته دائماً (tcf/users/{uid})،
+// وننتظر هذه القراءة (await) قبل أي عرض للواجهة، بدل الاعتماد على كاش محلي قد يكذب.
 function handleAuthStateChange(authUser) {
   if (!authUser) {
     currentUser = null;
@@ -3764,29 +3781,88 @@ function handleAuthStateChange(authUser) {
     return;
   }
   // هل هذا الحساب أدمن؟ (تحقق فعلي من قاعدة البيانات وليس تخمين محلي)
-  window.fbLoad('admins/' + authUser.uid, false).then(adminFlag => {
+  window.fbLoad('admins/' + authUser.uid, false).then(async adminFlag => {
     isAdmin = adminFlag === true;
     if (isAdmin) {
       renderNav();
       renderAdminPanel();
+      // الأدمن يحتاج القائمة كاملة (مسموح لها بقاعدة الأمان) — نجلبها فوراً لضمان بيانات طازجة
+      // في لوحة التحكم بدل الاعتماد على كاش محلي قديم عند أول فتح للصفحة.
+      try {
+        const freshUsers = await window.fbLoad('tcf/users', null);
+        if (freshUsers) {
+          const arr = Array.isArray(freshUsers) ? freshUsers : Object.values(freshUsers);
+          try { localStorage.setItem('tcf_users', JSON.stringify(arr)); } catch(e){}
+          renderAdminPanel();
+        }
+      } catch(e){}
       return;
     }
-    // ليس أدمن → طالب عادي: اجلب سجله من users/، أو أنشئه إن كان أول دخول بعد التسجيل
-    const users = getUsers();
-    const found = users.find(u => u.id === authUser.uid);
-    if (found) {
-      currentUser = found;
+    // ليس أدمن → طالب عادي: اجلب سجله *مباشرة من Firebase* عبر مساره الخاص المسموح
+    // (tcf/users/{uid})، وليس من القائمة الكاملة المخزّنة محلياً. هذا يضمن أن حالة VIP/التجميد
+    // التي فعّلتها الأدمن تصل فوراً حتى لو كان هذا أول دخول للطالبة من هذا الجهاز بالذات.
+    let fresh = null;
+    try { fresh = await window.fbLoad('tcf/users/' + authUser.uid, null); } catch(e){}
+    if (fresh) {
+      currentUser = fresh;
+      // حدّث الكاش المحلي أيضاً (يُستخدم من renderAdminUsers إن كانت هذه الطالبة تُعرض هناك لاحقاً)
+      try {
+        const users = getUsers();
+        const idx = users.findIndex(u => u.id === authUser.uid);
+        if (idx !== -1) users[idx] = fresh; else users.push(fresh);
+        localStorage.setItem('tcf_users', JSON.stringify(users));
+      } catch(e){}
     } else {
-      // نادراً ما يحدث (سباق توقيت بين إنشاء Auth وكتابة users/) — سجل مبدئي آمن
-      currentUser = {
-        id: authUser.uid, name: authUser.email.split('@')[0], email: authUser.email,
-        status: 'free', expiryDate: new Date(Date.now()+3*24*60*60*1000).toLocaleDateString('fr-FR'),
-        frozen: false, receipt: null, createdAt: new Date().toLocaleDateString('fr-FR')
-      };
+      // احتياط: جرّب القائمة المخزّنة محلياً (حالة عدم اتصال بالإنترنت مثلاً)
+      const users = getUsers();
+      const found = users.find(u => u.id === authUser.uid);
+      if (found) {
+        currentUser = found;
+      } else {
+        // نادراً ما يحدث (سباق توقيت بين إنشاء Auth وكتابة users/) — سجل مبدئي آمن
+        currentUser = {
+          id: authUser.uid, name: authUser.email.split('@')[0], email: authUser.email,
+          status: 'free', expiryDate: new Date(Date.now()+3*24*60*60*1000).toLocaleDateString('fr-FR'),
+          frozen: false, receipt: null, createdAt: new Date().toLocaleDateString('fr-FR')
+        };
+      }
     }
     renderNav();
     renderPacks();
     checkFrozen();
+    // أعد رسم كل الأقسام التي قد تعرض 🔒 حسب canAccessSerie() حتى تظهر السلاسل المفتوحة فوراً
+    if (document.getElementById('oral-series-btns')) renderCO_section();
+    if (document.getElementById('eo-series-btns')) renderEO_section();
+    if (document.getElementById('sl-series-btns')) renderSL_section();
+    if (document.getElementById('ee-series-btns')) renderEE_section();
+    if (document.getElementById('ce-tab-canada') || document.getElementById('ce-tab-sodap')) renderCE_section();
+    // ── مراقبة مستمرة لسجلّها الخاص فقط (مسموح لها دائماً) بدل مراقبة القائمة الكاملة ──
+    // هذا يضمن أنه إذا فعّلت الأدمن VIP أثناء وجود الطالبة على الصفحة (بدون إعادة تحميل)،
+    // فإن التحديث يصلها في نفس الثانية عبر المسار المسموح لها قراءته، بدل الاعتماد وحده
+    // على مراقبة tcf/users الكاملة التي قد ترفضها قواعد الأمان لغير الأدمن.
+    if (window.fbWatch) {
+      window.fbWatch('tcf/users/' + authUser.uid, (u) => {
+        if (!u || !currentUser) return;
+        const changed = JSON.stringify(u) !== JSON.stringify(currentUser);
+        currentUser = u;
+        try {
+          const users = getUsers();
+          const idx = users.findIndex(x => x.id === authUser.uid);
+          if (idx !== -1) users[idx] = u; else users.push(u);
+          localStorage.setItem('tcf_users', JSON.stringify(users));
+        } catch(e){}
+        if (changed) {
+          renderNav();
+          checkFrozen();
+          renderPacks();
+          if (document.getElementById('oral-series-btns')) renderCO_section();
+          if (document.getElementById('eo-series-btns')) renderEO_section();
+          if (document.getElementById('sl-series-btns')) renderSL_section();
+          if (document.getElementById('ee-series-btns')) renderEE_section();
+          if (document.getElementById('ce-tab-canada') || document.getElementById('ce-tab-sodap')) renderCE_section();
+        }
+      });
+    }
   }).catch(()=>{});
 }
 
