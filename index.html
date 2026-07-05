@@ -9,6 +9,11 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, ref, set, get, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import {
+    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    signOut, onAuthStateChanged, updateProfile, deleteUser,
+    reauthenticateWithCredential, EmailAuthProvider
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
   // ══════════════════════════════════════════
   // ⚙️ إعدادات Firebase — ضعي بياناتك هنا
@@ -26,6 +31,7 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
+  const auth = getAuth(app);
 
   // ══════════════════════════════════════════
   // 🔄 دوال Firebase — تستبدل localStorage
@@ -60,6 +66,81 @@
   // حذف مفتاح
   window.fbDelete = async function(key) {
     try { await remove(ref(db, key)); } catch(e) {}
+  };
+
+  // ══════════════════════════════════════════
+  // 🔐 Firebase Authentication — تسجيل حقيقي بإيميل/كلمة سر
+  // ══════════════════════════════════════════
+
+  // رسائل الأخطاء بالعربية (Firebase يرجع أكواد إنجليزية)
+  function fbAuthErrorAr(code) {
+    const map = {
+      'auth/email-already-in-use': 'هذا الإيميل مسجل بالفعل. جرّب تسجيل الدخول بدلاً من ذلك.',
+      'auth/invalid-email': 'صيغة الإيميل غير صحيحة.',
+      'auth/weak-password': 'كلمة المرور ضعيفة جداً (يجب 6 أحرف على الأقل).',
+      'auth/user-not-found': 'لا يوجد حساب بهذا الإيميل.',
+      'auth/wrong-password': 'كلمة المرور غير صحيحة.',
+      'auth/invalid-credential': 'الإيميل أو كلمة المرور غير صحيحة.',
+      'auth/too-many-requests': 'محاولات كثيرة فاشلة. حاول لاحقاً.',
+      'auth/network-request-failed': 'تحقق من اتصال الإنترنت.',
+    };
+    return map[code] || 'حدث خطأ غير متوقع. حاول مجدداً.';
+  }
+
+  // تسجيل حساب جديد بإيميل/كلمة سر — يرجع { uid } أو يرمي خطأ برسالة عربية
+  window.fbRegister = async function(email, password, displayName) {
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      if (displayName) {
+        try { await updateProfile(cred.user, { displayName }); } catch(e) {}
+      }
+      return { uid: cred.user.uid, email: cred.user.email };
+    } catch(e) {
+      throw new Error(fbAuthErrorAr(e.code));
+    }
+  };
+
+  // تسجيل الدخول بإيميل/كلمة سر
+  window.fbLogin = async function(email, password) {
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      return { uid: cred.user.uid, email: cred.user.email };
+    } catch(e) {
+      throw new Error(fbAuthErrorAr(e.code));
+    }
+  };
+
+  // تسجيل الخروج
+  window.fbLogout = async function() {
+    try { await signOut(auth); } catch(e) {}
+  };
+
+  // مراقبة حالة تسجيل الدخول (يُستدعى تلقائياً عند أي تغيير: دخول/خروج/تحميل الصفحة)
+  window.fbOnAuthChange = function(callback) {
+    onAuthStateChanged(auth, (user) => {
+      callback(user ? { uid: user.uid, email: user.email } : null);
+    });
+  };
+
+  // الحصول على المستخدم الحالي فوراً إن وُجد (بدون انتظار)
+  window.fbCurrentAuthUser = function() {
+    const u = auth.currentUser;
+    return u ? { uid: u.uid, email: u.email } : null;
+  };
+
+  // حذف حساب Firebase Authentication نهائياً (يتطلب كلمة السر الحالية لإعادة المصادقة —
+  // شرط أمان من Firebase نفسه: لا يمكن حذف حساب بجلسة قديمة بدون تأكيد كلمة السر)
+  window.fbDeleteSelfAccount = async function(currentPassword) {
+    const user = auth.currentUser;
+    if (!user) throw new Error('لا يوجد مستخدم مسجّل الدخول حالياً.');
+    try {
+      const cred = EmailAuthProvider.credential(user.email, currentPassword);
+      await reauthenticateWithCredential(user, cred);
+      await deleteUser(user);
+      return true;
+    } catch(e) {
+      throw new Error(fbAuthErrorAr(e.code));
+    }
   };
 
   // إشعار بأن Firebase جاهز
@@ -241,6 +322,7 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
 .user-chip{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:.82rem;padding:.35rem .85rem;border-radius:7px;display:flex;align-items:center;gap:.4rem;}
 .user-chip .vip-badge{background:var(--gold);color:#0a0e1a;font-size:.65rem;font-weight:700;padding:.1rem .4rem;border-radius:4px;}
 .btn-logout{background:none;border:none;color:var(--accent2);font-size:.75rem;cursor:pointer;text-decoration:underline;}
+.speed-btn.active{background:var(--accent)!important;color:#0a0e1a!important;font-weight:700;}
 
 /* ═══ STORIES BAR ═══ */
 .stories-bar{padding:1rem 1rem .5rem;display:flex;gap:.85rem;overflow-x:auto;scrollbar-width:none;margin-top:64px;}
@@ -487,7 +569,7 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
     <div class="auth-err" id="loginErr">Identifiants incorrects.</div>
     <input class="auth-input" id="loginEmail" placeholder="Email ou nom d'utilisateur" type="text">
     <input class="auth-input" id="loginPass" placeholder="Mot de passe" type="password">
-    <button class="auth-submit" onclick="doLogin()">Se connecter</button>
+    <button class="auth-submit" id="loginBtn" onclick="doLogin()">Se connecter</button>
     <div class="auth-switch">Pas de compte ? <a onclick="switchModal('loginModal','registerModal')">Créer un compte</a></div>
   </div>
 </div>
@@ -501,8 +583,8 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
     <div class="auth-err" id="registerErr"></div>
     <input class="auth-input" id="regName" placeholder="Nom complet" type="text">
     <input class="auth-input" id="regEmail" placeholder="Adresse email" type="email">
-    <input class="auth-input" id="regPass" placeholder="Mot de passe" type="password">
-    <button class="auth-submit" onclick="doRegister()">Créer mon compte</button>
+    <input class="auth-input" id="regPass" placeholder="Mot de passe (6 caractères min.)" type="password">
+    <button class="auth-submit" id="registerBtn" onclick="doRegister()">Créer mon compte</button>
     <div class="auth-switch">Déjà inscrit ? <a onclick="switchModal('registerModal','loginModal')">Se connecter</a></div>
   </div>
 </div>
@@ -513,10 +595,22 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
     <button class="auth-close" onclick="closeModal('adminModal')">✕</button>
     <h2 style="color:var(--gold);">🛡️ تسجيل دخول الإدارة</h2>
     <p>Zone réservée à Mme H. Ouadfel</p>
-    <div class="auth-err" id="adminErr">Mot de passe incorrect.</div>
-    <input class="auth-input" id="adminUser" placeholder="اسم المستخدم" type="text">
+    <div class="auth-err" id="adminErr"></div>
+    <input class="auth-input" id="adminUser" placeholder="الإيميل" type="email">
     <input class="auth-input" id="adminPass" placeholder="كلمة المرور" type="password">
-    <button class="auth-submit" style="background:var(--gold);" onclick="doAdminLogin()">دخول</button>
+    <button class="auth-submit" id="adminLoginBtn" style="background:var(--gold);" onclick="doAdminLogin()">دخول</button>
+  </div>
+</div>
+
+<!-- DELETE ACCOUNT MODAL (self-service) -->
+<div class="auth-modal-overlay" id="deleteAccountModal">
+  <div class="auth-modal">
+    <button class="auth-close" onclick="closeModal('deleteAccountModal')">✕</button>
+    <h2 style="color:var(--accent2);">⚠️ حذف الحساب نهائياً</h2>
+    <p>هذا الإجراء لا يمكن التراجع عنه. سيُحذف حسابك وكل بياناتك (الحالة، الوصل، تاريخ الاشتراك) نهائياً.</p>
+    <div class="auth-err" id="deleteAccountErr"></div>
+    <input class="auth-input" id="deleteAccountPass" placeholder="أدخل كلمة المرور للتأكيد" type="password">
+    <button class="auth-submit" id="deleteAccountBtn" style="background:var(--accent2);" onclick="studentDeleteOwnAccount()">حذف حسابي نهائياً</button>
   </div>
 </div>
 
@@ -1307,16 +1401,33 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
 // ═══════════════════════════════════════════
 
 // Personnages vocaux : pitch + rate simulant des profils humains distincts
+// ⚠️ ملاحظة تقنية مهمة عن السرعة (rate):
+// محرك Web Speech API (الذي يُنتج هذا الصوت) مختلف فعلياً بين الأجهزة: Chrome/Windows
+// يستخدم محركاً مختلفاً عن Safari/iOS ومختلف عن Chrome/Android. نفس رقم "rate" قد يُنتج
+// سرعة طبيعية على جهاز، وسرعة أعلى بوضوح على جهاز آخر — هذا سلوك المتصفح/النظام نفسه، وليس
+// خطأ في هذا الكود، ولا يمكن إصلاحه برقم واحد يناسب كل الأجهزة. لهذا خُفِّضت القيم الأساسية هنا
+// كهامش أمان، وأُضيف زر تحكم يدوي بالسرعة للطالب (studentSpeedMultiplier أدناه) ليعدّلها بنفسه
+// حسب جهازه إن شعر أنها لا تزال سريعة.
 const VOICE_PERSONAS = [
-  { name: '👨 Homme',         pitch: 0.75, rate: 1.10 },  // voix grave masculine
-  { name: '👩 Femme',         pitch: 1.35, rate: 1.15 },  // voix aiguë féminine
-  { name: '👴 Vieux',         pitch: 0.65, rate: 0.95 },  // homme âgé
-  { name: '👵 Vieille',       pitch: 1.10, rate: 0.93 },  // femme âgée
-  { name: '👦 Garçon',        pitch: 1.60, rate: 1.25 },  // enfant garçon, vif
-  { name: '👧 Fille',         pitch: 1.80, rate: 1.28 },  // enfant fille, aigu
-  { name: '🧑 Jeune homme',   pitch: 0.88, rate: 1.18 },  // adolescent/jeune
-  { name: '👱 Jeune femme',   pitch: 1.50, rate: 1.20 },  // jeune femme
+  { name: '👨 Homme',         pitch: 0.75, rate: 0.95 },  // voix grave masculine
+  { name: '👩 Femme',         pitch: 1.35, rate: 1.00 },  // voix aiguë féminine
+  { name: '👴 Vieux',         pitch: 0.65, rate: 0.85 },  // homme âgé
+  { name: '👵 Vieille',       pitch: 1.10, rate: 0.83 },  // femme âgée
+  { name: '👦 Garçon',        pitch: 1.60, rate: 1.05 },  // enfant garçon, vif
+  { name: '👧 Fille',         pitch: 1.80, rate: 1.08 },  // enfant fille, aigu
+  { name: '🧑 Jeune homme',   pitch: 0.88, rate: 1.02 },  // adolescent/jeune
+  { name: '👱 Jeune femme',   pitch: 1.50, rate: 1.05 },  // jeune femme
 ];
+
+// معامل سرعة إضافي يتحكم به الطالب بنفسه (0.8 / 1.0 / 1.2) — يُضرب في rate الأساسي أعلاه
+let studentSpeedMultiplier = parseFloat(localStorage.getItem('tcf_speed_mult')) || 1.0;
+function setStudentSpeed(mult) {
+  studentSpeedMultiplier = mult;
+  try { localStorage.setItem('tcf_speed_mult', String(mult)); } catch(e){}
+  document.querySelectorAll('.speed-btn').forEach(b => {
+    b.classList.toggle('active', parseFloat(b.dataset.speed) === mult);
+  });
+}
 
 let _personaIdx = -1;   // commence à -1 pour que le 1er += 1 donne index 0
 let _cachedFrVoices = [];
@@ -1361,7 +1472,7 @@ function speak(text, onEnd) {
   const utt = new SpeechSynthesisUtterance(text);
   utt.lang   = 'fr-FR';
   utt.pitch  = persona.pitch;
-  utt.rate   = persona.rate;
+  utt.rate   = Math.max(0.6, Math.min(1.5, persona.rate * studentSpeedMultiplier));
   utt.volume = 1;
 
   const base = _pickBaseVoice(persona);
@@ -1383,7 +1494,7 @@ function speakWithPersona(text, idx, onEnd) {
   _personaIdx = idx % VOICE_PERSONAS.length;
   const persona = VOICE_PERSONAS[_personaIdx];
   const utt = new SpeechSynthesisUtterance(text);
-  utt.lang = 'fr-FR'; utt.pitch = persona.pitch; utt.rate = persona.rate; utt.volume = 1;
+  utt.lang = 'fr-FR'; utt.pitch = persona.pitch; utt.rate = Math.max(0.6, Math.min(1.5, persona.rate * studentSpeedMultiplier)); utt.volume = 1;
   const base = _pickBaseVoice(persona);
   if (base) utt.voice = base;
   if (onEnd) utt.onend = onEnd;
@@ -1393,6 +1504,16 @@ function speakWithPersona(text, idx, onEnd) {
 }
 
 function stopSpeech() { if (window.speechSynthesis) window.speechSynthesis.cancel(); }
+
+// أزرار تحكم بالسرعة يدوية للطالب — الحل العملي لكون سرعة TTS تختلف فعلياً بين الأجهزة
+// (Windows/Chrome يختلف عن iOS/Safari يختلف عن Android/Chrome لنفس رقم rate بالضبط)
+function renderSpeedButtons() {
+  const speeds = [0.8, 1.0, 1.2];
+  return `<div style="display:flex;gap:.25rem;align-items:center;">
+    <span style="font-size:.7rem;color:var(--text-muted);">⏱️</span>
+    ${speeds.map(sp => `<button class="speed-btn${studentSpeedMultiplier===sp?' active':''}" data-speed="${sp}" onclick="setStudentSpeed(${sp})" style="background:${studentSpeedMultiplier===sp?'var(--accent)':'none'};border:1px solid var(--border);color:${studentSpeedMultiplier===sp?'#0a0e1a':'var(--text-muted)'};padding:.25rem .55rem;border-radius:5px;cursor:pointer;font-size:.72rem;font-family:'JetBrains Mono',monospace;">${sp}x</button>`).join('')}
+  </div>`;
+}
 
 
 // ═══════════════════════════════════════════
@@ -2759,6 +2880,7 @@ function renderFinalExam() {
       <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
         <span style="background:var(--accent);color:#0a0e1a;font-weight:700;font-size:.8rem;padding:.3rem .8rem;border-radius:6px;font-family:'JetBrains Mono',monospace;">AUDIO ${qi+1}</span>
         <div style="flex:1;display:flex;gap:3px;align-items:center;height:20px;">${Array(18).fill(0).map(()=>`<div style="width:3px;background:var(--accent);border-radius:2px;height:${Math.floor(Math.random()*16)+4}px;opacity:0.7;"></div>`).join('')}</div>
+        ${renderSpeedButtons()}
         <button onclick="finalPlayAudio()" style="background:none;border:1px solid var(--border);color:var(--text-muted);padding:.3rem .8rem;border-radius:6px;cursor:pointer;font-size:.8rem;">🔁 Réécouter</button>
       </div>
       <div id="final-audio-status" style="margin-top:.5rem;font-size:.8rem;color:var(--text-muted);font-style:italic;">🎵 L'audio va démarrer automatiquement...</div>
@@ -3206,6 +3328,7 @@ function renderCO_section() {
         <span style="background:var(--accent);color:#0a0e1a;font-weight:700;font-size:.8rem;padding:.3rem .8rem;border-radius:6px;font-family:'JetBrains Mono',monospace;">AUDIO ${s.qi+1}/${total}</span>
         <span class="level-badge ${lvlClass}">${q.level||''}</span>
         <div style="flex:1;display:flex;gap:3px;align-items:center;height:20px;">${Array(18).fill(0).map(()=>`<div style="width:3px;background:var(--accent);border-radius:2px;height:${Math.floor(Math.random()*16)+4}px;opacity:0.5;"></div>`).join('')}</div>
+        ${renderSpeedButtons()}
         <button onclick="coPlayAudio()" style="background:none;border:1px solid var(--border);color:var(--text-muted);padding:.3rem .8rem;border-radius:6px;cursor:pointer;font-size:.8rem;">🔁 Réécouter</button>
         <button onclick="quitter_CO()" style="background:rgba(230,57,70,.15);border:1px solid var(--accent2);color:var(--accent2);padding:.3rem .8rem;border-radius:6px;cursor:pointer;font-size:.8rem;">✖ Quitter</button>
       </div>
@@ -3435,9 +3558,6 @@ function toggleEx(btn, id) {
 // ──────────────────────────────────────────
 // ADMIN CREDENTIALS (easy to change)
 // ──────────────────────────────────────────
-const ADMIN_USERNAME = 'ouadfel';
-const ADMIN_PASSWORD = 'tcf2026';
-
 // ──────────────────────────────────────────
 // DATA STORE — Firebase (مشترك بين جميع المستخدمين) + localStorage (كاحتياطي)
 // ──────────────────────────────────────────
@@ -3511,16 +3631,15 @@ window.addEventListener('firebase-ready', async () => {
   }
   qbLoadAllIntoLiveBanks();
   qbWatchFirebase(); // مراقبة التغييرات في الوقت الحقيقي
-  // مراقبة المستخدمين في الوقت الحقيقي (مفيد للأدمين)
-  window.fbWatch('tcf/users', (users) => {
+  // ⚠️ تحقق من المسار: إن كانت بياناتك الفعلية على tcf/users بدل users مباشرة، بدّل المسار هنا وفي fbKey()
+  window.fbWatch('users', (users) => {
     if (!users) return;
     try { localStorage.setItem('tcf_users', JSON.stringify(users)); } catch(e){}
-    // تحديث حالة المستخدم الحالي
+    // تحديث حالة المستخدم الحالي (بدون كتابة أي "جلسة" — currentUser مصدره Auth فقط)
     if (currentUser) {
       const fresh = Array.isArray(users) ? users.find(u => u.id === currentUser.id) : null;
       if (fresh) {
         currentUser = fresh;
-        try { localStorage.setItem('tcf_session', JSON.stringify(fresh)); } catch(e){}
         renderNav();
         checkFrozen();
       }
@@ -3528,27 +3647,62 @@ window.addEventListener('firebase-ready', async () => {
     // تحديث لوحة الأدمين إذا كانت مفتوحة
     if (isAdmin) renderAdminPanel();
   });
+  // ── الربط الفعلي بحالة تسجيل الدخول: يُستدعى تلقائياً عند تحميل الصفحة وعند أي دخول/خروج ──
+  window.fbOnAuthChange(handleAuthStateChange);
 });
 
 // ──────────────────────────────────────────
-// USERS & SESSION
+// USERS & SESSION — مبنية على Firebase Authentication الحقيقي
 // ──────────────────────────────────────────
-// Always read fresh user from users list to avoid stale session data
-function getFreshUser(sessionUser) {
-  if (!sessionUser) return null;
+// currentUser الآن يُشتق حصراً من users[] عبر uid حقيقي من Firebase Auth،
+// وليس من localStorage. لا يوجد "جلسة" مخزّنة يدوياً بعد الآن.
+function getFreshUser(uid) {
+  if (!uid) return null;
   const users = getUsers();
-  return users.find(u => u.id === sessionUser.id) || null;
+  return users.find(u => u.id === uid) || null;
 }
 
-let _sessionRaw = loadData('tcf_session', null);
-let currentUser = getFreshUser(_sessionRaw);
-// If user found, sync session with latest data
-if (currentUser) saveData('tcf_session', currentUser);
-
-let isAdmin = loadData('tcf_admin', false) === true;
+let currentUser = null; // يُملأ فعلياً بعد استجابة fbOnAuthChange (انظر أسفل الملف)
+let isAdmin = false;    // يُحدَّد حصراً بوجود uid ضمن admins/ في قاعدة البيانات، وليس بكلمة سر محلية
 
 function getUsers() { return loadData('tcf_users', []); }
 function saveUsers(u) { saveData('tcf_users', u); }
+
+// يُستدعى تلقائياً من Firebase عند: تحميل الصفحة، تسجيل دخول، تسجيل خروج، انتهاء الجلسة
+function handleAuthStateChange(authUser) {
+  if (!authUser) {
+    currentUser = null;
+    isAdmin = false;
+    renderNav();
+    renderPacks();
+    return;
+  }
+  // هل هذا الحساب أدمن؟ (تحقق فعلي من قاعدة البيانات وليس تخمين محلي)
+  window.fbLoad('admins/' + authUser.uid, false).then(adminFlag => {
+    isAdmin = adminFlag === true;
+    if (isAdmin) {
+      renderNav();
+      renderAdminPanel();
+      return;
+    }
+    // ليس أدمن → طالب عادي: اجلب سجله من users/، أو أنشئه إن كان أول دخول بعد التسجيل
+    const users = getUsers();
+    const found = users.find(u => u.id === authUser.uid);
+    if (found) {
+      currentUser = found;
+    } else {
+      // نادراً ما يحدث (سباق توقيت بين إنشاء Auth وكتابة users/) — سجل مبدئي آمن
+      currentUser = {
+        id: authUser.uid, name: authUser.email.split('@')[0], email: authUser.email,
+        status: 'free', expiryDate: new Date(Date.now()+3*24*60*60*1000).toLocaleDateString('fr-FR'),
+        frozen: false, receipt: null, createdAt: new Date().toLocaleDateString('fr-FR')
+      };
+    }
+    renderNav();
+    renderPacks();
+    checkFrozen();
+  }).catch(()=>{});
+}
 
 function renderNav() {
   const nr = document.getElementById('navRight');
@@ -3572,6 +3726,7 @@ function renderNav() {
     const vipBadge = currentUser.status === 'vip' ? '<span class="vip-badge">VIP</span>' : '';
     html += `<span class="user-chip">${currentUser.name.split(' ')[0]} ${vipBadge}</span>`;
     html += `<button class="btn-logout" onclick="userLogout()">Déconnexion</button>`;
+    html += `<button class="btn-logout" style="opacity:.65;font-size:.7rem;" onclick="openModal('deleteAccountModal')" title="حذف حسابك نهائياً">حذف الحساب</button>`;
   } else {
     html += `<button class="btn-connexion" onclick="openModal('loginModal')">Connexion</button>`;
     html += `<button class="btn-creer" onclick="openModal('registerModal')">Créer un compte</button>`;
@@ -3592,75 +3747,143 @@ function openModal(id) { document.getElementById(id).classList.add('show'); }
 function closeModal(id) { document.getElementById(id).classList.remove('show'); }
 function switchModal(from, to) { closeModal(from); openModal(to); }
 
-function doLogin() {
+async function doLogin() {
   const email = document.getElementById('loginEmail').value.trim();
   const pass = document.getElementById('loginPass').value;
-  const users = getUsers();
-  const u = users.find(u => (u.email === email || u.name === email) && u.password === pass);
-  if (!u) { document.getElementById('loginErr').classList.add('show'); return; }
-  currentUser = u; // always use fresh copy from users list
-  saveData('tcf_session', u);
-  closeModal('loginModal');
-  renderNav();
-  renderPacks();
-  checkFrozen();
+  const errEl = document.getElementById('loginErr');
+  errEl.classList.remove('show');
+  if (!email || !pass) { errEl.textContent = 'الرجاء إدخال الإيميل وكلمة المرور.'; errEl.classList.add('show'); return; }
+  const btn = document.getElementById('loginBtn');
+  if (btn) { btn.disabled = true; btn.textContent = '...جارٍ الدخول'; }
+  try {
+    await window.fbLogin(email, pass);
+    // لا نضبط currentUser هنا يدوياً — onAuthStateChanged (handleAuthStateChange) سيتكفل بذلك تلقائياً
+    closeModal('loginModal');
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginPass').value = '';
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.classList.add('show');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Se connecter'; }
+  }
 }
 
-function doRegister() {
+async function doRegister() {
   const name = document.getElementById('regName').value.trim();
   const email = document.getElementById('regEmail').value.trim();
   const pass = document.getElementById('regPass').value;
   const errEl = document.getElementById('registerErr');
+  errEl.classList.remove('show');
   if (!name || !email || !pass) { errEl.textContent='Remplissez tous les champs.'; errEl.classList.add('show'); return; }
-  const users = getUsers();
-  if (users.find(u => u.email === email)) { errEl.textContent='Email déjà utilisé.'; errEl.classList.add('show'); return; }
-  const newUser = {
-    id: Date.now(), name, email, password: pass,
-    status: 'free',
-    expiryDate: new Date(Date.now() + 3*24*60*60*1000).toLocaleDateString('fr-FR'),
-    frozen: false,
-    receipt: null,
-    createdAt: new Date().toLocaleDateString('fr-FR')
-  };
-  users.push(newUser);
-  saveUsers(users);
-  currentUser = newUser;
-  saveData('tcf_session', newUser);
-  closeModal('registerModal');
+  if (pass.length < 6) { errEl.textContent='كلمة المرور يجب أن تكون 6 أحرف على الأقل.'; errEl.classList.add('show'); return; }
+  const btn = document.getElementById('registerBtn');
+  if (btn) { btn.disabled = true; btn.textContent = '...جارٍ الإنشاء'; }
+  try {
+    const authUser = await window.fbRegister(email, pass, name);
+    // إنشاء سجل الطالب في users/ مربوطاً بالـ uid الحقيقي من Firebase Auth (بدون password إطلاقاً)
+    const newUser = {
+      id: authUser.uid, name, email,
+      status: 'free',
+      expiryDate: new Date(Date.now() + 3*24*60*60*1000).toLocaleDateString('fr-FR'),
+      frozen: false,
+      receipt: null,
+      createdAt: new Date().toLocaleDateString('fr-FR')
+    };
+    const users = getUsers();
+    users.push(newUser);
+    saveUsers(users);
+    currentUser = newUser; // تحديث فوري (لا ننتظر onAuthStateChanged لتحسين سرعة الاستجابة)
+    closeModal('registerModal');
+    document.getElementById('regName').value = '';
+    document.getElementById('regEmail').value = '';
+    document.getElementById('regPass').value = '';
+    renderNav();
+    renderPacks();
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.classList.add('show');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Créer mon compte'; }
+  }
+}
+
+async function userLogout() {
+  await window.fbLogout();
+  // currentUser=null و renderNav() سيُنفَّذان تلقائياً عبر handleAuthStateChange
   renderNav();
   renderPacks();
 }
 
-function userLogout() {
-  currentUser = null;
-  saveData('tcf_session', null);
-  renderNav();
-  renderPacks();
+// حذف حساب ذاتي — يحذف حساب Firebase Authentication الحقيقي (وليس فقط سجل بياناته)
+// لأن الطالب يحذف حسابه هو نفسه، وهذا مسموح مباشرة من المتصفح بشرط إعادة تأكيد كلمة السر
+async function studentDeleteOwnAccount() {
+  if (!currentUser) { closeModal('deleteAccountModal'); return; }
+  const pass = document.getElementById('deleteAccountPass').value;
+  const errEl = document.getElementById('deleteAccountErr');
+  errEl.classList.remove('show');
+  if (!pass) { errEl.textContent = 'الرجاء إدخال كلمة المرور للتأكيد.'; errEl.classList.add('show'); return; }
+  if (!confirm('⚠️ تأكيد أخير: هل أنت متأكد من حذف حسابك نهائياً؟ لا يمكن التراجع عن هذا.')) return;
+  const btn = document.getElementById('deleteAccountBtn');
+  if (btn) { btn.disabled = true; btn.textContent = '...جارٍ الحذف'; }
+  try {
+    // 1) حذف سجل البيانات أولاً من users/ (الحالة، الوصل، تاريخ الاشتراك)
+    const users = getUsers().filter(u => u.id !== currentUser.id);
+    saveUsers(users);
+    // 2) حذف حساب Firebase Authentication نفسه (يتطلب إعادة مصادقة بكلمة السر الحالية)
+    await window.fbDeleteSelfAccount(pass);
+    // 3) currentUser=null سيُضبط تلقائياً عبر onAuthStateChanged بعد نجاح الحذف
+    closeModal('deleteAccountModal');
+    document.getElementById('deleteAccountPass').value = '';
+    alert('✅ تم حذف حسابك نهائياً. نتمنى لك التوفيق في مسيرتك!');
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.classList.add('show');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'حذف حسابي نهائياً'; }
+  }
 }
 
 // ──────────────────────────────────────────
 // ADMIN AUTH
 // ──────────────────────────────────────────
-function doAdminLogin() {
-  const user = document.getElementById('adminUser').value.trim();
+async function doAdminLogin() {
+  const email = document.getElementById('adminUser').value.trim();
   const pass = document.getElementById('adminPass').value.trim();
-  document.getElementById('adminErr').classList.remove('show');
-  if (user === ADMIN_USERNAME && pass === ADMIN_PASSWORD) {
+  const errEl = document.getElementById('adminErr');
+  errEl.classList.remove('show');
+  if (!email || !pass) { errEl.textContent = 'الرجاء إدخال الإيميل وكلمة المرور.'; errEl.classList.add('show'); return; }
+  const btn = document.getElementById('adminLoginBtn');
+  if (btn) { btn.disabled = true; btn.textContent = '...جارٍ التحقق'; }
+  try {
+    const authUser = await window.fbLogin(email, pass);
+    // التحقق الفعلي من admins/ في قاعدة البيانات — وليس افتراض النجاح لمجرد صحة الإيميل/كلمة السر
+    const isReallyAdmin = await window.fbLoad('admins/' + authUser.uid, false);
+    if (isReallyAdmin !== true) {
+      await window.fbLogout();
+      errEl.textContent = 'هذا الحساب ليس حساب أدمن.';
+      errEl.classList.add('show');
+      return;
+    }
+    // isAdmin/renderAdminPanel سيُضبطان تلقائياً عبر handleAuthStateChange، لكن نفتح اللوحة فوراً هنا لتحسين الاستجابة
     isAdmin = true;
-    saveData('tcf_admin', true);
     closeModal('adminModal');
+    document.getElementById('adminUser').value = '';
+    document.getElementById('adminPass').value = '';
     renderNav();
     renderAdminPanel();
     setTimeout(() => { document.getElementById('adminPanelSection').scrollIntoView({behavior:'smooth'}); }, 300);
-  } else {
-    document.getElementById('adminErr').classList.add('show');
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.classList.add('show');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Se connecter'; }
   }
 }
 
-function adminLogout() {
-  isAdmin = false;
-  saveData('tcf_admin', false);
-  renderNav();
+async function adminLogout() {
+  await window.fbLogout();
+  // isAdmin=false و renderNav() سيُنفَّذان تلقائياً عبر handleAuthStateChange
   const ap = document.getElementById('adminPanelSection');
   if (ap) ap.classList.add('hidden');
 }
@@ -3815,8 +4038,41 @@ function sendReceipt() {
 // ──────────────────────────────────────────
 // FROZEN CHECK
 // ──────────────────────────────────────────
+// تحليل تاريخ بصيغة fr-FR (يوم/شهر/سنة) — new Date() العادية تُفسّرها خطأً كـ شهر/يوم/سنة أمريكي
+function parseFrDate(str) {
+  if (!str) return null;
+  const parts = str.split('/');
+  if (parts.length !== 3) return null;
+  const [d, m, y] = parts.map(n => parseInt(n, 10));
+  if (!d || !m || !y) return null;
+  return new Date(y, m - 1, d);
+}
+
+// كانت expiryDate تُحسب وتُخزَّن لكل طالب VIP، لكن لم يكن أي كود يقارنها بالتاريخ الحالي —
+// أي اشتراك VIP لا ينتهي أبداً تلقائياً. هذه الدالة تُصلح ذلك: تُرجع الحساب إلى 'free' فعلياً
+// عند انتهاء الصلاحية، وتُستدعى عند كل تحميل صفحة وعند كل دخول.
+function enforceExpiry() {
+  if (!currentUser || currentUser.status !== 'vip' || !currentUser.expiryDate) return;
+  const expiry = parseFrDate(currentUser.expiryDate);
+  if (!expiry) return;
+  if (Date.now() > expiry.getTime()) {
+    const users = getUsers();
+    const idx = users.findIndex(u => u.id === currentUser.id);
+    if (idx !== -1) {
+      users[idx].status = 'free';
+      saveUsers(users);
+      currentUser = users[idx];
+      renderNav();
+      renderPacks();
+      alert('⏳ انتهت صلاحية اشتراكك VIP. تم إرجاع حسابك إلى الوضع المجاني (3 séries). جدّدي اشتراكك للمتابعة.');
+    }
+  }
+}
+
 function checkFrozen() {
-  if (currentUser && currentUser.frozen) {
+  if (!currentUser) return;
+  enforceExpiry(); // تحقق من الصلاحية قبل عرض أي حالة أخرى
+  if (currentUser.frozen) {
     document.getElementById('frozenOverlay').classList.add('show');
   }
 }
@@ -4023,8 +4279,9 @@ function renderAdminUsers() {
       <td>${accountState}</td>
       <td>
         <div style="display:flex;gap:.3rem;flex-wrap:wrap;">
-          <button class="admin-btn success small" onclick="adminActivateVIP(${u.id})">تفعيل VIP</button>
-          <button class="admin-btn ${u.frozen?'':'danger'} small" onclick="adminToggleFreeze(${u.id})">${u.frozen?'فك تجميد':'تجميد الحساب'}</button>
+          <button class="admin-btn success small" onclick="adminActivateVIP('${u.id}')">تفعيل VIP</button>
+          <button class="admin-btn ${u.frozen?'':'danger'} small" onclick="adminToggleFreeze('${u.id}')">${u.frozen?'فك تجميد':'تجميد الحساب'}</button>
+          <button class="admin-btn danger small" onclick="adminDeleteUser('${u.id}','${(u.name||'').replace(/'/g,"\\'")}')">🗑️ حذف الحساب</button>
         </div>
       </td>
     </tr>`;
@@ -4042,10 +4299,9 @@ function adminActivateVIP(userId) {
   users[idx].status = 'vip';
   users[idx].expiryDate = expiry.toLocaleDateString('fr-FR');
   saveUsers(users);
-  // Update session if current user — always use the saved object
+  // Update local view if the affected account is the one currently logged in
   if (currentUser && currentUser.id === userId) {
     currentUser = users[idx];
-    saveData('tcf_session', users[idx]);
   }
   renderAdminUsers();
   renderNav();
@@ -4060,10 +4316,25 @@ function adminToggleFreeze(userId) {
   saveUsers(users);
   if (currentUser && currentUser.id === userId) {
     currentUser = users[idx];
-    saveData('tcf_session', currentUser);
     checkFrozen();
   }
   renderAdminUsers();
+}
+
+// حذف حساب طالب (من طرف الأدمن) — يحذف سجل بياناته بالكامل من users/
+// ملاحظة تقنية مهمة: هذا يحذف بيانات الطالب (الاسم، الإيميل، الحالة، الوصل...) ويقطع وصوله فوراً،
+// لكنه لا يحذف حساب Firebase Authentication نفسه (يبقى بإمكانه إنشاء حساب جديد بنفس الإيميل لاحقاً
+// إن أراد، بما أن حساب Auth القديم صار "يتيماً" بلا سجل بيانات). حذف حساب Auth نفسه يتطلب صلاحيات
+// خادم (Admin SDK) لا يمكن تشغيلها بأمان من كود المتصفح — راجع الشرح المرفق بعد هذا الكود.
+function adminDeleteUser(userId, userName) {
+  if (!confirm(`⚠️ هل أنت متأكدة من حذف حساب "${userName}" نهائياً؟\n\nسيفقد الطالب الوصول فوراً ولن تتمكني من استرجاع بياناته إلا من نسخة احتياطية (Export Backup).`)) return;
+  const users = getUsers().filter(u => u.id !== userId);
+  saveUsers(users);
+  if (currentUser && currentUser.id === userId) {
+    currentUser = null; // الأدمن حذف حسابه الخاص بالخطأ أو حالة نادرة أخرى
+  }
+  renderAdminUsers();
+  alert('✅ تم حذف الحساب من قاعدة البيانات.');
 }
 
 function renderAdminStories() {
