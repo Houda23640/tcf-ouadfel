@@ -3874,8 +3874,24 @@ function handleAuthStateChange(authUser) {
     // فإن التحديث يصلها في نفس الثانية عبر المسار المسموح لها قراءته، بدل الاعتماد وحده
     // على مراقبة tcf/users الكاملة التي قد ترفضها قواعد الأمان لغير الأدمن.
     if (window.fbWatch) {
-      window.fbWatch('tcf/users/' + authUser.uid, (u) => {
-        if (!u || !currentUser) return;
+      window.fbWatch('tcf/users/' + authUser.uid, async (u) => {
+        // ⚠️ إصلاح: عندما تحذف الأدمن حساب الطالب، يُمحى المسار tcf/users/{uid} بالكامل
+        // فتصل هذه القراءة بـ u = null. كنا سابقاً نتجاهل هذه الحالة (return فوراً)،
+        // فيبقى الطالب "مسجّل دخول" على جهازه (حاسوب أو هاتف) وكأن شيئاً لم يحدث،
+        // رغم أن حسابه محذوف فعلياً من قاعدة البيانات. الحل: إن وصلت null وكان
+        // هناك مستخدم حالي مطابق لهذا الـ uid، نعتبر هذا حذفاً فورياً للحساب من
+        // طرف الأدمن، ونسجّل خروجه تلقائياً من كل أجهزته فوراً بدون انتظار تحديث الصفحة.
+        if (!u) {
+          if (currentUser && currentUser.id === authUser.uid) {
+            alert('⚠️ تم حذف حسابك من طرف الإدارة. سيتم تسجيل خروجك الآن.');
+            currentUser = null;
+            await window.fbLogout();
+            renderNav();
+            renderPacks();
+          }
+          return;
+        }
+        if (!currentUser) return;
         const changed = JSON.stringify(u) !== JSON.stringify(currentUser);
         currentUser = u;
         try {
@@ -4579,17 +4595,30 @@ async function adminActivateVIP(userId) {
   }
 }
 
-function adminToggleFreeze(userId) {
+async function adminToggleFreeze(userId) {
   const users = getUsers();
   const idx = users.findIndex(u => u.id === userId);
   if (idx === -1) return;
   users[idx].frozen = !users[idx].frozen;
-  saveUsers(users);
+  try { localStorage.setItem('tcf_users', JSON.stringify(users)); } catch(e){}
+  // نفس إصلاح adminDeleteUser/adminActivateVIP: ننتظر تأكيد الحفظ الفعلي في Firebase
+  // بدل الاعتماد على saveUsers بصيغتها القديمة (fire-and-forget) حتى نعرف بثقة أن
+  // التجميد/فك التجميد وصل فعلاً للطالب على كل أجهزته.
+  let ok = true;
+  if (window.firebaseReady && window.fbSave && isAdmin) {
+    try { await queuedUsersSave(usersForStorage(users)); }
+    catch(e) { ok = false; console.error('adminToggleFreeze save failed:', e); }
+  } else {
+    ok = false;
+  }
   if (currentUser && currentUser.id === userId) {
     currentUser = users[idx];
     checkFrozen();
   }
   renderAdminUsers();
+  if (!ok) {
+    alert('❌ فشل حفظ هذا التغيير على الخادم (Firebase)! التجميد/فك التجميد ظهر عندك محلياً فقط ولن يصل للطالب. تحقق من اتصال الإنترنت أو من قواعد Firebase وأعيدي المحاولة.');
+  }
 }
 
 // حذف حساب طالب (من طرف الأدمن) — يحذف سجل بياناته بالكامل من users/
@@ -4597,15 +4626,31 @@ function adminToggleFreeze(userId) {
 // لكنه لا يحذف حساب Firebase Authentication نفسه (يبقى بإمكانه إنشاء حساب جديد بنفس الإيميل لاحقاً
 // إن أراد، بما أن حساب Auth القديم صار "يتيماً" بلا سجل بيانات). حذف حساب Auth نفسه يتطلب صلاحيات
 // خادم (Admin SDK) لا يمكن تشغيلها بأمان من كود المتصفح — راجع الشرح المرفق بعد هذا الكود.
-function adminDeleteUser(userId, userName) {
+async function adminDeleteUser(userId, userName) {
   if (!confirm(`⚠️ هل أنت متأكدة من حذف حساب "${userName}" نهائياً؟\n\nسيفقد الطالب الوصول فوراً ولن تتمكني من استرجاع بياناته إلا من نسخة احتياطية (Export Backup).`)) return;
   const users = getUsers().filter(u => u.id !== userId);
-  saveUsers(users);
+  try { localStorage.setItem('tcf_users', JSON.stringify(users)); } catch(e){}
+  // ⚠️ إصلاح: كانت هذه الدالة تستدعي saveUsers(users) التي ترسل الحذف لـ Firebase
+  // بدون انتظار (fire-and-forget) ثم تعرض "✅ تم الحذف" فوراً حتى لو فشل الحفظ
+  // الفعلي على الخادم — على عكس adminActivateVIP التي تنتظر التأكيد. الحل: ننتظر
+  // (await) نتيجة الحفظ الحقيقية قبل إخبار الأدمن بالنجاح أو الفشل، تماماً كما في
+  // تفعيل VIP، حتى تكون الرسالة صادقة دائماً.
+  let ok = true;
+  if (window.firebaseReady && window.fbSave && isAdmin) {
+    try { await queuedUsersSave(usersForStorage(users)); }
+    catch(e) { ok = false; console.error('adminDeleteUser save failed:', e); }
+  } else {
+    ok = false;
+  }
   if (currentUser && currentUser.id === userId) {
     currentUser = null; // الأدمن حذف حسابه الخاص بالخطأ أو حالة نادرة أخرى
   }
   renderAdminUsers();
-  alert('✅ تم حذف الحساب من قاعدة البيانات.');
+  if (ok) {
+    alert('✅ تم حذف الحساب نهائياً وتأكّد الحذف على الخادم (Firebase). سيفقد الطالب الوصول فوراً على كل أجهزته، حتى بدون إعادة تحميل الصفحة.');
+  } else {
+    alert('❌ فشل حذف الحساب على الخادم (Firebase)! الحذف ظهر عندك محلياً فقط، لكن الحساب قد يعود للظهور عند إعادة التحميل أو على أجهزة أخرى. تحقق من اتصال الإنترنت أو من قواعد Firebase وأعيدي المحاولة.');
+  }
 }
 
 function renderAdminStories() {
