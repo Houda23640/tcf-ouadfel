@@ -3574,11 +3574,23 @@ const QB_KEYS = { co:'tcf_qbank_co', ce:'tcf_qbank_ce', sl:'tcf_qbank_sl', ee:'t
 function saveData(key, val) {
   try { localStorage.setItem(key, JSON.stringify(val)); } catch(e){}
   if (window.firebaseReady && window.fbSave) {
-    window.fbSave(fbKey(key), val).catch(()=>{});
+    window.fbSave(fbKey(key), val).catch((e)=>{
+      console.error('saveData fbSave failed for', key, e);
+      alert('⚠️ فشل حفظ التغيير على الخادم (Firebase)!\nالبيانات ستظهر فقط على هذا الجهاز ولن تصل للطلاب أو الأجهزة الأخرى.\n\nالسبب المحتمل: الصورة كبيرة جداً. جرّبي صورة أصغر (أقل من 500 كيلوبايت).\n\nتفصيل الخطأ: ' + (e && e.message ? e.message : e));
+    });
   }
 }
 
 // قراءة: من localStorage أولاً (سريع) ثم نزامن مع Firebase
+// خريطة المفاتيح المشتركة (packs/stories/founder_photo) إلى دالة إعادة الرسم الخاصة بها.
+// بدون هذا، كان loadData يحدّث الكاش المحلي بصمت في الخلفية دون إعادة رسم الواجهة،
+// فيبقى الجهاز يعرض القيمة القديمة (مثلاً Gold 5000 فقط) حتى لو وصلت بيانات أحدث من
+// Firebase فعلياً، لأن التحديث لم يكن يُترجم أبداً إلى renderPacks() جديدة.
+const LOAD_DATA_RERENDER = {
+  tcf_packs: () => { if (typeof renderPacks === 'function') renderPacks(); },
+  tcf_stories: () => { if (typeof renderStoriesBar === 'function') renderStoriesBar(); },
+  tcf_founder_photo: () => { if (typeof renderFounderPhoto === 'function') renderFounderPhoto(); },
+};
 function loadData(key, def) {
   try {
     const d = localStorage.getItem(key);
@@ -3587,7 +3599,11 @@ function loadData(key, def) {
     if (window.firebaseReady && window.fbLoad) {
       window.fbLoad(fbKey(key), def).then(fbVal => {
         if (fbVal !== def) {
+          const changed = JSON.stringify(fbVal) !== JSON.stringify(local);
           try { localStorage.setItem(key, JSON.stringify(fbVal)); } catch(e){}
+          // إن كانت القيمة الحقيقية من Firebase مختلفة عن الكاش المحلي القديم،
+          // أعد رسم الواجهة المرتبطة بهذا المفتاح فوراً بدل الانتظار لإعادة تحميل يدوية.
+          if (changed && LOAD_DATA_RERENDER[key]) LOAD_DATA_RERENDER[key]();
         }
       }).catch(()=>{});
     }
@@ -3708,12 +3724,16 @@ function getUsers() {
 //    ونكتب فقط على tcf/users/{uid_الخاصة_بها}، بدل محاولة الكتابة على القائمة كاملة (سيُرفض حتماً).
 function saveUsers(u) {
   try { localStorage.setItem('tcf_users', JSON.stringify(u)); } catch(e){}
-  if (!(window.firebaseReady && window.fbSave)) return;
+  if (!(window.firebaseReady && window.fbSave)) {
+    alert('⚠️ Firebase غير جاهز حالياً. لن يتم حفظ هذا التغيير على الخادم — أعيدي المحاولة بعد لحظات أو تحققي من الاتصال بالإنترنت.');
+    return;
+  }
 
   if (isAdmin) {
     // الأدمن مخوَّل بقاعدة الأمان للكتابة على tcf/users كاملة
-    window.fbSave(fbKey('tcf_users'), u).catch(()=>{
-      alert('⚠️ فشل حفظ التغيير على الخادم (Firebase). تحقق من اتصال الإنترنت.');
+    window.fbSave(fbKey('tcf_users'), u).catch((e)=>{
+      console.error('saveUsers (admin) fbSave failed:', e);
+      alert('❌ فشل حفظ التغيير على الخادم (Firebase)!\nالتفعيل/التعديل ظهر عندك محلياً فقط ولن يصل للطالبة أبداً حتى تُصلَح المشكلة.\n\nتفصيل الخطأ: ' + (e && e.message ? e.message : e) + '\n\nالسبب الأكثر شيوعاً: قواعد أمان Firebase (Rules) لا تسمح لحسابك بالكتابة على tcf/users، أو مشكلة اتصال بالإنترنت.');
     });
     return;
   }
@@ -3727,8 +3747,9 @@ function saveUsers(u) {
     window.fbDelete('tcf/users/' + currentUser.id).catch(()=>{});
     return;
   }
-  window.fbSave('tcf/users/' + currentUser.id, ownRecord).catch(()=>{
-    alert('⚠️ فشل حفظ التغيير على الخادم (Firebase). تحقق من اتصال الإنترنت.');
+  window.fbSave('tcf/users/' + currentUser.id, ownRecord).catch((e)=>{
+    console.error('saveUsers (student) fbSave failed:', e);
+    alert('⚠️ فشل حفظ التغيير على الخادم (Firebase). تحقق من اتصال الإنترنت.\n\nتفصيل الخطأ: ' + (e && e.message ? e.message : e));
   });
 }
 
@@ -4236,17 +4257,46 @@ function renderFounderPhoto() {
   }
 }
 
-function uploadFounderPhoto(input) {
+// ضغط الصورة قبل الحفظ: صور الهاتف (خاصة الحديثة) قد تتجاوز 3-8 ميجابايت كـ Base64،
+// وهذا يجعل الحفظ في Firebase يفشل بصمت (أو يكون بطيئاً جداً) فتبقى الصورة محلية على
+// الهاتف فقط ولا تصل لأي جهاز آخر. نُصغّر الصورة إلى حد أقصى 600px ونحوّلها JPEG بجودة 0.75
+// لتصبح عادة أقل من 150 كيلوبايت، وهو حجم آمن ومضمون الحفظ.
+function compressImageFile(file, maxDim, quality) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > height && width > maxDim) { height = Math.round(height * maxDim / width); width = maxDim; }
+        else if (height > maxDim) { width = Math.round(width * maxDim / height); height = maxDim; }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadFounderPhoto(input) {
   const file = input.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    saveData('tcf_founder_photo', e.target.result);
+  try {
+    const compressed = await compressImageFile(file, 600, 0.75);
+    saveData('tcf_founder_photo', compressed);
     renderFounderPhoto();
     const prev = document.getElementById('adminPhotoPreview');
-    if (prev) { prev.src = e.target.result; prev.classList.remove('hidden'); }
-  };
-  reader.readAsDataURL(file);
+    if (prev) { prev.src = compressed; prev.classList.remove('hidden'); }
+  } catch(e) {
+    alert('❌ تعذّر معالجة الصورة. جرّبي صورة أخرى.');
+  } finally {
+    input.value = '';
+  }
 }
 
 // ──────────────────────────────────────────
@@ -4352,7 +4402,7 @@ function renderAdminUsers() {
   }).join('');
 }
 
-function adminActivateVIP(userId) {
+async function adminActivateVIP(userId) {
   const months = prompt('مدد التفعيل بالشهور (مثال: 1 أو 2):', '1');
   if (!months) return;
   const m = parseInt(months) || 1;
@@ -4362,14 +4412,28 @@ function adminActivateVIP(userId) {
   const expiry = new Date(Date.now() + m * 30 * 24 * 60 * 60 * 1000);
   users[idx].status = 'vip';
   users[idx].expiryDate = expiry.toLocaleDateString('fr-FR');
-  saveUsers(users);
+  // ننتظر تأكيد الحفظ الفعلي في Firebase قبل إخبار الأدمن بالنجاح، بدل افتراض
+  // النجاح فوراً من الحفظ المحلي (localStorage) الذي لا يعني أبداً أن الطالبة
+  // ستستقبل التحديث. إن فشل الحفظ في Firebase، saveUsers نفسها ستُظهر رسالة الخطأ.
+  let ok = true;
+  if (window.firebaseReady && window.fbSave && isAdmin) {
+    try { await window.fbSave(fbKey('tcf_users'), users); }
+    catch(e) { ok = false; console.error('adminActivateVIP save failed:', e); }
+    try { localStorage.setItem('tcf_users', JSON.stringify(users)); } catch(e){}
+  } else {
+    saveUsers(users);
+  }
   // Update local view if the affected account is the one currently logged in
   if (currentUser && currentUser.id === userId) {
     currentUser = users[idx];
   }
   renderAdminUsers();
   renderNav();
-  alert('✅ تم تفعيل VIP للطالب بنجاح!');
+  if (ok) {
+    alert('✅ تم تفعيل VIP للطالب بنجاح، وتأكّد الحفظ على الخادم (Firebase). ستراه الطالبة فوراً حتى بدون إعادة تحميل الصفحة.');
+  } else {
+    alert('❌ فشل تفعيل VIP! التغيير ظهر عندك محلياً فقط ولم يصل للخادم (Firebase). الطالبة لن ترى أي تفعيل.\nراجعي قواعد الأمان (Rules) في Firebase Console أو اتصالك بالإنترنت، ثم أعيدي المحاولة.');
+  }
 }
 
 function adminToggleFreeze(userId) {
