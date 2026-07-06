@@ -53,7 +53,24 @@
     try {
       const snap = await get(ref(db, key));
       return snap.exists() ? snap.val() : def;
-    } catch(e) { return def; }
+    } catch(e) {
+      // ⚠️ إصلاح: كانت هذه الدالة تُخفي أي خطأ (قواعد أمان Firebase أو انقطاع اتصال) بصمت
+      // تام وتُرجع القيمة الافتراضية كأن المسار "غير موجود" ببساطة، فيختلط الفرق بين
+      // "لا توجد بيانات هنا" و"فشلت القراءة فعلاً" عند كل من يستدعيها. الآن نسجّل الخطأ
+      // الحقيقي في الـ Console (F12) دون تغيير سلوك الإرجاع، حتى يمكن تتبعه لاحقاً.
+      console.error('⚠️ fbLoad: فشلت قراءة المسار "' + key + '" — الأرجح قواعد أمان Firebase (Rules) أو انقطاع اتصال. تفصيل الخطأ:', e);
+      return def;
+    }
+  };
+
+  // نسخة "صارمة" من fbLoad: ترمي الخطأ الحقيقي للمستدعي بدل إخفائه بالقيمة الافتراضية.
+  // نستخدمها في المسارات الحرجة فقط (كجلب حالة VIP الخاصة بطالبة عند تسجيل الدخول)، حيث
+  // يجب التفريق بوضوح بين "لا يوجد سجل بعد لهذه الطالبة" (حساب جديد فعلاً) و"تعذّر الوصول
+  // للخادم" (خطأ صلاحيات/شبكة) — الخلط بين الحالتين هو ما كان يجعل طالبة مُفعَّلة VIP فعلياً
+  // على الخادم تظهر أمامها كحساب مجاني جديد بصمت تام، دون أي تفسير لها أو للإدارة.
+  window.fbLoadStrict = async function(key) {
+    const snap = await get(ref(db, key));
+    return snap.exists() ? snap.val() : null;
   };
 
   // مراقبة البيانات في الوقت الحقيقي
@@ -3838,7 +3855,21 @@ function handleAuthStateChange(authUser) {
     // (tcf/users/{uid})، وليس من القائمة الكاملة المخزّنة محلياً. هذا يضمن أن حالة VIP/التجميد
     // التي فعّلتها الأدمن تصل فوراً حتى لو كان هذا أول دخول للطالبة من هذا الجهاز بالذات.
     let fresh = null;
-    try { fresh = await window.fbLoad('tcf/users/' + authUser.uid, null); } catch(e){}
+    let fetchFailed = false;
+    try {
+      fresh = await window.fbLoadStrict('tcf/users/' + authUser.uid);
+    } catch(e) {
+      // ⚠️⚠️ إصلاح جوهري — هذا هو سبب المشكلة المتبقية بعد كل الإصلاحات السابقة:
+      // "الأدمن تُفعِّل VIP وتراه ناجحاً، لكن الطالبة نفسها تبقى تراه مقفولاً بدون أي تفسير".
+      // كنا هنا نبتلع أي خطأ (fbLoad القديمة تُرجع القيمة الافتراضية بصمت عند أي فشل)، فيسقط
+      // الكود مباشرة إلى فرع "لا يوجد سجل" ويُنشئ حساباً 'free' جديداً أو يعتمد على كاش محلي
+      // قديم — دون أن تعرف الطالبة أو الأدمن أن السبب الحقيقي هو فشل القراءة نفسها (خطأ
+      // صلاحيات Firebase Rules غالباً، أو انقطاع اتصال) وليس أن التفعيل لم يصل. الحل: نميّز
+      // الآن بوضوح بين "لا يوجد سجل بعد" (حساب جديد فعلاً) و"تعذّر الوصول للخادم"، ونُظهر
+      // تنبيهاً صريحاً في الحالة الثانية بدل الصمت التام.
+      fetchFailed = true;
+      console.error('⚠️ تعذّر جلب سجل الطالبة (tcf/users/' + authUser.uid + '). الأرجح قواعد أمان Firebase (Rules) تمنع القراءة، أو انقطع الاتصال:', e);
+    }
     if (fresh) {
       currentUser = fresh;
       // حدّث الكاش المحلي أيضاً (يُستخدم من renderAdminUsers إن كانت هذه الطالبة تُعرض هناك لاحقاً)
@@ -3848,20 +3879,21 @@ function handleAuthStateChange(authUser) {
         if (idx !== -1) users[idx] = fresh; else users.push(fresh);
         localStorage.setItem('tcf_users', JSON.stringify(users));
       } catch(e){}
-    } else {
-      // احتياط: جرّب القائمة المخزّنة محلياً (حالة عدم اتصال بالإنترنت مثلاً)
+    } else if (fetchFailed) {
+      // القراءة فشلت فعلاً (ليس "لا يوجد سجل"). نستخدم الكاش المحلي كحل مؤقت فقط، ونُخبر
+      // الطالبة بصراحة أن ما تراه قد لا يعكس حالتها الحقيقية، بدل أن يبدو الأمر كأن حسابها
+      // "لم يُفعَّل أبداً" بينما هو مفعَّل فعلاً على الخادم.
       const users = getUsers();
       const found = users.find(u => u.id === authUser.uid);
-      if (found) {
-        currentUser = found;
-      } else {
-        // نادراً ما يحدث (سباق توقيت بين إنشاء Auth وكتابة users/) — سجل مبدئي آمن
-        currentUser = {
-          id: authUser.uid, name: authUser.email.split('@')[0], email: authUser.email,
-          status: 'free', expiryDate: new Date(Date.now()+3*24*60*60*1000).toLocaleDateString('fr-FR'),
-          frozen: false, receipt: null, createdAt: new Date().toLocaleDateString('fr-FR')
-        };
-      }
+      currentUser = found || null;
+      alert('⚠️ تعذّر الاتصال بالخادم لتحديث حالة حسابك الآن (مشكلة في الشبكة أو في صلاحيات الوصول).\n\nالحالة المعروضة قد تكون قديمة أو غير دقيقة. تحقق من اتصالك بالإنترنت وأعد تحميل الصفحة. إن استمرت المشكلة، أرسلي للإدارة رسالة الخطأ الظاهرة في الـ Console (F12) والتي تذكر "tcf/users".');
+    } else {
+      // نادراً ما يحدث (سباق توقيت بين إنشاء Auth وكتابة users/) — سجل مبدئي آمن
+      currentUser = {
+        id: authUser.uid, name: authUser.email.split('@')[0], email: authUser.email,
+        status: 'free', expiryDate: new Date(Date.now()+3*24*60*60*1000).toLocaleDateString('fr-FR'),
+        frozen: false, receipt: null, createdAt: new Date().toLocaleDateString('fr-FR')
+      };
     }
     renderNav();
     renderPacks();
@@ -3918,6 +3950,52 @@ function handleAuthStateChange(authUser) {
   }).catch(()=>{});
 }
 
+// ──────────────────────────────────────────
+// 🔄 تشخيص فوري للطالبة: تحديث حالة اشتراكها مباشرة من Firebase (بدون أي كاش محلي)
+// ──────────────────────────────────────────
+// الهدف: عند شكوى "الإدارة فعّلت VIP لكن السلاسل تبقى مقفولة عندي"، تضغط الطالبة هذا
+// الزر لمعرفة الحالة الحقيقية على الخادم في هذه اللحظة بالضبط، دون الحاجة لفتح Console
+// (F12) أو انتظار مساعدة تقنية. هذا يُفرّق فوراً بين 3 احتمالات:
+//  1) الخادم يقول VIP فعلاً → الزر سيفك القفل مباشرة أمامها (كانت المشكلة عرض/كاش فقط).
+//  2) الخادم يقول free رغم أن الإدارة "فعّلت" → التفعيل لم يصل لهذا الحساب بالذات
+//     (غالباً إيميل مختلف عن الذي فعّلته الإدارة، أو حساب مكرر).
+//  3) رسالة خطأ حمراء → على الأغلب قواعد أمان Firebase (Rules) تمنع القراءة، أو مشكلة
+//     اتصال. يجب إرسال نص الرسالة كما هو للدعم الفني لتحديد السبب بدقة.
+async function refreshMyStatus() {
+  if (!currentUser) return;
+  const myId = currentUser.id;
+  const btn = document.getElementById('refreshStatusBtn');
+  if (btn) { btn.disabled = true; btn.textContent = '...'; }
+  try {
+    const fresh = await window.fbLoadStrict('tcf/users/' + myId);
+    if (!fresh) {
+      alert('⚠️ لا يوجد أي سجل لحسابك على الخادم بهذا المعرّف:\n' + myId + '\n\nمعناه أن أي تفعيل قامت به الإدارة لن يصل لهذا الحساب لأنه غير موجود على الخادم أصلاً. أرسلي هذه الرسالة للإدارة مع بريدك الإلكتروني بالضبط.');
+      return;
+    }
+    currentUser = fresh;
+    try {
+      const users = getUsers();
+      const idx = users.findIndex(u => u.id === myId);
+      if (idx !== -1) users[idx] = fresh; else users.push(fresh);
+      localStorage.setItem('tcf_users', JSON.stringify(users));
+    } catch(e){}
+    renderNav();
+    renderPacks();
+    checkFrozen();
+    if (document.getElementById('oral-series-btns')) renderCO_section();
+    if (document.getElementById('eo-series-btns')) renderEO_section();
+    if (document.getElementById('sl-series-btns')) renderSL_section();
+    if (document.getElementById('ee-series-btns')) renderEE_section();
+    if (document.getElementById('ce-tab-canada') || document.getElementById('ce-tab-sodap')) renderCE_section();
+    alert('✅ تم الجلب مباشرة من الخادم (Firebase) الآن.\n\nالحالة الحقيقية: ' + (fresh.status === 'vip' ? ('VIP ✓ (تنتهي في ' + (fresh.expiryDate || '-') + ')') : 'مجاني (free)') + (fresh.frozen ? '\n⚠️ ملاحظة: الحساب مجمّد حالياً.' : '') + '\n\nإن كانت السلاسل لا تزال تظهر مقفولة رغم أن الحالة هنا VIP، أغلقي المتصفح تماماً وأعيدي فتحه (وليس فقط تحديث الصفحة) — على الأغلب جهازك يعرض نسخة قديمة محفوظة من التطبيق.');
+  } catch(e) {
+    console.error('refreshMyStatus failed:', e);
+    alert('❌ تعذّر الاتصال بالخادم لجلب حالتك.\n\nرسالة الخطأ بالضبط:\n' + (e && e.message ? e.message : e) + '\n\nالسبب الأكثر شيوعاً: قواعد أمان Firebase (Rules) لا تسمح بقراءة هذا المسار، أو انقطاع في الإنترنت. صوّري هذه الرسالة بالضبط وأرسليها للدعم الفني.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '🔄'; }
+  }
+}
+
 function renderNav() {
   const nr = document.getElementById('navRight');
   if (!nr) return;
@@ -3939,6 +4017,7 @@ function renderNav() {
   } else if (currentUser) {
     const vipBadge = currentUser.status === 'vip' ? '<span class="vip-badge">VIP</span>' : '';
     html += `<span class="user-chip">${currentUser.name.split(' ')[0]} ${vipBadge}</span>`;
+    html += `<button class="btn-logout" id="refreshStatusBtn" style="opacity:.85;" onclick="refreshMyStatus()" title="تحديث حالة اشتراكك مباشرة من الخادم (Firebase) الآن">🔄</button>`;
     html += `<button class="btn-logout" onclick="userLogout()">Déconnexion</button>`;
     html += `<button class="btn-logout" style="opacity:.65;font-size:.7rem;" onclick="openModal('deleteAccountModal')" title="حذف حسابك نهائياً">حذف الحساب</button>`;
   } else {
