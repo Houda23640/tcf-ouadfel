@@ -1167,6 +1167,7 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
         <button class="admin-btn" onclick="qbShowTab('sl')" id="qbTab-sl">🔤 Structures de Langue</button>
         <button class="admin-btn" onclick="qbShowTab('ee')" id="qbTab-ee">✍️ Expression Écrite</button>
         <button class="admin-btn" onclick="qbShowTab('eo')" id="qbTab-eo">🎤 Expression Orale</button>
+        <button class="admin-btn" onclick="qbShowTab('final')" id="qbTab-final">🎯 الامتحان النهائي</button>
       </div>
 
       <!-- ─── CO: Compréhension Orale ─── -->
@@ -1479,6 +1480,49 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
         </div>
         <div style="font-weight:700;font-size:.85rem;color:var(--text-muted);margin-bottom:.5rem;">التâches المضافة — TCF Canada 🍁 (<span id="eo-count">0</span>)</div>
         <div id="eo-qlist" style="max-height:320px;overflow-y:auto;"></div>
+      </div>
+
+      <!-- ─── الامتحان النهائي: نشر سيري كاملة (CO+CE[+SL]) دفعة واحدة ─── -->
+      <div id="qbPanel-final" class="qb-form-panel" style="display:none;">
+        <div style="background:rgba(0,198,255,.1);border:1px solid var(--accent);border-radius:8px;padding:.85rem 1rem;font-size:.8rem;color:var(--accent);line-height:1.8;margin-bottom:1.1rem;">
+          ℹ️ الامتحان النهائي اللي يشوفه الطالب (الصوت + السؤال + التصحيح + النتيجة) يُبنى **مباشرة** من نفس أسئلة السيري المُختار في تبويبات CO / CE / SL أعلاه — ماشي بنك منفصل. هذه الصفحة غير واجهة سريعة تخليك تضيفي الأجزاء الثلاثة لنفس السيري في ضربة وحدة، بدل التنقل بين 3 تبويبات.
+        </div>
+        <div class="qb-bulk-box">
+          <div style="font-size:.82rem;color:var(--accent);font-weight:700;margin-bottom:.5rem;">✨ نشر سيري كاملة للامتحان النهائي دفعة واحدة</div>
+          <p style="font-size:.76rem;color:var(--text-muted);line-height:1.7;margin:0 0 .6rem;">
+            حددي رقم السيري ونوع الامتحان مرة وحدة، والصقي أجزاء Compréhension Orale و Compréhension Écrite و (إذا كان SO/DAP) Structures de Langue — بنفس صيغة اللصق المستعملة في كل تبويب. أي جزء تسيبيه فارغاً ما يتبدلش.
+          </p>
+          <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-bottom:.9rem;">
+            <input type="number" id="final-seriesNum" class="admin-input" style="width:110px;margin-bottom:0;" min="1" max="40" value="1" placeholder="رقم السيري" title="رقم السيري المشترك لكل الأجزاء الثلاثة">
+            <select id="final-exam" class="admin-input" style="width:auto;flex:1;min-width:160px;margin-bottom:0;" onchange="qbFinalOnExamTypeChange()">
+              <option value="canada">TCF Canada 🍁 (CO + CE فقط)</option>
+              <option value="sodap">TCF SO/DAP 🇫🇷 (CO + CE + SL)</option>
+              <option value="both">كلاهما</option>
+            </select>
+          </div>
+
+          <div style="font-weight:700;font-size:.78rem;color:var(--text);margin:.8rem 0 .4rem;">🎧 الجزء 1 — Compréhension Orale</div>
+          <textarea id="final-co-bulk-textarea" class="admin-input" rows="6" placeholder="Question 1&#10;Niveau : B1&#10;&#10;Script (Message) : « ... »&#10;&#10;السؤال هنا ؟&#10;&#10;A) ...&#10;B) ...&#10;C) ...&#10;D) ...&#10;&#10;Réponse correcte : B"></textarea>
+          <button class="admin-btn" onclick="qbFinalPreview('co')">🔍 معاينة CO</button>
+          <div id="final-co-bulk-preview"></div>
+
+          <div style="font-weight:700;font-size:.78rem;color:var(--text);margin:1rem 0 .4rem;">📖 الجزء 2 — Compréhension Écrite</div>
+          <textarea id="final-ce-bulk-textarea" class="admin-input" rows="6" placeholder="Question 1&#10;Niveau : B1&#10;Titre : ...&#10;&#10;Texte : ...&#10;&#10;Question : ...&#10;&#10;A) ...&#10;B) ...&#10;C) ...&#10;D) ...&#10;&#10;Réponse correcte : B"></textarea>
+          <button class="admin-btn" onclick="qbFinalPreview('ce')">🔍 معاينة CE</button>
+          <div id="final-ce-bulk-preview"></div>
+
+          <div id="final-sl-block">
+            <div style="font-weight:700;font-size:.78rem;color:var(--text);margin:1rem 0 .4rem;">🔤 الجزء 3 — Structures de Langue <span style="color:var(--text-muted);font-weight:400;">(SO/DAP فقط)</span></div>
+            <textarea id="final-sl-bulk-textarea" class="admin-input" rows="6" placeholder="Question 1&#10;Niveau : B2&#10;Type : ...&#10;Phrase : ... ___ ...&#10;&#10;A) ...&#10;B) ...&#10;C) ...&#10;D) ...&#10;&#10;Réponse correcte : A"></textarea>
+            <button class="admin-btn" onclick="qbFinalPreview('sl')">🔍 معاينة SL</button>
+            <div id="final-sl-bulk-preview"></div>
+          </div>
+
+          <button class="admin-btn success" style="margin-top:1.1rem;" onclick="qbFinalPublish()">🚀 نشر السيري كاملة</button>
+        </div>
+
+        <div style="font-weight:700;font-size:.85rem;color:var(--text-muted);margin:1.3rem 0 .6rem;">📊 محتوى إضافي مضاف لكل سيري (فوق المحتوى الأساسي الموجود دائماً)</div>
+        <div id="final-table"></div>
       </div>
 
       <!-- Clear / Export / Import -->
@@ -3284,139 +3328,6 @@ const EO_DATA = [
   ]},
 ];
 
-// Final Exam Banks (unique questions, different from training)
-// Final CO banks
-const CO_FINAL_SODAP = buildSeriesFromBank(CO_SODAP_BANK, 1, 40, DIST_40_CO)[0].questions;
-
-// ═══════════════════════════════════════════════════════════
-// CE FINAL CANADA – 40 QUESTIONS UNIQUES (5A1+15A2+10B1+7B2+3C1)
-// ═══════════════════════════════════════════════════════════
-const CE_FINAL_CANADA = [
-// ── A1 (5 questions) ──────────────────────────────────────
-{level:'A1',title:"Affiche de laverie",text:"Laverie automatique ouverte 7j/7 de 7h à 22h. Machine à laver : 4,50 $ le cycle. Séchoir : 2,00 $ les 30 minutes. Monnaie disponible à l'accueil.",q:"Quel est le prix d'un cycle de lavage ?",opts:["2,00 $","3,50 $","4,50 $","6,50 $"],a:2},
-{level:'A1',title:"Panneau de piscine",text:"Piscine du quartier Rosemont. Ouverture : 24 juin au 25 août. Accès gratuit pour les moins de 12 ans. Adultes : 3 $ par visite. Casier obligatoire.",q:"Qui entre gratuitement à la piscine ?",opts:["Les personnes âgées","Les moins de 12 ans","Tout le monde","Les résidents du quartier"],a:1},
-{level:'A1',title:"Message d'un voisin",text:"Bonjour, je suis Karim du 4e étage. Je pars en vacances du 10 au 24 juillet. Pouvez-vous arroser mes plantes une fois par semaine ? Je vous laisse la clé sous le paillasson.",q:"Que demande Karim à son voisin ?",opts:["Garder son chat","Recevoir son courrier","Arroser ses plantes","Nourrir ses poissons"],a:2},
-{level:'A1',title:"Avis de garderie",text:"La garderie Les Petits Explorateurs sera fermée le lundi 20 mai pour la fête de Victoria. Les activités reprendront normalement le mardi 21 mai.",q:"Pourquoi la garderie est-elle fermée ?",opts:["Pour travaux","Pour la fête de Victoria","Pour une réunion du personnel","Pour manque d'enfants"],a:1},
-{level:'A1',title:"Circulaire épicerie",text:"Épicerie Caribou – Spécial semaine : pain de blé entier 2,49 $, beurre 500g 5,99 $, œufs 12 unités 4,29 $. Offre valable jusqu'à samedi seulement.",q:"Jusqu'à quand dure l'offre ?",opts:["Jusqu'à vendredi","Jusqu'à samedi","Jusqu'à dimanche","Jusqu'à lundi"],a:1},
-// ── A2 (5 questions) ──────────────────────────────────────
-{level:'A2',title:"Courriel de banque",text:"Cher client, votre relevé de compte du mois de mars est disponible dans votre espace en ligne. Pour le consulter, connectez-vous avec votre numéro de client et votre mot de passe. Si vous avez des questions, appelez le service clientèle au 1-800-234-5678.",q:"Comment consulter le relevé de mars ?",opts:["En appelant la banque","En se rendant en succursale","En se connectant à l'espace en ligne","En envoyant un courriel"],a:2},
-{level:'A2',title:"Programme d'aide alimentaire",text:"Moisson Montréal distribue des paniers alimentaires tous les mercredis de 10h à 14h. Pour bénéficier de ce service, apportez une preuve de résidence et une pièce d'identité. Un panier par famille par semaine.",q:"Quelle est la limite pour les paniers ?",opts:["Un panier par mois","Deux paniers par semaine","Un panier par famille par semaine","Un panier par personne"],a:2},
-{level:'A2',title:"Permis de conduire",text:"Pour convertir un permis de conduire étranger en permis québécois, rendez-vous à la SAAQ avec votre permis étranger, une traduction certifiée si celui-ci n'est pas en français ou en anglais, et votre preuve de résidence au Québec. Des frais de 112 $ s'appliquent.",q:"Quand une traduction est-elle nécessaire ?",opts:["Toujours","Jamais","Si le permis n'est pas en français ou en anglais","Si le permis a plus de 5 ans"],a:2},
-{level:'A2',title:"Avis de renouvellement",text:"Votre certificat de sélection du Québec (CSQ) expire le 30 novembre. Vous devez en demander le renouvellement au moins 60 jours avant cette date. Passé ce délai, vous devrez reprendre la procédure depuis le début.",q:"Combien de jours avant l'expiration faut-il faire la demande ?",opts:["30 jours","45 jours","60 jours","90 jours"],a:2},
-{level:'A2',title:"Vaccination",text:"Le Centre de vaccination de l'arrondissement Mercier-Hochelaga propose des rendez-vous pour les rappels de vaccin. Apportez votre carte de vaccination et votre carte d'assurance maladie. Aucune ordonnance n'est requise. Service gratuit pour tous les résidents du Québec.",q:"Que doit apporter la personne pour se faire vacciner ?",opts:["Seulement la carte d'assurance maladie","Seulement la carte de vaccination","La carte de vaccination et la carte d'assurance maladie","Une ordonnance médicale"],a:2},
-// ── B1 (10 questions) ─────────────────────────────────────
-{level:'B1',title:"Le Programme Expérience internationale",text:"Le Programme Expérience internationale (PEI) permet aux jeunes de 18 à 35 ans de certains pays de travailler temporairement au Canada. Ce programme inclut le Voyage de vacances, qui permet de travailler jusqu'à 12 mois, le Stage coopératif pour les étudiants, et le Jeune professionnel pour les emplois liés aux études. L'employeur canadien n'a pas besoin d'obtenir une EIMT dans le cadre de ce programme.",q:"Quelle caractéristique distingue le PEI des autres programmes de travail ?",opts:["Il est réservé aux diplômés universitaires","L'employeur n'a pas besoin d'obtenir une EIMT","Il offre la résidence permanente directement","Il est valide pour 3 ans"],a:1},
-{level:'B1',title:"Le réseau de la santé au Québec",text:"Le réseau de la santé au Québec est organisé en Centres intégrés de santé et de services sociaux (CISSS) et Centres intégrés universitaires (CIUSSS) pour les régions avec universités. Ces structures regroupent tous les établissements de santé d'une région sous une même direction. Les CLSC offrent les soins de première ligne comme la vaccination, le suivi de grossesse et les soins à domicile pour les personnes âgées.",q:"Que sont les CLSC selon le texte ?",opts:["Des hôpitaux universitaires","Des centres de première ligne","Des organismes gouvernementaux fédéraux","Des cliniques privées"],a:1},
-{level:'B1',title:"L'assurance habitation au Québec",text:"Au Québec, l'assurance habitation pour les locataires n'est pas obligatoire par la loi, mais elle est fortement recommandée. Elle couvre généralement vos biens personnels en cas de vol, d'incendie ou de dégât des eaux, ainsi que votre responsabilité civile si quelqu'un se blesse chez vous. Le coût moyen est d'environ 20 à 35 dollars par mois pour un appartement.",q:"Pourquoi l'assurance habitation est-elle recommandée même si elle n'est pas obligatoire ?",opts:["Pour obtenir un logement plus facilement","Pour protéger ses biens et se couvrir en responsabilité civile","Parce que le propriétaire peut l'exiger légalement","Pour réduire ses impôts"],a:1},
-{level:'B1',title:"Le Carnaval de Québec",text:"Le Carnaval de Québec, qui se tient chaque année en février, est le plus grand carnaval d'hiver au monde. Il attire plus d'un million de visiteurs chaque année malgré des températures qui peuvent descendre à -30°C. Les activités comprennent des compétitions de sculptures de neige, des défilés de nuit et la fameuse course en canot sur le fleuve Saint-Laurent.",q:"Quelle activité unique a lieu sur le Saint-Laurent pendant le Carnaval ?",opts:["Des feux d'artifice","Une course en canot","Un défilé nautique","Un spectacle de patinage"],a:1},
-{level:'B1',title:"Les droits des locataires au Québec",text:"Au Québec, le Tribunal administratif du logement (TAL) protège les locataires contre les hausses de loyer abusives. Le propriétaire doit envoyer un avis écrit de modification du bail entre 3 et 6 mois avant l'expiration. Le locataire a alors un mois pour accepter, refuser ou proposer une contre-offre. S'il ne répond pas, il est considéré comme ayant accepté.",q:"Que se passe-t-il si le locataire ne répond pas à l'avis de modification ?",opts:["Le bail est résilié","La hausse est annulée","Le locataire est considéré comme ayant accepté","Le tribunal tranche automatiquement"],a:2},
-{level:'B1',title:"La reconnaissance des diplômes étrangers",text:"La reconnaissance des diplômes et des expériences professionnelles acquis à l'étranger est un enjeu majeur pour les immigrants qualifiés au Québec. Les ordres professionnels, comme le Barreau du Québec ou l'Ordre des ingénieurs, évaluent chaque dossier individuellement. Des formations d'appoint sont parfois exigées. Le service de reconnaissance des acquis (RAC) aide les candidats dans cette démarche.",q:"Qui est responsable d'évaluer les diplômes étrangers selon le texte ?",opts:["Le gouvernement fédéral","Les universités québécoises","Les ordres professionnels","Le Ministère de l'Immigration"],a:2},
-{level:'B1',title:"Les énergies renouvelables au Québec",text:"Grâce à son important réseau hydroélectrique géré par Hydro-Québec, la province tire plus de 99% de son électricité de sources renouvelables. Cette situation avantageuse positionne le Québec parmi les sociétés les moins émettrices de gaz à effet de serre par habitant au monde. Le gouvernement mise désormais sur l'électrification des transports pour réduire encore ses émissions.",q:"Quelle est la principale source d'énergie renouvelable au Québec ?",opts:["L'énergie solaire","Le gaz naturel","L'hydroélectricité","L'énergie éolienne"],a:2},
-{level:'B1',title:"L'aide juridique au Québec",text:"Le programme d'aide juridique du Québec offre des services d'avocats gratuits ou à coût réduit aux personnes à faible revenu. Il couvre notamment les causes criminelles, certaines causes civiles comme les litiges de garde d'enfants, et les démarches en droit du logement. Pour y avoir accès, vous devez démontrer que vos revenus sont sous le seuil établi annuellement.",q:"Quelle condition principale doit-on remplir pour accéder à l'aide juridique ?",opts:["Être citoyen canadien","Avoir un casier judiciaire vierge","Avoir des revenus sous le seuil fixé","Résider au Québec depuis 5 ans"],a:2},
-{level:'B1',title:"Le secteur agricole québécois",text:"L'agriculture québécoise, bien qu'elle représente moins de 2% du PIB provincial, joue un rôle cultural et identitaire essentiel. Le modèle coopératif, illustré par La Coop fédérée, permet aux agriculteurs de mettre en commun leurs ressources. Les circuits courts se développent, avec la vente directe à la ferme et les marchés de solidarité communautaire (MSC).",q:"Quel est l'avantage du modèle coopératif pour les agriculteurs selon le texte ?",opts:["Exporter plus facilement","Bénéficier de subventions gouvernementales","Mettre en commun leurs ressources","Éviter la concurrence étrangère"],a:2},
-{level:'B1',title:"Le programme d'Allocation-logement",text:"L'Allocation-logement est une aide financière offerte par le gouvernement du Québec aux locataires et propriétaires à faible revenu qui consacrent une trop grande proportion de leurs revenus au logement. Le montant varie selon la composition du ménage et le coût du loyer. Pour y être admissible, votre loyer doit représenter au moins 30% de votre revenu.",q:"Quelle proportion du revenu doit représenter le loyer pour être admissible ?",opts:["Au moins 20%","Au moins 25%","Au moins 30%","Au moins 40%"],a:2},
-// ── B2 (7 questions) ──────────────────────────────────────
-{level:'B2',title:"L'immigration francophone hors Québec",text:"Le gouvernement fédéral s'est engagé à augmenter la proportion d'immigrants francophones dans les provinces à majorité anglophone, actuellement inférieure à 5%, pour la porter à 12% d'ici 2023 puis à 20% à long terme. Cet objectif répond aux préoccupations des communautés francophones minoritaires, qui voient dans l'immigration une bouée de sauvetage démographique face au déclin de l'usage du français hors Québec.",q:"Pourquoi les communautés francophones minoritaires soutiennent-elles cette politique ?",opts:["Pour créer de nouveaux emplois","Pour compenser le déclin démographique du français hors Québec","Pour augmenter les recettes fiscales","Pour renforcer les liens avec la France"],a:1},
-{level:'B2',title:"La loi sur la laïcité de l'État",text:"La loi 21 sur la laïcité de l'État québécois, adoptée en 2019, interdit aux agents de l'État en position d'autorité — juges, policiers, enseignants du secteur public — de porter des signes religieux visibles dans l'exercice de leurs fonctions. Ses partisans défendent la neutralité de l'État; ses opposants dénoncent une atteinte aux droits des minorités religieuses.",q:"À qui s'applique l'interdiction de porter des signes religieux selon la loi 21 ?",opts:["À tous les citoyens québécois","Aux agents de l'État en position d'autorité","Uniquement aux fonctionnaires fédéraux","Aux élèves des écoles publiques"],a:1},
-{level:'B2',title:"Les pensions de retraite au Canada",text:"Le système de retraite canadien repose sur trois piliers : la Sécurité de la vieillesse (SV) versée à tous à partir de 65 ans; le Régime de pensions du Canada (RPC) ou le Régime de rentes du Québec (RRQ), proportionnels aux cotisations; et les régimes d'épargne privés comme le REER. Pour avoir droit au montant plein de la SV, il faut avoir résidé 40 ans au Canada après l'âge de 18 ans.",q:"Quel critère détermine le montant maximum de la Sécurité de la vieillesse ?",opts:["Le montant des cotisations versées","40 années de résidence au Canada après 18 ans","Le revenu de l'employeur final","Le statut de citoyen canadien"],a:1},
-{level:'B2',title:"La crise des opioïdes au Canada",text:"Le Canada fait face depuis une décennie à une crise des opioïdes sans précédent. En 2022, plus de 7 000 personnes sont mortes d'une surdose, soit une augmentation de 200% par rapport à 2016. La Colombie-Britannique a adopté une mesure controversée de décriminalisation de la possession personnelle de drogues pour faciliter l'accès aux soins sans crainte de poursuites. Cette approche est contestée par ceux qui estiment qu'elle normalise la consommation.",q:"Quel est l'objectif principal de la décriminalisation en Colombie-Britannique ?",opts:["Légaliser toutes les drogues","Augmenter les saisies de drogues","Faciliter l'accès aux soins sans peur des poursuites","Réduire les dépenses policières"],a:2},
-{level:'B2',title:"Les Premières Nations et la réconciliation",text:"Le processus de réconciliation entre le Canada et les peuples autochtones s'articule autour des 94 appels à l'action émis par la Commission de vérité et réconciliation en 2015. Parmi les mesures phares figurent la réforme du système de protection de l'enfance, la reconnaissance des langues autochtones et la modification des programmes scolaires. Malgré les déclarations d'intention, les experts notent que moins de la moitié des appels à l'action ont été mis en œuvre.",q:"Quel constat les experts font-ils sur la mise en œuvre des appels à l'action ?",opts:["Tous les appels ont été mis en œuvre","Plus des deux tiers sont accomplis","Moins de la moitié a été mise en œuvre","Aucun progrès n'a été réalisé"],a:2},
-{level:'B2',title:"L'économie de la connaissance au Québec",text:"Montréal s'est imposée comme un pôle mondial de l'intelligence artificielle, hébergeant des laboratoires de recherche des grandes entreprises technologiques mondiales ainsi que le Mila, l'un des plus importants instituts de recherche en IA au monde fondé par Yoshua Bengio. Cette concentration d'expertise a attiré des milliers de travailleurs qualifiés et généré des milliards en investissements, mais a aussi contribué à la hausse des loyers dans certains quartiers de la ville.",q:"Quelle conséquence négative la concentration technologique a-t-elle entraînée selon le texte ?",opts:["La fuite des cerveaux vers l'étranger","La hausse des loyers dans certains quartiers","La surcharge des universités locales","La désindustrialisation de la ville"],a:1},
-{level:'B2',title:"Les défis de l'eau potable",text:"Malgré l'abondance des ressources hydriques du Canada, plus de 30 communautés autochtones vivent toujours sous des avis de faire bouillir l'eau, certains depuis plus de 25 ans. Le gouvernement fédéral s'était engagé en 2015 à éliminer tous ces avis, mais cet objectif n'a pas été atteint dans les délais prévus. Des investissements insuffisants dans les infrastructures et le manque de personnel technique qualifié sont cités comme principales causes.",q:"Quelle est la principale cause de la persistance des avis d'ébullition selon le texte ?",opts:["La pollution industrielle des rivières","Des investissements insuffisants et le manque de personnel technique","Le refus des communautés d'accepter des travaux","Les changements climatiques qui dégradent l'eau"],a:1},
-// ── C1 (10 questions) ─────────────────────────────────────
-{level:'C1',title:"La souveraineté alimentaire au Québec",text:"La notion de souveraineté alimentaire, popularisée par le mouvement paysan international La Via Campesina, postule que les peuples ont le droit de définir leur propre politique agricole et alimentaire, indépendamment des logiques marchandes mondialisées. Au Québec, cette revendication prend une dimension particulière avec la gestion de l'offre, système qui fixe des quotas de production et des prix garantis pour certains produits agricoles comme le lait et les œufs. Ce système, régulièrement contesté dans les négociations commerciales internationales comme l'Accord Canada–États-Unis–Mexique, est défendu par ses partisans comme un rempart contre la déstructuration du tissu agricole familial.",q:"Pourquoi le système de gestion de l'offre est-il contesté selon le texte ?",opts:["Parce qu'il nuit aux consommateurs québécois","Parce qu'il est en contradiction avec les logiques des accords commerciaux internationaux","Parce qu'il favorise les grandes exploitations agricoles","Parce qu'il empêche l'innovation technologique"],a:1},
-{level:'C1',title:"Le droit à la déconnexion au travail",text:"L'essor du télétravail a exacerbé les tensions entre temps de travail et temps personnel, conduisant plusieurs pays à légiférer sur le droit à la déconnexion. Au Québec, les normes du travail imposent depuis 2019 aux employeurs de 10 salariés et plus de respecter le temps de repos des travailleurs, mais des lacunes subsistent quant à l'applicabilité concrète de ce droit. Les syndicats réclament des sanctions plus dissuasives, tandis que les employeurs arguent que la flexibilité est désormais constitutive des nouvelles formes d'emploi.",q:"Quel est le désaccord fondamental entre syndicats et employeurs sur ce droit ?",opts:["Les syndicats veulent réduire les heures de travail, les employeurs s'y opposent","Les syndicats veulent des sanctions plus fortes, les employeurs défendent la flexibilité","Les syndicats veulent interdire le télétravail, les employeurs le promeuvent","Les syndicats contestent la loi de 2019, les employeurs la soutiennent"],a:1},
-{level:'C1',title:"La gouvernance climatique internationale",text:"L'efficacité des accords climatiques internationaux, depuis Kyoto en 1997 jusqu'à l'Accord de Paris de 2015, est régulièrement mise en doute au regard de l'insuffisance des engagements nationaux au regard des seuils scientifiques. Le principe de responsabilités communes mais différenciées, selon lequel les pays industrialisés doivent assumer une part plus grande des efforts de réduction des émissions en raison de leur responsabilité historique, continue de cristalliser les tensions entre pays du Nord et du Sud dans les négociations. Le Canada, malgré ses engagements formels, est régulièrement pointé comme l'un des pays développés dont les émissions par habitant demeurent parmi les plus élevées du monde.",q:"Quelle tension fondamentale le principe des responsabilités différenciées cristallise-t-il ?",opts:["Entre gouvernements nationaux et entreprises privées","Entre pays industrialisés et pays en développement sur le partage des efforts climatiques","Entre les scientifiques et les gouvernements sur les objectifs","Entre économies pétrolières et économies vertes au sein des pays du G7"],a:1},
-{level:'C1',title:"Le fédéralisme fiscal canadien",text:"Le fédéralisme canadien repose sur un système complexe de transferts fiscaux entre le gouvernement fédéral et les provinces. La péréquation, inscrite dans la Constitution de 1982, oblige le gouvernement fédéral à verser des paiements aux provinces dont la capacité fiscale est inférieure à la moyenne nationale, afin de garantir à tous les Canadiens des services publics comparables. Cependant, les provinces bénéficiaires, comme le Québec et les Maritimes, sont régulièrement accusées par les provinces contributrices, notamment l'Alberta, de ne pas déployer d'efforts suffisants pour développer leur propre assiette fiscale.",q:"Quelle critique les provinces contributrices adressent-elles aux bénéficiaires de la péréquation ?",opts:["Elles dépensent les fonds de façon inefficace","Elles ne déploient pas suffisamment d'efforts pour développer leur propre assiette fiscale","Elles demandent des montants supérieurs à leurs besoins réels","Elles utilisent ces fonds à des fins politiques partisanes"],a:1},
-{level:'C1',title:"L'identité autochtone et la justice réparatrice",text:"La mise en œuvre de la justice réparatrice dans les communautés autochtones du Canada soulève des questions fondamentales sur l'articulation entre droits collectifs et droits individuels. Si certains anthropologues soulignent que les cercles de sentence et les pratiques traditionnelles de résolution des conflits sont mieux adaptés à une vision holiste de la justice, des juristes féministes signalent que ces mécanismes peuvent parfois reproduire des rapports de pouvoir inégaux au sein des communautés, notamment au détriment des femmes.",q:"Quel débat l'application de la justice réparatrice en milieu autochtone soulève-t-elle ?",opts:["L'opposition entre justice fédérale et provinciale","La tension entre droits collectifs valorisant les pratiques traditionnelles et droits individuels pouvant être lésés","Le financement insuffisant des programmes judiciaires autochtones","Le refus des tribunaux de reconnaître les cercles de sentence"],a:1},
-{level:'C1',title:"La politique linguistique au Québec",text:"La Charte de la langue française, dite loi 101, a été adoptée en 1977 par le gouvernement Lévesque pour faire du français la langue commune de la vie publique au Québec. Son renforcement en 2022 par la loi 96 a étendu les obligations des entreprises et renforcé l'exigence de francisation. Ses défenseurs soutiennent que seule une intervention législative soutenue peut contrecarrer les effets de l'attrait économique de l'anglais dans un continent majoritairement anglophone, tandis que ses critiques évoquent des atteintes potentielles aux droits des minorités.",q:"Quel argument central défendent les partisans de la loi 96 ?",opts:["Que le bilinguisme nuit à la productivité économique","Que seule une intervention législative peut compenser l'attrait économique de l'anglais","Que les immigrants refusent d'apprendre le français sans contrainte légale","Que la Constitution canadienne permet au Québec de restreindre l'usage de l'anglais"],a:1},
-{level:'C1',title:"Les droits des réfugiés et le droit canadien",text:"Le Canada est signataire de la Convention de 1951 relative au statut des réfugiés et de son Protocole de 1967. En droit interne, la Commission de l'immigration et du statut de réfugié (CISR) est le tribunal indépendant chargé d'examiner les demandes d'asile. La notion de nexus, qui exige que la persécution alléguée soit liée à l'un des cinq motifs reconnus — race, religion, nationalité, appartenance à un groupe social particulier, opinions politiques — constitue le cœur du droit des réfugiés.",q:"Quel concept juridique est central dans l'examen d'une demande d'asile ?",opts:["Le principe du non-refoulement","Le nexus entre la persécution alléguée et l'un des cinq motifs reconnus","Le droit à la réunification familiale","La durée de résidence au Canada avant la demande"],a:1},
-{level:'C1',title:"L'économie du savoir et la formation continue",text:"La transformation structurelle des économies avancées vers des secteurs à forte intensité de connaissance crée une pression croissante sur les travailleurs pour actualiser leurs compétences tout au long de leur carrière. Au Québec, le Fonds de développement et de reconnaissance des compétences de la main-d'œuvre, alimenté par la Loi du 1%, oblige les entreprises dont la masse salariale dépasse un seuil minimal à consacrer au moins 1% de celle-ci à la formation. Si ce dispositif a permis d'augmenter les investissements en formation, les chercheurs notent qu'il bénéficie davantage aux travailleurs déjà qualifiés qu'aux moins diplômés.",q:"Quelle limite ce dispositif présente-t-il selon les chercheurs ?",opts:["Il n'est pas respecté par la majorité des entreprises","Il bénéficie davantage aux travailleurs déjà qualifiés","Il est insuffisant pour couvrir les coûts réels de formation","Il exclut les petites et moyennes entreprises"],a:1},
-{level:'C1',title:"La réconciliation et la Déclaration des Nations Unies",text:"L'adoption en 2021 de la loi C-15, qui intègre la Déclaration des Nations Unies sur les droits des peuples autochtones (DNUDPA) dans le droit canadien, constitue une étape symbolique et potentiellement structurante. L'article 19 de la DNUDPA exige le consentement préalable, libre et éclairé des peuples autochtones pour les décisions susceptibles d'affecter leurs droits. Certains juristes estiment que cette disposition pourrait conférer aux communautés autochtones un droit de veto de facto sur les grands projets d'infrastructure, une interprétation que le gouvernement fédéral a cherché à nuancer.",q:"Pourquoi l'article 19 de la DNUDPA est-il source de débats juridiques au Canada ?",opts:["Parce qu'il contredit la Constitution de 1867 sur les compétences provinciales","Parce qu'il pourrait être interprété comme conférant un droit de veto aux communautés autochtones","Parce qu'il impose des délais injustifiés dans les procédures d'approbation","Parce qu'il ne s'applique qu'aux peuples dont le titre ancestral est formellement reconnu"],a:1},
-{level:'C1',title:"Les paradoxes du multiculturalisme canadien",text:"Si le Canada se présente comme un modèle mondial du multiculturalisme, des sociologues critiques soulèvent des tensions inhérentes à ce modèle. D'une part, la politique fédérale de multiculturalisme, en favorisant la préservation des identités d'origine, peut retarder l'intégration sociale et économique des immigrants. D'autre part, en valorisant toutes les cultures de manière équivalente, elle évite de poser la question des conflits de valeurs entre certaines pratiques culturelles et les droits fondamentaux garantis par la Charte. Certains auteurs parlent ainsi de la tolérance comme d'un mécanisme de gestion des différences qui, paradoxalement, maintient une hiérarchie sociale latente.",q:"Selon ces sociologues, quel paradoxe la tolérance multiculturaliste contient-elle ?",opts:["Elle avantage les immigrants récents au détriment des anciens","Elle présente la tolérance comme un mécanisme qui maintient une hiérarchie sociale latente","Elle favorise les cultures non-occidentales aux dépens de la culture canadienne dominante","Elle crée une concurrence économique entre groupes culturels"],a:1},
-// ── C2 (3 questions) ──────────────────────────────────────
-{level:'C2',title:"Le constitutionnalisme et la souveraineté québécoise",text:"La question de la constitutionnalité d'une sécession unilatérale du Québec a été tranchée, en théorie, par le Renvoi relatif à la sécession du Québec de 1998, dans lequel la Cour suprême a conclu qu'une telle sécession serait inconstitutionnelle sans négociation préalable fondée sur des principes constitutionnels non écrits — démocratie, fédéralisme, primauté du droit, protection des minorités. Cette décision, saluée par certains comme un exemple de jurisprudence constitutionnelle sophistiquée, est critiquée par d'autres pour avoir érigé des barrières procédurales à l'exercice du droit à l'autodétermination, lequel relève davantage du droit international que du droit constitutionnel interne.",q:"Quelle tension fondamentale le Renvoi sur la sécession met-il en évidence ?",opts:["Entre le droit fédéral et le droit provincial sur les référendums","Entre le droit constitutionnel interne imposant la négociation et le droit international à l'autodétermination","Entre les intérêts économiques des provinces et ceux du gouvernement fédéral","Entre la volonté populaire exprimée par référendum et l'interprétation judiciaire de la Constitution"],a:1},
-{level:'C2',title:"L'épistémologie des politiques publiques fondées sur des données probantes",text:"Le paradigme des politiques publiques fondées sur des données probantes, importé du champ médical, postule que la décision politique devrait s'aligner sur les meilleures données empiriques disponibles. Cette épistémologie est contestée à plusieurs niveaux : d'abord, par les limites inhérentes aux études randomisées contrôlées dans les sciences sociales ; ensuite, par la sélectivité inévitable dans l'interprétation des preuves par des acteurs porteurs d'intérêts ; enfin, par le fait que la délibération démocratique ne se réduit pas à une question technique mais engage des choix de valeurs qui échappent par nature à la mesure empirique.",q:"Sur quel fondement philosophique la critique de ce paradigme repose-t-elle principalement ?",opts:["Sur l'impossibilité technique de mener des études contrôlées en sciences sociales","Sur la distinction entre les faits empiriques et les choix de valeurs qui relèvent de la délibération démocratique","Sur la supériorité de l'expertise administrative sur les données académiques","Sur le conflit d'intérêts systématique des chercheurs financés par l'État"],a:1},
-{level:'C2',title:"La crise de la représentation dans les démocraties libérales",text:"La défiance croissante envers les institutions démocratiques dans les sociétés occidentales est interprétée différemment selon les paradigmes analytiques. Pour les théoriciens de la délégitimation progressive, l'écart croissant entre les préférences exprimées par les citoyens et les politiques effectivement mises en œuvre résulte de la colonisation des espaces décisionnels par des acteurs technocratiques — experts, juges constitutionnels, organismes supranationaux — qui échappent au contrôle électoral. À l'inverse, les défenseurs de la démocratie délibérative soutiennent que cette défiance traduit non pas une crise de la représentation mais une transformation des formes de participation, caractérisée par une montée en puissance du contrôle citoyen direct.",q:"Sur quel point central les deux paradigmes analytiques divergent-ils ?",opts:["Sur l'importance accordée aux médias dans la formation de l'opinion","Sur l'interprétation de la défiance — crise de la représentation ou transformation des formes de participation","Sur le rôle des partis politiques dans la mobilisation électorale","Sur la légitimité des institutions supranationales comme l'Union européenne"],a:1},
-];
-
-// ═══════════════════════════════════════════════════════════
-// CO FINAL CANADA – 40 QUESTIONS UNIQUES (5A1+15A2+10B1+7B2+3C1)
-// ═══════════════════════════════════════════════════════════
-const CO_FINAL_CANADA = [
-// ── A1 (5) ────────────────────────────────────────────────
-{level:'A1',text:"Attention s'il vous plaît. Le magasin fermera dans quinze minutes. Veuillez vous diriger vers les caisses. Merci de votre visite.",q:"Dans combien de temps le magasin ferme-t-il ?",opts:["5 minutes","10 minutes","15 minutes","30 minutes"],a:2},
-{level:'A1',text:"Bonjour, c'est Paulo. Je serai un peu en retard ce soir. J'arrive vers vingt heures trente au lieu de vingt heures. Prépare quelque chose à manger si tu veux. À tout à l'heure.",q:"Quelle est la nouvelle heure d'arrivée de Paulo ?",opts:["20h00","20h15","20h30","21h00"],a:2},
-{level:'A1',text:"La pharmacie Jean Coutu de la rue Saint-Denis est fermée le dimanche. Du lundi au vendredi, elle est ouverte de huit heures trente à vingt et une heures. Le samedi, de neuf heures à dix-huit heures.",q:"Quand est-elle fermée ?",opts:["Le lundi","Le samedi après-midi","Le dimanche","Le vendredi soir"],a:2},
-{level:'A1',text:"Bonjour, ici la bibliothèque de Saint-Laurent. Votre livre est disponible. Vous pouvez venir le chercher jusqu'à vendredi. Après vendredi, il sera remis en circulation.",q:"Jusqu'à quand peut-on récupérer le livre ?",opts:["Jusqu'à mercredi","Jusqu'à jeudi","Jusqu'à vendredi","Jusqu'à samedi"],a:2},
-{level:'A1',text:"Bonsoir, c'est la garderie Étoile filante. Votre fils Malik a de la fièvre. Pouvez-vous venir le chercher dès que possible ? Il se repose dans notre coin calme.",q:"Pourquoi la garderie appelle-t-elle ?",opts:["L'enfant a été blessé","L'enfant a de la fièvre","L'enfant a oublié son sac","La garderie ferme tôt aujourd'hui"],a:1},
-// ── A2 (15) ───────────────────────────────────────────────
-{level:'A2',text:"Ici le bureau de Service Canada. Suite à votre demande de numéro d'assurance sociale, votre NAS a été traité. Pour des raisons de sécurité, nous ne communiquons jamais le NAS par téléphone. Vous recevrez votre confirmation par courrier dans les dix jours ouvrables.",q:"Comment le NAS sera-t-il transmis ?",opts:["Par téléphone","Par courriel","Par courrier postal","En personne au bureau"],a:2},
-{level:'A2',text:"Bienvenue au Centre de francisation de Montréal. Notre prochain groupe de niveau débutant commence le lundi 8 janvier. Les cours ont lieu tous les jours, du lundi au vendredi, de neuf heures à treize heures. Pour vous inscrire, présentez-vous avec votre document d'immigration et une pièce d'identité.",q:"Quels jours y a-t-il des cours ?",opts:["Le lundi et le mercredi","Du lundi au vendredi","Du mardi au samedi","Tous les jours de la semaine"],a:1},
-{level:'A2',text:"Bonjour, je vous appelle du Centre de pédiatrie Laval. Le rendez-vous de vaccination de votre enfant est prévu le jeudi 22 mars à quatorze heures. Apportez le carnet de vaccination. En cas d'empêchement, appelez-nous au moins vingt-quatre heures à l'avance.",q:"Que doit apporter le parent au rendez-vous ?",opts:["La carte d'assurance maladie","Le carnet de vaccination","Les médicaments de l'enfant","Une ordonnance du médecin"],a:1},
-{level:'A2',text:"Ici le Service des allocations familiales du Québec. Votre dossier a été mis à jour suite à la naissance de votre enfant. Vos allocations mensuelles passent de deux cent vingt à trois cent soixante dollars à compter du premier du mois prochain.",q:"Quel changement est annoncé ?",opts:["Une réduction des allocations","Une suspension des allocations","Une augmentation des allocations","Un remboursement de trop-perçu"],a:2},
-{level:'A2',text:"Bonjour, c'est votre gestionnaire de cas à l'OACI. Votre test de langue française est confirmé pour le samedi vingt-sept à neuf heures au Complexe Guy-Favreau. La durée est d'environ deux heures. N'oubliez pas votre pièce d'identité avec photo.",q:"Où aura lieu le test de langue ?",opts:["À l'Université de Montréal","Au Complexe Guy-Favreau","Au Centre Sheraton","À la Maison de l'immigration"],a:1},
-{level:'A2',text:"Mesdames et messieurs, la ligne de métro verte est perturbée entre Berri-UQAM et Angrignon à cause d'une intervention des services d'urgence. Des autobus de remplacement circulent en surface. Nous nous excusons pour les inconvénients.",q:"Quelle alternative est proposée aux voyageurs ?",opts:["Des taxis gratuits","Des autobus de remplacement","Le métro d'une autre ligne","La navette de l'aéroport"],a:1},
-{level:'A2',text:"Bonjour Madame Khalfi. Je vous appelle de l'école primaire des Érables. Votre fils a eu un petit accident dans la cour de récréation. Il s'est légèrement blessé au genou. Il va bien, mais nous préférons vous informer. Vous n'avez pas besoin de venir immédiatement.",q:"L'enfant est-il gravement blessé ?",opts:["Oui, il faut venir immédiatement","Non, il a une légère blessure au genou","On ne sait pas","Oui, il est à l'hôpital"],a:1},
-{level:'A2',text:"Ici la Régie du logement. Votre plainte numéro 2024-1177 concernant les réparations non effectuées par votre propriétaire a été acceptée. Une audience est prévue le dix novembre à dix heures trente. Vous devez être présent ou représenté par quelqu'un.",q:"Que doit faire la personne le 10 novembre ?",opts:["Payer les réparations","Se présenter à l'audience","Signer un document","Appeler la régie"],a:1},
-{level:'A2',text:"Bonjour, ici le Collège de Maisonneuve. Votre demande d'inscription au programme de techniques administratives a été retenue. Vous devez confirmer votre place en ligne avant le premier juin, sinon elle sera offerte à un autre candidat.",q:"Quelle action est requise avant le 1er juin ?",opts:["Payer les frais d'inscription","Confirmer sa place en ligne","Envoyer ses relevés de notes","Se présenter au bureau des admissions"],a:1},
-{level:'A2',text:"Bonjour, c'est le service de garde de l'école Saint-Gilles. Nous vous rappelons que le service de garde sera fermé le vendredi trente et un en raison de la journée pédagogique. Veuillez prévoir la garde de votre enfant pour cette journée.",q:"Pourquoi le service de garde est-il fermé ?",opts:["Pour cause de maladie","Pour une réunion des parents","Pour une journée pédagogique","Pour un congé férié"],a:2},
-{level:'A2',text:"Bienvenue à la Clinique d'impôts gratuite du YMCA. Nous aidons les particuliers à revenus modestes à produire leur déclaration de revenus. Le service est offert chaque jeudi de treize heures à dix-sept heures. Apportez tous vos feuillets fiscaux, notamment votre T4 et vos reçus de frais de garde.",q:"Quel document fiscal est spécifiquement mentionné ?",opts:["Le feuillet T1","Le relevé 1","Le feuillet T4","La déclaration T3"],a:2},
-{level:'A2',text:"Ici la compagnie Bell. Votre abonnement Internet sera interrompu dans soixante-douze heures si votre solde impayé de deux cent trente dollars n'est pas réglé. Pour éviter l'interruption, payez en ligne ou en succursale. Pour contester, appelez le service à la clientèle.",q:"Dans combien de temps l'internet sera-t-il coupé si le solde n'est pas payé ?",opts:["24 heures","48 heures","72 heures","Une semaine"],a:2},
-{level:'A2',text:"Bonjour, c'est Fatoumata du bureau Accueil immigrants. Nous organisons une journée d'information sur les droits des travailleurs le mercredi quinze à dix-huit heures trente. Un interprète arabe sera présent. Des collations seront servies. La participation est gratuite et ouverte à tous.",q:"Quel service supplémentaire est offert lors de cette journée ?",opts:["Une formation professionnelle","Un interprète arabe","Des cours de français","Une aide à l'emploi"],a:1},
-{level:'A2',text:"Bonjour, c'est le CLSC de votre quartier. Votre demande de soins à domicile pour votre mère a été approuvée. Une infirmière viendra chaque lundi et jeudi matin entre huit heures et dix heures. Pour modifier l'horaire, appelez notre ligne de coordination.",q:"Combien de fois par semaine l'infirmière viendra-t-elle ?",opts:["Une fois","Deux fois","Trois fois","Tous les jours"],a:1},
-{level:'A2',text:"Bonjour, c'est le service après-vente de Rona. Suite à votre commande en ligne numéro 77-8834, nous vous informons que la livraison prévue le 14 est retardée au 18 en raison d'une rupture de stock temporaire. Vous pouvez annuler sans frais en appelant avant demain midi.",q:"Que peut faire le client s'il n'est pas satisfait ?",opts:["Attendre la livraison sans recours","Payer des frais d'annulation","Annuler sans frais avant demain midi","Demander un bon de réduction"],a:2},
-// ── B1 (10) ───────────────────────────────────────────────
-{level:'B1',text:"Bonsoir, vous écoutez Radio-Canada. Dans le cadre du budget provincial présenté aujourd'hui, le ministre des Finances annonce une augmentation de 8% des dépenses en éducation, portant l'enveloppe totale à vingt-deux milliards de dollars. Cette hausse servira principalement à recruter deux mille enseignants supplémentaires dans les secteurs en pénurie.",q:"À quoi servira principalement la hausse du budget en éducation ?",opts:["À construire de nouvelles écoles","À augmenter les salaires des enseignants existants","À recruter deux mille nouveaux enseignants","À acheter du matériel informatique"],a:2},
-{level:'B1',text:"Bonjour, ici le bureau régional d'Immigration Canada. Votre demande de résidence permanente a été examinée. Nous avons besoin de documents supplémentaires : les résultats d'examen médical datant de moins de douze mois et une preuve de fonds suffisants d'au moins treize mille dollars. Ces documents doivent être soumis dans les quatre-vingt-dix jours.",q:"Quels documents supplémentaires sont demandés ?",opts:["Un casier judiciaire et un permis de travail","Les résultats médicaux et une preuve de fonds suffisants","Des références d'employeurs et un diplôme","Un contrat de travail et un bail d'appartement"],a:1},
-{level:'B1',text:"Ici le service des ressources humaines d'un employeur. Suite à votre entrevue de la semaine dernière, nous avons le plaisir de vous offrir le poste d'analyste financier. Le salaire de départ est de soixante-deux mille dollars par an. La prise de poste est prévue pour le premier septembre. Votre réponse est attendue avant le quinze août.",q:"Quelle est la date limite pour répondre à l'offre d'emploi ?",opts:["Le 1er septembre","Le 15 août","Le 1er août","Le 30 juillet"],a:1},
-{level:'B1',text:"Mesdames et messieurs, dans le cadre de la consultation publique sur le projet de tramway de Québec, la Ville souhaite recueillir votre avis. Des séances d'information auront lieu dans les arrondissements concernés tout au long du mois de juin. Un formulaire de commentaires est disponible en ligne sur le site de la Ville. Votre participation est essentielle pour façonner un transport collectif à votre image.",q:"Quel est l'objectif de cette consultation ?",opts:["Annoncer la construction du tramway","Recueillir l'avis des citoyens sur le projet","Recruter des bénévoles pour les séances","Expliquer les tarifs du nouveau service"],a:1},
-{level:'B1',text:"Bonjour, c'est la courtière Sylvie Beaulieu. J'ai visité l'appartement du trois-cent-quarante rue Cartier avec vous hier. Le propriétaire accepte de baisser le loyer à mille deux cents dollars si vous signez un bail d'un an. Il inclut le stationnement mais pas Internet. Faites-moi signe avant vendredi si vous êtes intéressé.",q:"Quelle condition l'offre inclut-elle ?",opts:["Internet et stationnement inclus","Stationnement inclus mais Internet non compris","Ni stationnement ni Internet","Seulement Internet inclus"],a:1},
-{level:'B1',text:"Bonjour, ici la Commission des droits de la personne du Québec. Votre plainte pour discrimination en emploi a été jugée recevable. Un médiateur a été désigné et une première séance de médiation est prévue dans trente jours. La médiation est confidentielle et les deux parties doivent y participer de bonne foi. Si elle échoue, votre dossier sera transmis au Tribunal des droits de la personne.",q:"Que se passe-t-il si la médiation échoue ?",opts:["La plainte est abandonnée","L'employeur doit payer immédiatement","Le dossier est transmis au Tribunal","Une nouvelle plainte doit être déposée"],a:2},
-{level:'B1',text:"Bonne nouvelle pour les propriétaires de véhicules électriques de la région de Montréal. La ville vient d'annoncer l'installation de deux cents nouvelles bornes de recharge dans les stationnements municipaux d'ici la fin de l'année. L'objectif est de réduire l'anxiété liée à l'autonomie et d'encourager le passage à l'électrique. La recharge sera gratuite pendant les six premiers mois.",q:"Quel avantage temporaire est annoncé pour les propriétaires de VE ?",opts:["Une prime à l'achat","La recharge gratuite pendant 6 mois","Un permis de stationnement préférentiel","Une réduction de la taxe sur les carburants"],a:1},
-{level:'B1',text:"Dans cette émission, nous recevons une psychiatre spécialiste de la santé mentale des immigrants. Elle explique que le phénomène connu sous le nom de syndrome d'Ulysse, soit un état de stress chronique lié au deuil migratoire, touche une proportion significative des nouveaux arrivants. Les symptômes incluent l'insomnie, la tristesse profonde et des troubles de concentration. Elle recommande aux professionnels de santé de systématiquement s'informer du parcours migratoire de leurs patients.",q:"Qu'est-ce que le syndrome d'Ulysse selon cette spécialiste ?",opts:["Une maladie infectieuse répandue chez les voyageurs","Un état de stress chronique lié au deuil migratoire","Un trouble de l'alimentation provoqué par les changements culturels","Une forme d'amnésie liée aux traumatismes de l'exil"],a:1},
-{level:'B1',text:"Ici l'Agence du revenu du Canada. Nous avons examiné votre déclaration de revenus 2023 et identifié une divergence avec les informations fournies par votre employeur. Votre remboursement prévu de mille cent dollars a été mis en suspens. Veuillez nous contacter pour fournir les justificatifs manquants dans un délai de trente jours, faute de quoi votre dossier sera transmis à la division de vérification.",q:"Que risque-t-il de se passer si la personne ne répond pas dans 30 jours ?",opts:["Son remboursement sera annulé définitivement","Son dossier sera transmis à la division de vérification","Elle devra payer une pénalité immédiate","Son compte sera bloqué"],a:1},
-{level:'B1',text:"Bonjour, c'est Docteure Arsenault de la clinique Métro-Santé. Suite à vos analyses de sang récentes, j'aimerais vous voir en consultation. Rien d'urgent, mais certains résultats méritent qu'on en discute et peut-être d'ajuster votre traitement. Je suis disponible jeudi ou vendredi de cette semaine. Rappelez-nous pour confirmer.",q:"Pourquoi la médecin souhaite-t-elle revoir le patient ?",opts:["Pour une urgence médicale","Pour discuter de résultats d'analyses et potentiellement ajuster le traitement","Pour prescrire de nouveaux médicaments","Pour effectuer d'autres tests"],a:1},
-// ── B2 (7) ────────────────────────────────────────────────
-{level:'B2',text:"Dans ce reportage sur les défis de l'intégration professionnelle, nous avons interrogé des immigrants hautement qualifiés de Montréal. Malgré des diplômes équivalents à des niveaux supérieurs au marché local, beaucoup rapportent devoir accepter des postes sous-qualifiés dans un premier temps. Les chercheurs désignent ce phénomène par le terme de déqualification professionnelle, et soulignent que la non-reconnaissance des diplômes étrangers, combinée au manque de réseaux professionnels locaux, constitue une double barrière structurelle.",q:"Quels sont les deux obstacles structurels identifiés selon ce reportage ?",opts:["Le racisme et la barrière linguistique","La non-reconnaissance des diplômes et le manque de réseaux professionnels","Les lois trop strictes et les salaires insuffisants","Le manque d'expérience canadienne et les discriminations à l'embauche"],a:1},
-{level:'B2',text:"Dans cette conférence de presse, le premier ministre annonce un plan de quarante milliards de dollars sur dix ans pour s'attaquer à la crise du logement. Ce plan prévoit notamment la construction de cent mille logements abordables, le financement de coopératives d'habitation et une révision de la fiscalité foncière pour décourager la spéculation. Le premier ministre admet que l'effet sur le marché ne sera perceptible qu'à moyen terme.",q:"Quelle mesure fiscale est annoncée dans ce plan ?",opts:["Une réduction de taxe pour les acheteurs de première maison","Une révision de la fiscalité foncière pour décourager la spéculation","La suppression de la taxe de bienvenue","Une subvention pour les rénovations domiciliaires"],a:1},
-{level:'B2',text:"La journaliste d'enquête présente les résultats d'une investigation de six mois sur les conditions de travail dans les entrepôts de commerce en ligne. Elle révèle que malgré les engagements publics des entreprises, le taux de blessures au travail dans ces installations est trois fois supérieur à la moyenne nationale. Les travailleurs sont soumis à une surveillance algorithmique constante qui mesure chaque déplacement et pénalise les pauses. Certains témoignent ne pas pouvoir se rendre aux toilettes sans compromettre leurs indicateurs de performance.",q:"Quel mécanisme de contrôle est dénoncé dans cette enquête ?",opts:["Les syndicats trop permissifs","La surveillance algorithmique constante des travailleurs","Les caméras de surveillance dans les vestiaires","Le manque d'inspecteurs du travail"],a:1},
-{level:'B2',text:"Dans cette émission de politique étrangère, l'analyste explique les tensions actuelles entre le Canada et la Chine. Depuis l'arrestation à Vancouver en 2018 d'une dirigeante d'une entreprise technologique chinoise à la demande des États-Unis, les relations diplomatiques se sont fortement dégradées. Deux Canadiens ont été détenus en Chine en représailles, dans ce que les observateurs ont appelé la diplomatie des otages. Leur libération en 2021 a permis une timide normalisation.",q:"Que désigne l'expression 'diplomatie des otages' dans ce contexte ?",opts:["Une stratégie canadienne pour négocier des traités commerciaux","La détention de Canadiens en Chine en représailles à l'arrestation à Vancouver","Une politique d'accueil des réfugiés politiques","Un mécanisme de médiation proposé par l'ONU"],a:1},
-{level:'B2',text:"Cet économiste analyse les effets de la mondialisation sur le marché du travail canadien. Contrairement à l'idée répandue, dit-il, la perte d'emplois manufacturiers au Canada ne résulte pas principalement de l'immigration, mais de l'automatisation et des délocalisations vers des pays à bas salaires. Il ajoute que l'immigration qualifiée contribue nettement à la croissance économique et à l'innovation, notamment dans le secteur des technologies et de la santé.",q:"Quelle est la principale cause de la perte d'emplois manufacturiers selon cet économiste ?",opts:["L'immigration en provenance de pays à bas salaires","L'automatisation et les délocalisations","Les politiques fiscales défavorables aux entreprises","La concurrence déloyale de l'Union européenne"],a:1},
-{level:'B2',text:"Bonsoir, dans notre dossier sur la santé mentale au travail, nous parlons ce soir du syndrome d'épuisement professionnel ou burnout. Le professeur Hébert de l'Université Laval précise que ce phénomène ne se réduit pas à la fatigue : il se caractérise par un épuisement émotionnel profond, une dépersonnalisation du rapport au travail et une perte du sentiment d'accomplissement. Il insiste sur le fait que le burnout est une pathologie liée aux conditions organisationnelles et non à la fragilité individuelle.",q:"Quelle distinction importante le professeur Hébert souligne-t-il sur le burnout ?",opts:["Il touche seulement les personnes déjà fragiles psychologiquement","Il est lié aux conditions organisationnelles et non à la fragilité individuelle","Il est une forme de dépression clinique classique","Il ne peut être traité que par des médicaments"],a:1},
-{level:'B2',text:"Dans notre émission consacrée aux changements climatiques au Canada, notre correspondante rapporte que l'Arctique canadien se réchauffe quatre fois plus vite que le reste de la planète. Cette fonte accélérée des glaces ouvre de nouvelles voies maritimes commerciales, ce qui suscite des convoitises géopolitiques. Simultanément, elle menace les communautés inuites dont les modes de vie et les infrastructures sont directement dépendants de la glace.",q:"Pourquoi la fonte des glaces arctiques suscite-t-elle des tensions géopolitiques ?",opts:["Elle modifie les frontières officielles des pays arctiques","Elle ouvre de nouvelles routes commerciales qui intéressent plusieurs puissances","Elle favorise une migration massive vers le sud","Elle déstabilise les bases militaires canadiennes"],a:1},
-// ── C1 (3) ────────────────────────────────────────────────
-{level:'C1',text:"Dans cette tribune, la juriste constitutionnaliste analyse l'arrêt de la Cour suprême sur la compétence fédérale en matière de tarification du carbone. Elle explique que la Cour a reconnu que les changements climatiques constituent une menace suffisamment grave pour justifier l'utilisation de la compétence fédérale dite de paix, ordre et bon gouvernement, généralement réservée aux situations d'urgence nationale. Les provinces dissidentes, notamment l'Alberta, considèrent ce jugement comme une intrusion inacceptable dans leurs compétences exclusives sur les ressources naturelles.",q:"Sur quel fondement constitutionnel le gouvernement fédéral a-t-il justifié sa tarification du carbone ?",opts:["Sur son pouvoir de taxation directe des provinces","Sur la compétence de paix, ordre et bon gouvernement face à une menace nationale","Sur les accords environnementaux internationaux signés par le Canada","Sur le principe de solidarité fiscale entre les provinces"],a:1},
-{level:'C1',text:"Cet historien spécialiste du Québec analyse les origines profondes du nationalisme québécois contemporain. Il explique que la Révolution tranquille des années soixante ne doit pas être comprise comme une rupture ex nihilo, mais comme l'aboutissement d'un long processus de maturation intellectuelle dans lequel des penseurs comme Lionel Groulx avaient jeté les bases d'une conscience nationale distincte. Le glissement du nationalisme ethnique vers un nationalisme dit civique, qui définit la nation québécoise autour du partage de la langue française et de valeurs communes plutôt que de l'origine, constitue selon lui la transformation politique majeure du dernier demi-siècle.",q:"Quelle transformation majeure du nationalisme québécois cet historien identifie-t-il ?",opts:["Le passage d'un nationalisme catholique à un nationalisme laïque","Le glissement d'un nationalisme ethnique vers un nationalisme civique","L'abandon du projet d'indépendance au profit de l'autonomie dans le fédéralisme","Le remplacement du nationalisme politique par un nationalisme économique"],a:1},
-{level:'C1',text:"Dans ce débat d'experts sur l'avenir de l'intelligence artificielle, la chercheuse en éthique soulève la question des biais systémiques dans les algorithmes décisionnels utilisés dans le domaine de l'emploi et de la justice. Elle argue que lorsque ces systèmes sont entraînés sur des données historiques reflétant des inégalités passées, ils tendent à reproduire et amplifier ces inégalités plutôt qu'à les corriger. Le paradoxe, précise-t-elle, est que l'apparente objectivité mathématique de ces outils confère à ces biais une légitimité institutionnelle qu'ils n'auraient pas si les mêmes décisions étaient prises par des humains.",q:"Quel paradoxe la chercheuse identifie-t-elle dans l'utilisation des algorithmes ?",opts:["Les algorithmes prennent plus de temps que les humains mais sont moins fiables","L'objectivité apparente des algorithmes donne une légitimité institutionnelle à des biais discriminatoires","Les algorithmes sont plus équitables que les humains mais moins acceptés","L'utilisation des algorithmes réduit les emplois sans améliorer la qualité des décisions"],a:1},
-];
-
-// ═══════════════════════════════════════════════════════════
-// SL FINAL SODAP – 20 QUESTIONS UNIQUES (niveaux B1→C1)
-// ═══════════════════════════════════════════════════════════
-const SL_FINAL_SODAP = [
-{s:"À peine ___ -il son discours que les applaudissements éclatèrent.",opts:["a terminé","avait-il terminé","terminait","terminait-il"],a:1,type:"Inversion après adverbe"},
-{s:"Le directeur exige que chaque rapport ___ remis avant vendredi.",opts:["soit","est","sera","serait"],a:0,type:"Subjonctif présent passif"},
-{s:"C'est grâce ___ efforts que ce projet a pu aboutir.",opts:["à ses","à leur","aux","des"],a:2,type:"Préposition devant pluriel"},
-{s:"Il avait à peine fermé les yeux ___ le téléphone sonna.",opts:["que","quand","alors","lorsqu'"],a:0,type:"Corrélation à peine… que"},
-{s:"Nous ignorions ___ elle reviendrait ou non.",opts:["si","que","dont","quoi"],a:0,type:"Interrogative indirecte"},
-{s:"La loi, ___ application a été suspendue, suscite encore des débats.",opts:["dont l'","de laquelle l'","que son","qui son"],a:0,type:"Relatif dont + déterminant"},
-{s:"___ courageux qu'il soit, il ne peut pas tout surmonter seul.",opts:["Aussi","Si","Même","Pour"],a:0,type:"Subjonctif concession (aussi… que)"},
-{s:"Le problème vient ___ les données n'ont pas été vérifiées.",opts:["de ce que","du fait que","que","de ce qu'"],a:3,type:"Locution causale de ce que + élision"},
-{s:"On lui demanda de présenter le rapport ___ il était l'auteur.",opts:["dont","duquel","que","d'où"],a:0,type:"Relatif dont (complément du nom)"},
-{s:"___ les difficultés rencontrées, elle a maintenu ses objectifs.",opts:["Malgré","Bien que","Quoique","En dépit"],a:0,type:"Préposition de concession (sans verbe)"},
-{s:"Ni le temps ni l'argent ne ___ manqué pour réaliser ce projet.",opts:["lui ont","lui a","leur ont","lui avait"],a:0,type:"Accord avec ni… ni + pronom"},
-{s:"La réforme devrait permettre ___ plus facilement les procédures.",opts:["de simplifier","à simplifier","qu'on simplifie","simplifier"],a:0,type:"Construction infinitive (permettre de)"},
-{s:"Ce n'est qu'après une longue réflexion ___ elle prit sa décision.",opts:["qu'","que","dont","lorsque"],a:1,type:"Mise en relief c'est… que"},
-{s:"Il a été décidé que les résultats ___ publiés sous trente jours.",opts:["seraient","seront","soient","aient été"],a:0,type:"Conditionnel dans discours indirect"},
-{s:"Plus la situation ___, moins on trouvait de solutions adaptées.",opts:["se complexifiait","se complexifie","s'est complexifiée","se complexifierait"],a:0,type:"Concordance des temps (plus… moins)"},
-{s:"Ayant ___ ses erreurs, il fut autorisé à reprendre son poste.",opts:["reconnu","reconnaissant","su reconnaître","reconnaître"],a:0,type:"Participe passé composé absolu"},
-{s:"Les candidats dont les dossiers ___ incomplets seront contactés.",opts:["seraient","seront","sont","soient"],a:2,type:"Relatif dont + verbe"},
-{s:"Il s'agit ___ question fondamentale qui mérite une réponse urgente.",opts:["d'une","d'une telle","une","de la"],a:0,type:"Construction il s'agit de"},
-{s:"Quoi qu'il ___, nous respecterons notre engagement initial.",opts:["arrive","arrivera","est arrivé","arriverait"],a:0,type:"Subjonctif (quoi que)"},
-{s:"C'est à force ___ et de persévérance qu'on atteint l'excellence.",opts:["de travail","du travail","au travail","par travail"],a:0,type:"Locution à force de + nom sans article"},
-];
-
 
 // Build CE series with level dist
 const CE_CANADA_SERIES = buildSeriesFromBank(CE_TEXT_BANK, 40, 40, DIST_40);
@@ -3498,30 +3409,32 @@ function startFinalExam(type, seriesNum) {
 // ═══════════════════════════════════════════
 // FINAL EXAM ENGINE
 // ═══════════════════════════════════════════
-function renderFinalExam() {
-  const f = state.final;
+// ── دالة مشتركة: تبني أقسام الامتحان النهائي (CO+CE[+SL]) من نفس بنوك السيريات الحية ──
+// تُستعمل من renderFinalExam / finalPlayAudio / answerFinal / renderFinalResults حتى يبقى
+// السؤال المعروض + الصوت المُشغَّل + تصحيح الإجابة + النتيجة النهائية متطابقين دائماً،
+// ويعكسوا فوراً أي سؤال تُضيفه الإدارة لنفس رقم السيري (بدل بنك منفصل وثابت).
+function finalGetSections(f) {
   const isCanada = f.type === 'canada';
-  const totalMinutes = isCanada ? 90 : 110;
-  const sn = (f.series || 1) - 1; // 0-based index
-
-  // Use series data from existing banks (same as training sections)
-  const coQuestions = isCanada
-    ? CO_CANADA_SERIES[sn].questions
-    : CO_SODAP_SERIES[sn].questions;
-  const ceQuestions = isCanada
-    ? CE_CANADA_SERIES[sn].questions
-    : CE_SODAP_SERIES[sn].questions;
-  const slQuestions = SL_SERIES_DATA[sn].questions.map(q=>({...q,opts:q.opts,a:q.a,title:q.type,text:q.s}));
-
-  const sections = isCanada
+  const sn = (f.series || 1) - 1;
+  const coQuestions = isCanada ? CO_CANADA_SERIES[sn].questions : CO_SODAP_SERIES[sn].questions;
+  const ceQuestions = isCanada ? CE_CANADA_SERIES[sn].questions : CE_SODAP_SERIES[sn].questions;
+  const slQuestions = SL_SERIES_DATA[sn].questions.map(q => ({...q, opts: q.opts, a: q.a, title: q.type, text: q.s}));
+  return isCanada
     ? [{name:'Compréhension Orale', questions: coQuestions, icon:'🎧', time: 50*60},
        {name:'Compréhension Écrite', questions: ceQuestions, icon:'📖', time: 40*60}]
     : [{name:'Compréhension Orale', questions: coQuestions, icon:'🎧', time: 50*60},
        {name:'Compréhension Écrite', questions: ceQuestions, icon:'📖', time: 40*60},
        {name:'Structures de Langue', questions: slQuestions, icon:'🔤', time: 20*60}];
+}
+
+function renderFinalExam() {
+  const f = state.final;
+  const isCanada = f.type === 'canada';
+  const totalMinutes = isCanada ? 90 : 110;
+  const sections = finalGetSections(f);
 
   const sec = f.section;
-  if (sec >= sections.length) { renderFinalResults(sections); return; }
+  if (sec >= sections.length) { renderFinalResults(); return; }
   const currentSec = sections[sec];
   const total = currentSec.questions.length;
   const done = Object.keys(f.answers[sec]||{}).length;
@@ -3626,10 +3539,7 @@ function renderFinalExam() {
 
 function finalPlayAudio() {
   const f = state.final;
-  const isCanada = f.type === 'canada';
-  const secs = isCanada
-    ? [{questions: CO_FINAL_CANADA},{questions: CE_FINAL_CANADA}]
-    : [{questions: CO_FINAL_SODAP},{questions: CE_FINAL_CANADA},{questions: SL_FINAL_SODAP}];
+  const secs = finalGetSections(f);
   const sec = f.section;
   const qi = f.qi || 0;
   if (sec >= secs.length) return;
@@ -3648,11 +3558,9 @@ function answerFinal(qi, oi) {
   if (f.answers[f.section][qi] !== undefined) return;
   f.answers[f.section][qi] = oi;
   const isCanada = f.type === 'canada';
-  const secs = isCanada
-    ? [CO_FINAL_CANADA, CE_FINAL_CANADA]
-    : [CO_FINAL_SODAP, CE_FINAL_CANADA, SL_FINAL_SODAP.map(q=>({...q}))];
-  if (oi === secs[f.section][qi].a) f.score++;
-  const total = secs[f.section].length;
+  const secs = finalGetSections(f);
+  if (oi === secs[f.section].questions[qi].a) f.score++;
+  const total = secs[f.section].questions.length;
   const isCO = (isCanada ? ['CO','CE'] : ['CO','CE','SL'])[f.section] === 'CO';
   renderFinalExam();
   const delay = isCO ? 1800 : 1500;
@@ -3693,20 +3601,15 @@ function renderFinalSectionDone(sec, answers, secIdx, sections) {
       <div class="rb-item"><div class="rb-n green">${correct}</div><div class="rb-l">Correctes</div></div>
       <div class="rb-item"><div class="rb-n red">${total-correct}</div><div class="rb-l">Incorrectes</div></div>
     </div>
-    ${secIdx+1 < sections.length ? `<button class="btn-primary" onclick="nextFinalSection()">Section suivante : ${sections[secIdx+1].name} →</button>` : `<button class="btn-primary" onclick="renderFinalResults([])">Voir les résultats finaux 🏁</button>`}
+    ${secIdx+1 < sections.length ? `<button class="btn-primary" onclick="nextFinalSection()">Section suivante : ${sections[secIdx+1].name} →</button>` : `<button class="btn-primary" onclick="renderFinalResults()">Voir les résultats finaux 🏁</button>`}
   </div>`;
 }
 
-function renderFinalResults(sections) {
+function renderFinalResults() {
   stopTimer();
   const f = state.final;
   const isCanada = f.type === 'canada';
-  const allSections = isCanada
-    ? [{name:'Compréhension Orale', questions: CO_FINAL_CANADA, icon:'🎧'},
-       {name:'Compréhension Écrite', questions: CE_FINAL_CANADA, icon:'📖'}]
-    : [{name:'Compréhension Orale', questions: CO_FINAL_SODAP, icon:'🎧'},
-       {name:'Compréhension Écrite', questions: CE_FINAL_CANADA, icon:'📖'},
-       {name:'Structures de Langue', questions: SL_FINAL_SODAP, icon:'🔤'}];
+  const allSections = finalGetSections(f);
 
   let totalQ = 0, totalC = 0, totalW = 0, totalU = 0;
   let gridHtml = '';
@@ -5516,14 +5419,14 @@ function qbWatchFirebase() {
 // ── Tab switching ──
 let _qbActiveTab = 'co';
 function qbShowTab(tab) {
-  ['co','ce','sl','ee','eo'].forEach(t => {
+  ['co','ce','sl','ee','eo','final'].forEach(t => {
     const panel = document.getElementById('qbPanel-' + t);
     const btn = document.getElementById('qbTab-' + t);
     if (panel) panel.style.display = t === tab ? '' : 'none';
     if (btn) btn.classList.toggle('active', t === tab);
   });
   _qbActiveTab = tab;
-  qbRenderList(tab);
+  if (tab === 'final') { qbFinalOnExamTypeChange(); qbFinalRenderTable(); } else { qbRenderList(tab); }
 }
 
 // ── File handler: converts file to base64, shows preview ──
@@ -6216,6 +6119,119 @@ async function qbDeleteSeries(section, seriesNum) {
   qbLoadAllIntoLiveBanks();
   qbRenderList(section);
   qbUpdateCounts();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// الامتحان النهائي — نشر سيري كاملة (CO+CE[+SL]) دفعة واحدة.
+// البيانات تُحفظ في نفس بنوك CO/CE/SL العادية (نفس آلية اللصق الذكي) —
+// لا بنك منفصل، فأي سؤال يُنشر هنا يظهر مباشرة في التدريب العادي وفي
+// الامتحان النهائي معاً لنفس رقم السيري، بشكل ثابت ودائم.
+// ═══════════════════════════════════════════════════════════════
+
+// ── إخفاء/إظهار جزء SL — يخص TCF SO/DAP فقط (Canada = CO+CE فقط) ──
+function qbFinalOnExamTypeChange() {
+  const exam = qbVal('final-exam');
+  const slBlock = document.getElementById('final-sl-block');
+  if (slBlock) slBlock.style.display = (exam === 'canada') ? 'none' : '';
+}
+
+// ── معاينة جزء واحد (يعيد استعمال نفس قارئ اللصق الذكي العام) ──
+function qbFinalPreview(part) {
+  qbBulkParsePreview(part, 'final-' + part);
+}
+
+// ── نشر السيري: كل جزء مملوء (CO/CE/SL) يُضاف مباشرة إلى بنك القسم العادي؛ أي جزء فارغ يُترك بدون تغيير ──
+async function qbFinalPublish() {
+  const seriesNum = qbSeriesNumVal('final-seriesNum');
+  const exam = qbVal('final-exam');
+  const parts = [
+    { section: 'co', label: 'Compréhension Orale' },
+    { section: 'ce', label: 'Compréhension Écrite' },
+    { section: 'sl', label: 'Structures de Langue' }
+  ];
+  let totalAdded = 0;
+  const addedParts = [];
+  try {
+    for (const part of parts) {
+      const idPrefix = 'final-' + part.section;
+      const raw = qbVal(idPrefix + '-bulk-textarea');
+      if (!raw) continue; // جزء فارغ = يُترك بدون أي تغيير
+      const { fresh } = qbBulkFreshItems(part.section, idPrefix);
+      if (!fresh.length) continue;
+
+      const bank = qbGet(part.section);
+      const now = new Date().toLocaleDateString('fr-FR');
+      fresh.forEach((p, i) => {
+        let item = { id: Date.now() + i, addedAt: now, exam, seriesNum };
+        if (part.section === 'co') item = Object.assign(item, { text: p.text, q: p.q, opts: p.opts, a: p.a, level: p.level, justification: p.justification || '' });
+        else if (part.section === 'ce') item = Object.assign(item, { title: p.title || '', text: p.text, q: p.q, opts: p.opts, a: p.a, level: p.level, justification: p.justification || '' });
+        else if (part.section === 'sl') item = Object.assign(item, { s: p.s, type: p.type, opts: p.opts, a: p.a, level: p.level, justification: p.justification || '' });
+        bank.push(item);
+      });
+      await qbSave(part.section, bank);
+      totalAdded += fresh.length;
+      addedParts.push(part.label + ' (' + fresh.length + ')');
+
+      const ta = document.getElementById(idPrefix + '-bulk-textarea'); if (ta) ta.value = '';
+      const pv = document.getElementById(idPrefix + '-bulk-preview'); if (pv) pv.innerHTML = '';
+    }
+
+    if (!totalAdded) { alert('⚠️ ما فماش أي محتوى صالح للنشر. عبّي جزءاً واحداً على الأقل ثم اضغطي «معاينة» وتأكدي من التنسيق.'); return; }
+
+    qbLoadAllIntoLiveBanks();
+    ['co', 'ce', 'sl'].forEach(s => qbRenderList(s));
+    qbUpdateCounts();
+    qbFinalRenderTable();
+    alert('✅ تم نشر السيري S' + seriesNum + ' — ' + addedParts.join(' · ') + '. يراها الطلاب فوراً، في التدريب العادي وفي الامتحان النهائي معاً.');
+  } catch (e) {
+    console.error('qbFinalPublish failed:', e);
+    alert('❌ حدث خطأ غير متوقع ولم يكتمل النشر.\n\nتفصيل الخطأ: ' + (e && e.message ? e.message : e));
+  }
+}
+
+// ── جدول: كم سؤال إضافي (فوق المحتوى الأساسي الموجود دائماً) أضافته الإدارة لكل سيري، عبر CO/CE/SL ──
+function qbFinalRenderTable() {
+  const tableEl = document.getElementById('final-table');
+  if (!tableEl) return;
+  const banks = { co: qbGet('co'), ce: qbGet('ce'), sl: qbGet('sl') };
+  const allSeriesNums = new Set();
+  ['co', 'ce', 'sl'].forEach(s => banks[s].forEach(it => allSeriesNums.add(it.seriesNum || 1)));
+  const sortedSeries = [...allSeriesNums].sort((a, b) => a - b);
+
+  if (!sortedSeries.length) {
+    tableEl.innerHTML = '<p style="color:var(--text-muted);font-size:.82rem;padding:.5rem;">لا يوجد أي محتوى إضافي مضاف بعد عبر أي قسم. الامتحان النهائي يشتغل عادي بالمحتوى الأساسي الموجود لكل الـ 40 سيري.</p>';
+    return;
+  }
+
+  const cell = n => n > 0 ? `<span style="color:var(--green);font-weight:700;">${n}</span>` : '<span style="color:var(--text-muted);">—</span>';
+  let html = `<table class="qb-series-table"><thead><tr>
+    <th>السيري</th><th>🎧 CO</th><th>📖 CE</th><th>🔤 SL</th><th>إجراء</th>
+  </tr></thead><tbody>`;
+  sortedSeries.forEach(sn => {
+    const nCo = banks.co.filter(it => (it.seriesNum || 1) === sn).length;
+    const nCe = banks.ce.filter(it => (it.seriesNum || 1) === sn).length;
+    const nSl = banks.sl.filter(it => (it.seriesNum || 1) === sn).length;
+    html += `<tr><td style="font-weight:700;">S${sn}</td><td>${cell(nCo)}</td><td>${cell(nCe)}</td><td>${cell(nSl)}</td>
+      <td><button class="admin-btn danger small" onclick="qbFinalDeleteSeries(${sn})">🗑️ حذف الكل</button></td></tr>`;
+  });
+  html += `</tbody></table>`;
+  tableEl.innerHTML = html;
+}
+
+// ── حذف كل المحتوى الإضافي (CO+CE+SL معاً) الخاص بسيري معينة دفعة واحدة ──
+async function qbFinalDeleteSeries(seriesNum) {
+  const banks = { co: qbGet('co'), ce: qbGet('ce'), sl: qbGet('sl') };
+  const totalToRemove = ['co', 'ce', 'sl'].reduce((sum, s) => sum + banks[s].filter(it => (it.seriesNum || 1) === seriesNum).length, 0);
+  if (!totalToRemove) return;
+  if (!confirm(`حذف كل المحتوى الإضافي (CO+CE+SL) في السيري S${seriesNum} (${totalToRemove} عنصر)؟`)) return;
+  for (const s of ['co', 'ce', 'sl']) {
+    const filtered = banks[s].filter(it => (it.seriesNum || 1) !== seriesNum);
+    if (filtered.length !== banks[s].length) await qbSave(s, filtered);
+  }
+  qbLoadAllIntoLiveBanks();
+  ['co', 'ce', 'sl'].forEach(s => qbRenderList(s));
+  qbUpdateCounts();
+  qbFinalRenderTable();
 }
 
 // ── Update counts in tabs (counts question-slots per exam target; "both" counts toward both) ──
