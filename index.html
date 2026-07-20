@@ -450,6 +450,13 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
 .abcd-btn.selected-D{background:rgba(230,57,70,.2);border-color:var(--accent2);color:var(--accent2);}
 @keyframes qbFlash{0%{background:rgba(6,214,160,.3);}100%{background:var(--surface2);}}
 .qb-added-flash{animation:qbFlash 1.2s ease-out;}
+.lvl-a1{background:rgba(6,214,160,.2);color:var(--green);border:1px solid var(--green);}
+.qb-bulk-box{background:var(--surface);border:1.5px dashed var(--accent);border-radius:var(--radius);padding:1rem 1.1rem;margin-bottom:1.1rem;}
+.qb-bulk-preview-item{border:1px solid var(--border);border-radius:8px;padding:.55rem .8rem;margin-bottom:.5rem;font-size:.8rem;background:var(--surface2);line-height:1.6;}
+.qb-series-table{width:100%;border-collapse:collapse;font-size:.76rem;}
+.qb-series-table th,.qb-series-table td{padding:.4rem .6rem;border:1px solid var(--border);text-align:center;}
+.qb-series-table th{background:var(--surface2);color:var(--text-muted);}
+.qb-series-table td:first-child,.qb-series-table th:first-child{text-align:right;}
 
 /* ═══ FAQ ═══ */
 .faq-section{max-width:800px;margin:2rem auto;padding:0 1rem;}
@@ -1164,6 +1171,27 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
 
       <!-- ─── CO: Compréhension Orale ─── -->
       <div id="qbPanel-co" class="qb-form-panel">
+        <div class="qb-bulk-box">
+          <div style="font-size:.82rem;color:var(--accent);font-weight:700;margin-bottom:.5rem;">✨ لصق ذكي من Gemini / ChatGPT — إضافة عدة أسئلة دفعة واحدة</div>
+          <p style="font-size:.76rem;color:var(--text-muted);line-height:1.7;margin:0 0 .6rem;">
+            الصقي النص بصيغة: <code>Question 1</code> ثم <code>Niveau</code> ثم <code>Script (Message) : « ... »</code> ثم السؤال ثم A) B) C) D) ثم <code>Réponse correcte</code>، وكرري لكل سؤال (Question 2, Question 3...). كل الدفعة تُضاف إلى نفس السيري المحدد أدناه — ثابت، لا عشوائي:
+          </p>
+          <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;">
+            <input type="number" id="co-bulk-seriesNum" class="admin-input" style="width:110px;margin-bottom:0;" min="1" max="40" value="1" placeholder="رقم السيري" title="رقم السيري الذي ستُضاف فيه كل أسئلة هذه الدفعة">
+            <select id="co-bulk-exam" class="admin-input" style="width:auto;flex:1;min-width:160px;margin-bottom:0;">
+              <option value="canada">TCF Canada 🍁</option>
+              <option value="sodap">TCF SO/DAP 🇫🇷</option>
+              <option value="both" selected>كلاهما</option>
+            </select>
+          </div>
+          <textarea id="co-bulk-textarea" class="admin-input" rows="8" style="margin-top:.6rem;" placeholder="Question 1&#10;Niveau : A1&#10;&#10;Script (Message) : « ... »&#10;&#10;السؤال هنا ؟&#10;&#10;A) ...&#10;B) ...&#10;C) ...&#10;D) ...&#10;&#10;Réponse correcte : B&#10;&#10;Question 2&#10;..."></textarea>
+          <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
+            <button class="admin-btn" onclick="qbBulkParsePreview('co')">🔍 معاينة الأسئلة</button>
+            <button class="admin-btn success hidden" id="co-bulk-confirm-btn" onclick="qbBulkConfirmAdd('co')">➕ إضافة كل الأسئلة الصالحة</button>
+          </div>
+          <div id="co-bulk-preview"></div>
+        </div>
+        <div style="border-top:1px dashed var(--border);margin:0 0 1.1rem;padding-top:.8rem;font-size:.76rem;color:var(--text-muted);">✍️ أو أضيفي سؤالاً واحداً يدوياً:</div>
         <div style="background:rgba(0,198,255,.07);border:1px solid var(--accent);border-radius:10px;padding:1.25rem;margin-bottom:1.25rem;">
           <div style="font-size:.82rem;color:var(--accent);font-weight:700;margin-bottom:.75rem;">🎧 إضافة سؤال – Compréhension Orale</div>
           <label class="qb-label">📎 رفع ملف (صوت أو صورة)</label>
@@ -1199,13 +1227,15 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
             <option value="C1">C1 – Avancé</option>
             <option value="C2">C2 – Maîtrise</option>
           </select>
+          <label class="qb-label">🔢 رقم السيري (Série 1-40) — ثابت دائماً، بدون عشوائية</label>
+          <input type="number" id="co-seriesNum" class="admin-input" min="1" max="40" value="1" placeholder="رقم السيري" title="رقم السيري الذي سيُضاف فيه هذا السؤال بشكل ثابت">
           <label class="qb-label">🎯 إضافة إلى</label>
           <select id="co-exam" class="admin-input">
             <option value="canada">TCF Canada 🍁</option>
             <option value="sodap">TCF SO/DAP 🇫🇷</option>
             <option value="both">كلاهما</option>
           </select>
-          <button class="admin-btn success" style="margin-top:.75rem;" onclick="qbAddQuestion('co')">➕ إضافة إلى البنك فوراً ⚡</button>
+          <button class="admin-btn success" id="co-manual-add-btn" style="margin-top:.75rem;" onclick="qbAddQuestion('co')">➕ إضافة إلى البنك فوراً ⚡</button>
         </div>
         <div style="font-weight:700;font-size:.85rem;color:var(--text-muted);margin-bottom:.5rem;">الأسئلة المضافة — TCF Canada 🍁 (<span id="co-count-canada">0</span>) | TCF SO/DAP 🇫🇷 (<span id="co-count-sodap">0</span>)</div>
         <div id="co-qlist" style="max-height:320px;overflow-y:auto;"></div>
@@ -1213,6 +1243,27 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
 
       <!-- ─── CE: Compréhension Écrite ─── -->
       <div id="qbPanel-ce" class="qb-form-panel" style="display:none;">
+        <div class="qb-bulk-box">
+          <div style="font-size:.82rem;color:var(--accent);font-weight:700;margin-bottom:.5rem;">✨ لصق ذكي من Gemini / ChatGPT — إضافة عدة أسئلة قراءة دفعة واحدة</div>
+          <p style="font-size:.76rem;color:var(--text-muted);line-height:1.7;margin:0 0 .6rem;">
+            الصقي بصيغة: <code>Question 1</code> / <code>Niveau</code> / <code>Titre</code> (اختياري) / <code>Texte : ...</code> / <code>Question : ...</code> / A) B) C) D) / <code>Réponse correcte</code>. كل الدفعة تُضاف إلى نفس السيري المحدد أدناه — ثابت، لا عشوائي:
+          </p>
+          <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;">
+            <input type="number" id="ce-bulk-seriesNum" class="admin-input" style="width:110px;margin-bottom:0;" min="1" max="40" value="1" placeholder="رقم السيري" title="رقم السيري">
+            <select id="ce-bulk-exam" class="admin-input" style="width:auto;flex:1;min-width:160px;margin-bottom:0;">
+              <option value="canada">TCF Canada 🍁</option>
+              <option value="sodap">TCF SO/DAP 🇫🇷</option>
+              <option value="both" selected>كلاهما</option>
+            </select>
+          </div>
+          <textarea id="ce-bulk-textarea" class="admin-input" rows="9" style="margin-top:.6rem;" placeholder="Question 1&#10;Niveau : B1&#10;Titre : La révolution numérique&#10;&#10;Texte : Depuis quelques années, le numérique transforme...&#10;&#10;Question : Quel est le thème principal de ce texte ?&#10;&#10;A) ...&#10;B) ...&#10;C) ...&#10;D) ...&#10;&#10;Réponse correcte : B&#10;&#10;Question 2&#10;..."></textarea>
+          <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
+            <button class="admin-btn" onclick="qbBulkParsePreview('ce')">🔍 معاينة الأسئلة</button>
+            <button class="admin-btn success hidden" id="ce-bulk-confirm-btn" onclick="qbBulkConfirmAdd('ce')">➕ إضافة كل الأسئلة الصالحة</button>
+          </div>
+          <div id="ce-bulk-preview"></div>
+        </div>
+        <div style="border-top:1px dashed var(--border);margin:0 0 1.1rem;padding-top:.8rem;font-size:.76rem;color:var(--text-muted);">✍️ أو أضيفي سؤالاً واحداً يدوياً:</div>
         <div style="background:rgba(0,198,255,.07);border:1px solid var(--accent);border-radius:10px;padding:1.25rem;margin-bottom:1.25rem;">
           <div style="font-size:.82rem;color:var(--accent);font-weight:700;margin-bottom:.75rem;">📖 إضافة سؤال – Compréhension Écrite</div>
           <label class="qb-label">📎 رفع ملف (صورة أو PDF)</label>
@@ -1247,13 +1298,15 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
             <option value="B1" selected>B1</option><option value="B2">B2</option>
             <option value="C1">C1</option><option value="C2">C2</option>
           </select>
+          <label class="qb-label">🔢 رقم السيري (Série 1-40) — ثابت دائماً، بدون عشوائية</label>
+          <input type="number" id="ce-seriesNum" class="admin-input" min="1" max="40" value="1" placeholder="رقم السيري" title="رقم السيري الذي سيُضاف فيه هذا السؤال بشكل ثابت">
           <label class="qb-label">🎯 إضافة إلى</label>
           <select id="ce-exam" class="admin-input">
             <option value="canada">TCF Canada 🍁</option>
             <option value="sodap">TCF SO/DAP 🇫🇷</option>
             <option value="both">كلاهما</option>
           </select>
-          <button class="admin-btn success" style="margin-top:.75rem;" onclick="qbAddQuestion('ce')">➕ إضافة إلى البنك فوراً ⚡</button>
+          <button class="admin-btn success" id="ce-manual-add-btn" style="margin-top:.75rem;" onclick="qbAddQuestion('ce')">➕ إضافة إلى البنك فوراً ⚡</button>
         </div>
         <div style="font-weight:700;font-size:.85rem;color:var(--text-muted);margin-bottom:.5rem;">الأسئلة المضافة — TCF Canada 🍁 (<span id="ce-count-canada">0</span>) | TCF SO/DAP 🇫🇷 (<span id="ce-count-sodap">0</span>)</div>
         <div id="ce-qlist" style="max-height:320px;overflow-y:auto;"></div>
@@ -1261,6 +1314,26 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
 
       <!-- ─── SL: Structures de Langue ─── -->
       <div id="qbPanel-sl" class="qb-form-panel" style="display:none;">
+        <div class="qb-bulk-box">
+          <div style="font-size:.82rem;color:var(--accent);font-weight:700;margin-bottom:.5rem;">✨ لصق ذكي من Gemini / ChatGPT — إضافة عشرات أسئلة القواعد دفعة واحدة</div>
+          <p style="font-size:.76rem;color:var(--text-muted);line-height:1.7;margin:0 0 .6rem;">
+            الصقي بصيغة: <code>Question 1</code> / <code>Niveau</code> / <code>Type</code> / <code>Phrase</code> (بها ___ للفراغ) / A) B) C) D) / <code>Réponse correcte</code>. كل الدفعة تُضاف إلى نفس السيري المحدد أدناه — ثابت، لا عشوائي:
+          </p>
+          <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;">
+            <input type="number" id="sl-bulk-seriesNum" class="admin-input" style="width:110px;margin-bottom:0;" min="1" max="40" value="1" placeholder="رقم السيري" title="رقم السيري">
+            <select id="sl-bulk-exam" class="admin-input" style="width:auto;flex:1;min-width:160px;margin-bottom:0;">
+              <option value="sodap">TCF SO/DAP 🇫🇷</option>
+              <option value="both" selected>كلاهما (Canada + SO/DAP)</option>
+            </select>
+          </div>
+          <textarea id="sl-bulk-textarea" class="admin-input" rows="8" style="margin-top:.6rem;" placeholder="Question 1&#10;Niveau : B2&#10;Type : Subjonctif présent&#10;Phrase : Il faut que tu ___ ton dossier avant vendredi.&#10;&#10;A) rendes&#10;B) rends&#10;C) rendras&#10;D) aies rendu&#10;&#10;Réponse correcte : A&#10;&#10;Question 2&#10;..."></textarea>
+          <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
+            <button class="admin-btn" onclick="qbBulkParsePreview('sl')">🔍 معاينة الأسئلة</button>
+            <button class="admin-btn success hidden" id="sl-bulk-confirm-btn" onclick="qbBulkConfirmAdd('sl')">➕ إضافة كل الأسئلة الصالحة</button>
+          </div>
+          <div id="sl-bulk-preview"></div>
+        </div>
+        <div style="border-top:1px dashed var(--border);margin:0 0 1.1rem;padding-top:.8rem;font-size:.76rem;color:var(--text-muted);">✍️ أو أضيفي سؤالاً واحداً يدوياً:</div>
         <div style="background:rgba(0,198,255,.07);border:1px solid var(--accent);border-radius:10px;padding:1.25rem;margin-bottom:1.25rem;">
           <div style="font-size:.82rem;color:var(--accent);font-weight:700;margin-bottom:.75rem;">🔤 إضافة سؤال – Structures de Langue</div>
           <label class="qb-label">📎 رفع ملف (صورة)</label>
@@ -1293,12 +1366,14 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
             <option value="B1" selected>B1</option><option value="B2">B2</option>
             <option value="C1">C1</option><option value="C2">C2</option>
           </select>
+          <label class="qb-label">🔢 رقم السيري (Série 1-40) — ثابت دائماً، بدون عشوائية</label>
+          <input type="number" id="sl-seriesNum" class="admin-input" min="1" max="40" value="1" placeholder="رقم السيري" title="رقم السيري الذي سيُضاف فيه هذا السؤال بشكل ثابت">
           <label class="qb-label">🎯 إضافة إلى</label>
           <select id="sl-exam" class="admin-input">
             <option value="sodap">TCF SO/DAP 🇫🇷</option>
             <option value="both">كلاهما (Canada + SO/DAP)</option>
           </select>
-          <button class="admin-btn success" style="margin-top:.75rem;" onclick="qbAddQuestion('sl')">➕ إضافة إلى البنك فوراً ⚡</button>
+          <button class="admin-btn success" id="sl-manual-add-btn" style="margin-top:.75rem;" onclick="qbAddQuestion('sl')">➕ إضافة إلى البنك فوراً ⚡</button>
         </div>
         <div style="font-weight:700;font-size:.85rem;color:var(--text-muted);margin-bottom:.5rem;">الأسئلة المضافة — TCF SO/DAP 🇫🇷 (<span id="sl-count">0</span>)</div>
         <div id="sl-qlist" style="max-height:320px;overflow-y:auto;"></div>
@@ -1306,6 +1381,27 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
 
       <!-- ─── EE: Expression Écrite ─── -->
       <div id="qbPanel-ee" class="qb-form-panel" style="display:none;">
+        <div class="qb-bulk-box">
+          <div style="font-size:.82rem;color:var(--accent);font-weight:700;margin-bottom:.5rem;">✨ لصق ذكي من Gemini / ChatGPT — إضافة عدة مواضيع دفعة واحدة</div>
+          <p style="font-size:.76rem;color:var(--text-muted);line-height:1.7;margin:0 0 .6rem;">
+            الصقي بصيغة: <code>Consigne (Sujet N)</code> ثم النص التمهيدي (Amorce/Sujet) ثم <code>Votre tâche : ...</code> ثم <code>Exemple de réponse 1</code> و<code>Exemple de réponse 2</code>. كرري لكل موضوع — كل «Sujet» يصبح tâche مستقلة. كل الدفعة تُضاف إلى نفس السيري المحدد أدناه:
+          </p>
+          <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;">
+            <input type="number" id="ee-bulk-seriesNum" class="admin-input" style="width:110px;margin-bottom:0;" min="1" max="40" value="1" placeholder="رقم السيري" title="رقم السيري">
+            <select id="ee-bulk-exam" class="admin-input" style="width:auto;flex:1;min-width:160px;margin-bottom:0;">
+              <option value="canada">TCF Canada 🍁</option>
+              <option value="sodap">TCF SO/DAP 🇫🇷</option>
+              <option value="both" selected>كلاهما</option>
+            </select>
+          </div>
+          <textarea id="ee-bulk-textarea" class="admin-input" rows="9" style="margin-top:.6rem;" placeholder="Consigne (Sujet 1)&#10;Amorce à développer :&#10;« ... »&#10;&#10;Votre tâche : ... (Environ 100 mots).&#10;&#10;Exemple de réponse 1&#10;...&#10;&#10;Exemple de réponse 2&#10;...&#10;&#10;Consigne (Sujet 2)&#10;..."></textarea>
+          <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
+            <button class="admin-btn" onclick="qbBulkParsePreview('ee')">🔍 معاينة المواضيع</button>
+            <button class="admin-btn success hidden" id="ee-bulk-confirm-btn" onclick="qbBulkConfirmAdd('ee')">➕ إضافة كل المواضيع الصالحة</button>
+          </div>
+          <div id="ee-bulk-preview"></div>
+        </div>
+        <div style="border-top:1px dashed var(--border);margin:0 0 1.1rem;padding-top:.8rem;font-size:.76rem;color:var(--text-muted);">✍️ أو أضيفي موضوعاً واحداً يدوياً:</div>
         <div style="background:rgba(0,198,255,.07);border:1px solid var(--accent);border-radius:10px;padding:1.25rem;margin-bottom:1.25rem;">
           <div style="font-size:.82rem;color:var(--accent);font-weight:700;margin-bottom:.75rem;">✍️ إضافة tâche – Expression Écrite</div>
           <label class="qb-label">📎 رفع ملف (صورة أو PDF)</label>
@@ -1325,13 +1421,15 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
           <textarea id="ee-ex1" class="admin-input" rows="3" placeholder="اكتب النموذج الأول هنا..."></textarea>
           <label class="qb-label">💡 Exemple 2 (نموذج إجابة ثاني)</label>
           <textarea id="ee-ex2" class="admin-input" rows="3" placeholder="اكتب النموذج الثاني هنا..."></textarea>
+          <label class="qb-label">🔢 رقم السيري (Série 1-40) — ثابت دائماً، بدون عشوائية</label>
+          <input type="number" id="ee-seriesNum" class="admin-input" min="1" max="40" value="1" placeholder="رقم السيري" title="رقم السيري الذي سيُضاف فيه هذا الموضوع بشكل ثابت">
           <label class="qb-label">🎯 إضافة إلى</label>
           <select id="ee-exam" class="admin-input">
             <option value="canada">TCF Canada 🍁</option>
             <option value="sodap">TCF SO/DAP 🇫🇷</option>
             <option value="both">كلاهما</option>
           </select>
-          <button class="admin-btn success" style="margin-top:.75rem;" onclick="qbAddQuestion('ee')">➕ إضافة إلى البنك فوراً ⚡</button>
+          <button class="admin-btn success" id="ee-manual-add-btn" style="margin-top:.75rem;" onclick="qbAddQuestion('ee')">➕ إضافة إلى البنك فوراً ⚡</button>
         </div>
         <div style="font-weight:700;font-size:.85rem;color:var(--text-muted);margin-bottom:.5rem;">التâches المضافة — TCF Canada 🍁 (<span id="ee-count-canada">0</span>) | TCF SO/DAP 🇫🇷 (<span id="ee-count-sodap">0</span>)</div>
         <div id="ee-qlist" style="max-height:320px;overflow-y:auto;"></div>
@@ -1339,6 +1437,20 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
 
       <!-- ─── EO: Expression Orale ─── -->
       <div id="qbPanel-eo" class="qb-form-panel" style="display:none;">
+        <div class="qb-bulk-box">
+          <div style="font-size:.82rem;color:var(--accent);font-weight:700;margin-bottom:.5rem;">✨ لصق ذكي من Gemini / ChatGPT — إضافة عدة مواضيع دفعة واحدة</div>
+          <p style="font-size:.76rem;color:var(--text-muted);line-height:1.7;margin:0 0 .6rem;">
+            نفس صيغة Expression Écrite: <code>Consigne (Sujet N)</code> ثم النص التمهيدي ثم <code>Votre tâche : ...</code> ثم <code>Exemple de réponse 1</code> و<code>Exemple de réponse 2</code>. تُضاف تلقائياً إلى TCF Canada 🍁 فقط، ضمن السيري المحدد أدناه:
+          </p>
+          <input type="number" id="eo-bulk-seriesNum" class="admin-input" style="width:110px;" min="1" max="40" value="1" placeholder="رقم السيري" title="رقم السيري">
+          <textarea id="eo-bulk-textarea" class="admin-input" rows="9" placeholder="Consigne (Sujet 1)&#10;Amorce à développer :&#10;« ... »&#10;&#10;Votre tâche : ... (2 minutes).&#10;&#10;Exemple de réponse 1&#10;...&#10;&#10;Exemple de réponse 2&#10;..."></textarea>
+          <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
+            <button class="admin-btn" onclick="qbBulkParsePreview('eo')">🔍 معاينة المواضيع</button>
+            <button class="admin-btn success hidden" id="eo-bulk-confirm-btn" onclick="qbBulkConfirmAdd('eo')">➕ إضافة كل المواضيع الصالحة</button>
+          </div>
+          <div id="eo-bulk-preview"></div>
+        </div>
+        <div style="border-top:1px dashed var(--border);margin:0 0 1.1rem;padding-top:.8rem;font-size:.76rem;color:var(--text-muted);">✍️ أو أضيفي موضوعاً واحداً يدوياً:</div>
         <div style="background:rgba(0,198,255,.07);border:1px solid var(--accent);border-radius:10px;padding:1.25rem;margin-bottom:1.25rem;">
           <div style="font-size:.82rem;color:var(--accent);font-weight:700;margin-bottom:.75rem;">🎤 إضافة tâche – Expression Orale</div>
           <label class="qb-label">📎 رفع ملف (صوت أو صورة)</label>
@@ -1358,10 +1470,12 @@ body.light-mode nav{background:rgba(240,244,255,0.97);}
           <textarea id="eo-ex1" class="admin-input" rows="3" placeholder="اكتب النموذج الأول هنا..."></textarea>
           <label class="qb-label">💡 Exemple 2 (نموذج إجابة ثاني)</label>
           <textarea id="eo-ex2" class="admin-input" rows="3" placeholder="اكتب النموذج الثاني هنا..."></textarea>
+          <label class="qb-label">🔢 رقم السيري (Série 1-40) — ثابت دائماً، بدون عشوائية</label>
+          <input type="number" id="eo-seriesNum" class="admin-input" min="1" max="40" value="1" placeholder="رقم السيري" title="رقم السيري الذي سيُضاف فيه هذا الموضوع بشكل ثابت">
           <div style="background:rgba(0,198,255,.1);border:1px solid var(--accent);border-radius:8px;padding:.75rem 1rem;font-size:.82rem;color:var(--accent);margin-top:.5rem;">
             ℹ️ Expression Orale تُضاف فقط إلى <strong>TCF Canada 🍁</strong>
           </div>
-          <button class="admin-btn success" style="margin-top:.75rem;" onclick="qbAddQuestion('eo')">➕ إضافة إلى بنك TCF Canada فوراً ⚡</button>
+          <button class="admin-btn success" id="eo-manual-add-btn" style="margin-top:.75rem;" onclick="qbAddQuestion('eo')">➕ إضافة إلى بنك TCF Canada فوراً ⚡</button>
         </div>
         <div style="font-weight:700;font-size:.85rem;color:var(--text-muted);margin-bottom:.5rem;">التâches المضافة — TCF Canada 🍁 (<span id="eo-count">0</span>)</div>
         <div id="eo-qlist" style="max-height:320px;overflow-y:auto;"></div>
@@ -5441,6 +5555,15 @@ function qbVal(id) {
   return el ? el.value.trim() : '';
 }
 
+// ── Read & clamp a "series number" field to 1-40 (default 1) ──
+// يُستعمل مع كل حقول "رقم السيري" — يضمن دائماً رقماً صحيحاً بين 1 و40
+function qbSeriesNumVal(id) {
+  const el = document.getElementById(id);
+  const n = el ? parseInt(el.value, 10) : NaN;
+  if (!n || isNaN(n)) return 1;
+  return Math.min(Math.max(n, 1), 40);
+}
+
 // ── ABCD Answer Selector ──
 function selectAnswer(section, idx, clickedBtn) {
   const letters = ['A','B','C','D'];
@@ -5468,7 +5591,7 @@ async function qbAddQuestion(section) {
     const text = qbVal('co-text'), q = qbVal('co-q');
     const opts = [qbVal('co-opt0'), qbVal('co-opt1'), qbVal('co-opt2'), qbVal('co-opt3')];
     if (!q || opts.some(o => !o)) { alert('⚠️ يرجى ملء السؤال والخيارات الأربعة'); return; }
-    item = { ...item, text, q, opts, a: parseInt(qbVal('co-answer')), level: qbVal('co-level'), exam: qbVal('co-exam') };
+    item = { ...item, text, q, opts, a: parseInt(qbVal('co-answer')), level: qbVal('co-level'), exam: qbVal('co-exam'), seriesNum: qbSeriesNumVal('co-seriesNum') };
     ['co-text','co-q','co-opt0','co-opt1','co-opt2','co-opt3'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
     const coHidden = document.getElementById('co-answer'); if(coHidden) coHidden.value='0';
     const coSel = document.querySelector('#qbPanel-co .abcd-selector');
@@ -5478,7 +5601,7 @@ async function qbAddQuestion(section) {
     const title = qbVal('ce-title'), text = qbVal('ce-text'), q = qbVal('ce-q');
     const opts = [qbVal('ce-opt0'), qbVal('ce-opt1'), qbVal('ce-opt2'), qbVal('ce-opt3')];
     if (!text || !q || opts.some(o => !o)) { alert('⚠️ يرجى ملء النص والسؤال والخيارات الأربعة'); return; }
-    item = { ...item, title, text, q, opts, a: parseInt(qbVal('ce-answer')), level: qbVal('ce-level'), exam: qbVal('ce-exam') };
+    item = { ...item, title, text, q, opts, a: parseInt(qbVal('ce-answer')), level: qbVal('ce-level'), exam: qbVal('ce-exam'), seriesNum: qbSeriesNumVal('ce-seriesNum') };
     ['ce-title','ce-text','ce-q','ce-opt0','ce-opt1','ce-opt2','ce-opt3'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
     const ceHidden = document.getElementById('ce-answer'); if(ceHidden) ceHidden.value='0';
     const ceSel = document.querySelector('#qbPanel-ce .abcd-selector');
@@ -5488,7 +5611,7 @@ async function qbAddQuestion(section) {
     const s = qbVal('sl-sentence'), type = qbVal('sl-type');
     const opts = [qbVal('sl-opt0'), qbVal('sl-opt1'), qbVal('sl-opt2'), qbVal('sl-opt3')];
     if (!s || opts.some(o => !o)) { alert('⚠️ يرجى ملء الجملة والخيارات الأربعة'); return; }
-    item = { ...item, s, type, opts, a: parseInt(qbVal('sl-answer')), level: qbVal('sl-level'), exam: qbVal('sl-exam') };
+    item = { ...item, s, type, opts, a: parseInt(qbVal('sl-answer')), level: qbVal('sl-level'), exam: qbVal('sl-exam'), seriesNum: qbSeriesNumVal('sl-seriesNum') };
     ['sl-sentence','sl-type','sl-opt0','sl-opt1','sl-opt2','sl-opt3'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
     const slHidden = document.getElementById('sl-answer'); if(slHidden) slHidden.value='0';
     const slSel = document.querySelector('#qbPanel-sl .abcd-selector');
@@ -5497,13 +5620,13 @@ async function qbAddQuestion(section) {
   } else if (section === 'ee') {
     const consigne = qbVal('ee-consigne');
     if (!consigne) { alert('⚠️ يرجى كتابة الـ Consigne'); return; }
-    item = { ...item, task: qbVal('ee-task'), consigne, ex1: qbVal('ee-ex1'), ex2: qbVal('ee-ex2'), exam: qbVal('ee-exam') };
+    item = { ...item, task: qbVal('ee-task'), consigne, ex1: qbVal('ee-ex1'), ex2: qbVal('ee-ex2'), exam: qbVal('ee-exam'), seriesNum: qbSeriesNumVal('ee-seriesNum') };
     ['ee-consigne','ee-ex1','ee-ex2'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
 
   } else if (section === 'eo') {
     const consigne = qbVal('eo-consigne');
     if (!consigne) { alert('⚠️ يرجى كتابة الـ Consigne'); return; }
-    item = { ...item, task: qbVal('eo-task'), consigne, ex1: qbVal('eo-ex1'), ex2: qbVal('eo-ex2'), exam: 'canada' };
+    item = { ...item, task: qbVal('eo-task'), consigne, ex1: qbVal('eo-ex1'), ex2: qbVal('eo-ex2'), exam: 'canada', seriesNum: qbSeriesNumVal('eo-seriesNum') };
     ['eo-consigne','eo-ex1','eo-ex2'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   }
 
@@ -5519,8 +5642,384 @@ async function qbAddQuestion(section) {
   qbUpdateCounts();
 
   // Flash success button
-  const btn = document.querySelector(`#qbPanel-${section} .admin-btn.success`);
+  const btn = document.getElementById(section + '-manual-add-btn');
   if (btn) { const orig = btn.textContent; btn.textContent = '✅ تمت الإضافة! يراها الطلاب الآن'; btn.style.background='var(--accent)'; setTimeout(()=>{ btn.textContent=orig; btn.style.background=''; },2000); }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// COLLAGE INTELLIGENT — لصق دفعة أسئلة/مواضيع مُولّدة بواسطة الذكاء
+// الاصطناعي (Gemini, ChatGPT...) وتحويلها تلقائياً لعناصر جاهزة، مع
+// ترقيم ومستوى تلقائيين. كل الدفعة تُحفظ في نفس رقم السيري المُختار —
+// ثابت دائماً، بدون أي عشوائية.
+// ═══════════════════════════════════════════════════════════════
+
+// ── CO : "Question N / Niveau / Script (...) : « ... » / question / A-D / Réponse correcte" ──
+function qbParseGeminiCO(raw) {
+  const parsed = [], failed = [];
+  if (!raw || !raw.trim()) return { parsed, failed };
+  const normalized = raw.replace(/\r\n/g, '\n');
+  const chunks = normalized.split(/\n(?=[ \t]*Question\s+\d+[ \t]*[:.\-]?[ \t]*(?:\n|$))/i);
+
+  chunks.forEach((chunk, i) => {
+    let block = chunk.trim().replace(/\*/g, '');
+    if (!/^Question\s+\d+/i.test(block)) return;
+    const qNumMatch = block.match(/Question\s+(\d+)/i);
+    const qLabel = qNumMatch ? ('Question ' + qNumMatch[1]) : ('Bloc ' + (i + 1));
+    try {
+      let rest = block.replace(/^Question\s+\d+[ \t]*[:.\-]?[ \t]*\n?/i, '');
+
+      let level = '', levelGuessed = true;
+      const levelMatch = rest.match(/^\s*Niveau\s*:\s*(A1|A2|B1|B2|C1|C2)[ \t]*\n+/i);
+      if (levelMatch) {
+        level = levelMatch[1].toUpperCase(); levelGuessed = false;
+        rest = rest.slice(levelMatch[0].length);
+      } else {
+        const anyLevel = rest.match(/Niveau\s*:\s*(A1|A2|B1|B2|C1|C2)/i);
+        if (anyLevel) { level = anyLevel[1].toUpperCase(); levelGuessed = false; }
+      }
+      if (!level) level = 'B1';
+
+      const bodyEnd = rest.search(/\n[ \t]*A[\)\.\:][ \t]*\S/i);
+      if (bodyEnd === -1) throw new Error('تعذّر العثور على الخيارات A) B) C) D)');
+      let body = rest.slice(0, bodyEnd);
+      body = body.replace(/^[ \t]*Script[ \t]*\([^)]*\)[ \t]*:?[ \t]*/i, '');
+      body = body.replace(/^[ \t]*[>\-][ \t]*/gm, '');
+
+      let text = '', question = '';
+      const lastQuote = Math.max(body.lastIndexOf('»'), body.lastIndexOf('"'));
+      if (lastQuote !== -1) { text = body.slice(0, lastQuote + 1); question = body.slice(lastQuote + 1); }
+      else {
+        const lines = body.split('\n').map(l => l.trim()).filter(Boolean);
+        question = lines.pop() || ''; text = lines.join(' ');
+      }
+      const clean = s => s.replace(/[ \t]*\n[ \t]*/g, ' ').replace(/[ \t]{2,}/g, ' ').trim();
+      text = clean(text);
+      question = clean(question).replace(/^[:\-–—.\s]+/, '').trim();
+      if (!question) throw new Error('تعذّر تحديد السؤال بعد النص');
+
+      const opts = [];
+      for (const L of ['A', 'B', 'C', 'D']) {
+        const m = rest.match(new RegExp('\\n[ \\t]*' + L + '[\\)\\.\\:][ \\t]*([^\\n]+)', 'i'));
+        if (!m) throw new Error('الخيار ' + L + ' غير موجود');
+        opts.push(m[1].trim());
+      }
+
+      const ansMatch = rest.match(/(?:Bonne\s+r[ée]ponse|R[ée]ponse(?:\s+correcte?)?)[ \t]*:?[ \t]*([A-D])\b/i);
+      if (!ansMatch) throw new Error('«الإجابة الصحيحة» غير موجودة');
+      const a = 'ABCD'.indexOf(ansMatch[1].toUpperCase());
+      const justifMatch = rest.match(/Justification[ \t]*:?[ \t]*([^\n]+)/i);
+      const justification = justifMatch ? justifMatch[1].trim() : '';
+
+      parsed.push({ qLabel, level, levelGuessed, text, q: question, opts, a, justification });
+    } catch (err) {
+      failed.push({ qLabel, reason: err.message, excerpt: block.slice(0, 90).replace(/\n/g, ' ') });
+    }
+  });
+  return { parsed, failed };
+}
+
+// ── CE : "Question N / Niveau / Titre / Texte / Question / A-D / Réponse correcte" ──
+function qbParseGeminiCE(raw) {
+  const parsed = [], failed = [];
+  if (!raw || !raw.trim()) return { parsed, failed };
+  const normalized = raw.replace(/\r\n/g, '\n');
+  const chunks = normalized.split(/\n(?=[ \t]*Question\s+\d+[ \t]*[:.\-]?[ \t]*(?:\n|$))/i);
+
+  chunks.forEach((chunk, i) => {
+    let block = chunk.trim().replace(/\*/g, '');
+    if (!/^Question\s+\d+/i.test(block)) return;
+    const qNumMatch = block.match(/Question\s+(\d+)/i);
+    const qLabel = qNumMatch ? ('Question ' + qNumMatch[1]) : ('Bloc ' + (i + 1));
+    try {
+      let rest = block.replace(/^Question\s+\d+[ \t]*[:.\-]?[ \t]*\n?/i, '');
+
+      // ── Niveau ──
+      let level = '', levelGuessed = true;
+      const levelMatch = rest.match(/^\s*Niveau\s*:\s*(A1|A2|B1|B2|C1|C2)[ \t]*\n+/i);
+      if (levelMatch) { level = levelMatch[1].toUpperCase(); levelGuessed = false; rest = rest.slice(levelMatch[0].length); }
+      else { const anyLevel = rest.match(/Niveau\s*:\s*(A1|A2|B1|B2|C1|C2)/i); if (anyLevel) { level = anyLevel[1].toUpperCase(); levelGuessed = false; } }
+      if (!level) level = 'B1';
+
+      // ── Titre (optionnel) ──
+      let title = '';
+      const titleMatch = rest.match(/^\s*Titre\s*:\s*([^\n]+)\n/i);
+      if (titleMatch) { title = titleMatch[1].trim(); rest = rest.slice(titleMatch[0].length); }
+
+      // ── Texte ──
+      const texteMatch = rest.match(/Texte\s*:\s*([\s\S]*?)(?=\n[ \t]*Question\s*:|$)/i);
+      if (!texteMatch) throw new Error('«Texte :» introuvable');
+      let text = texteMatch[1].trim();
+
+      // ── Question ──
+      const questionMatch = rest.match(/Question\s*:\s*([^\n]+)/i);
+      if (!questionMatch) throw new Error('«Question :» introuvable');
+      const q = questionMatch[1].trim();
+
+      // ── Nettoyer le texte: enlever la partie "Question :" et ce qui suit ──
+      const qIdx = text.search(/\n[ \t]*Question\s*:/i);
+      if (qIdx !== -1) text = text.slice(0, qIdx).trim();
+      text = text.replace(/^[ \t]*>[ \t]*/gm, '').replace(/[ \t]{2,}/g, ' ').trim();
+
+      // ── Options A B C D ──
+      const opts = [];
+      for (const L of ['A', 'B', 'C', 'D']) {
+        const m = rest.match(new RegExp('\\n[ \\t]*' + L + '[\\)\\.\\:][ \\t]*([^\\n]+)', 'i'));
+        if (!m) throw new Error('الخيار ' + L + ' غير موجود');
+        opts.push(m[1].trim());
+      }
+
+      // ── Réponse correcte ──
+      const ansMatch = rest.match(/(?:Bonne\s+r[ée]ponse|R[ée]ponse(?:\s+correcte?)?)[ \t]*:?[ \t]*([A-D])\b/i);
+      if (!ansMatch) throw new Error('«Réponse correcte» introuvable');
+      const a = 'ABCD'.indexOf(ansMatch[1].toUpperCase());
+
+      // ── Justification (optionnelle) ──
+      const justifMatch = rest.match(/Justification[ \t]*:?[ \t]*([^\n]+)/i);
+      const justification = justifMatch ? justifMatch[1].trim() : '';
+
+      parsed.push({ qLabel, level, levelGuessed, title, text, q, opts, a, justification });
+    } catch (err) {
+      failed.push({ qLabel, reason: err.message, excerpt: block.slice(0, 90).replace(/\n/g, ' ') });
+    }
+  });
+  return { parsed, failed };
+}
+
+// ── SL : "Question N / Niveau / Type / Phrase (avec ___) / A-D / Réponse correcte" ──
+function qbParseGeminiSL(raw) {
+  const parsed = [], failed = [];
+  if (!raw || !raw.trim()) return { parsed, failed };
+  const normalized = raw.replace(/\r\n/g, '\n');
+  const chunks = normalized.split(/\n(?=[ \t]*Question\s+\d+[ \t]*[:.\-]?[ \t]*(?:\n|$))/i);
+
+  chunks.forEach((chunk, i) => {
+    let block = chunk.trim().replace(/\*/g, '');
+    if (!/^Question\s+\d+/i.test(block)) return;
+    const qNumMatch = block.match(/Question\s+(\d+)/i);
+    const qLabel = qNumMatch ? ('Question ' + qNumMatch[1]) : ('Bloc ' + (i + 1));
+    try {
+      let rest = block.replace(/^Question\s+\d+[ \t]*[:.\-]?[ \t]*\n?/i, '');
+
+      let level = '', levelGuessed = true;
+      const levelMatch = rest.match(/^\s*Niveau\s*:\s*(A1|A2|B1|B2|C1|C2)[ \t]*\n+/i);
+      if (levelMatch) {
+        level = levelMatch[1].toUpperCase(); levelGuessed = false;
+        rest = rest.slice(levelMatch[0].length);
+      } else {
+        const anyLevel = rest.match(/Niveau\s*:\s*(A1|A2|B1|B2|C1|C2)/i);
+        if (anyLevel) { level = anyLevel[1].toUpperCase(); levelGuessed = false; }
+      }
+      if (!level) level = 'B2';
+
+      const bodyEnd = rest.search(/\n[ \t]*A[\)\.\:][ \t]*\S/i);
+      if (bodyEnd === -1) throw new Error('تعذّر العثور على الخيارات A) B) C) D)');
+      let body = rest.slice(0, bodyEnd);
+
+      const typeMatch = body.match(/Type\s*:\s*([^\n]+)/i);
+      const type = typeMatch ? typeMatch[1].trim() : '';
+
+      const phraseMatch = body.match(/Phrase\s*:\s*([\s\S]*)/i);
+      let phrase = phraseMatch ? phraseMatch[1] : body.replace(/Type\s*:[^\n]*/i, '');
+      phrase = phrase.replace(/[ \t]*\n[ \t]*/g, ' ').replace(/[ \t]{2,}/g, ' ').trim();
+      if (!phrase) throw new Error('تعذّر تحديد الجملة (Phrase)');
+
+      const opts = [];
+      for (const L of ['A', 'B', 'C', 'D']) {
+        const m = rest.match(new RegExp('\\n[ \\t]*' + L + '[\\)\\.\\:][ \\t]*([^\\n]+)', 'i'));
+        if (!m) throw new Error('الخيار ' + L + ' غير موجود');
+        opts.push(m[1].trim());
+      }
+
+      const ansMatch = rest.match(/(?:Bonne\s+r[ée]ponse|R[ée]ponse(?:\s+correcte?)?)[ \t]*:?[ \t]*([A-D])\b/i);
+      if (!ansMatch) throw new Error('«الإجابة الصحيحة» غير موجودة');
+      const a = 'ABCD'.indexOf(ansMatch[1].toUpperCase());
+      const justifMatch = rest.match(/Justification[ \t]*:?[ \t]*([^\n]+)/i);
+      const justification = justifMatch ? justifMatch[1].trim() : '';
+
+      parsed.push({ qLabel, level, levelGuessed, type, s: phrase, opts, a, justification });
+    } catch (err) {
+      failed.push({ qLabel, reason: err.message, excerpt: block.slice(0, 90).replace(/\n/g, ' ') });
+    }
+  });
+  return { parsed, failed };
+}
+
+// ── EE / EO : "Consigne (Sujet N) / Amorce ou Sujet / Votre tâche / Exemple de réponse 1 / Exemple de réponse 2" ──
+function qbParseGeminiTask(raw) {
+  const parsed = [], failed = [];
+  if (!raw || !raw.trim()) return { parsed, failed };
+  const normalized = raw.replace(/\r\n/g, '\n').replace(/\*/g, '');
+  const lines = normalized.split('\n');
+
+  let currentHeading = '';
+  const blocks = [];
+  let cur = null;
+  lines.forEach(line => {
+    if (/^\s{0,3}#{0,6}\s*Section\b/i.test(line)) { currentHeading = line.replace(/^\s*#{0,6}\s*/, '').trim(); return; }
+    if (/^\s*Consigne\b/i.test(line)) { if (cur) blocks.push(cur); cur = { heading: currentHeading, headLine: line.trim(), lines: [] }; return; }
+    if (cur) cur.lines.push(line);
+  });
+  if (cur) blocks.push(cur);
+
+  blocks.forEach((blk, i) => {
+    const sujetMatch = blk.headLine.match(/Sujet\s*(\d+)/i);
+    const qLabel = sujetMatch ? ('Sujet ' + sujetMatch[1]) : ('Tâche ' + (i + 1));
+    try {
+      const body = blk.lines.join('\n');
+      const tacheIdx = body.search(/Votre\s+t[âa]che\s*:?/i);
+      if (tacheIdx === -1) throw new Error('«Votre tâche» introuvable');
+
+      let stimulus = body.slice(0, tacheIdx)
+        .replace(/^\s*Amorce\s+[àa]\s+d[ée]velopper\s*:?\s*/i, '')
+        .replace(/^\s*Sujet\s*:?\s*/i, '')
+        .replace(/^[ \t]*>[ \t]*/gm, '')
+        .trim();
+
+      let afterTache = body.slice(tacheIdx).replace(/^Votre\s+t[âa]che\s*:?\s*/i, '');
+      const firstExIdx = afterTache.search(/Exemple\s+de\s+r[ée]ponse/i);
+      const taskInstruction = (firstExIdx === -1 ? afterTache : afterTache.slice(0, firstExIdx)).trim();
+
+      const exSection = firstExIdx === -1 ? '' : afterTache.slice(firstExIdx);
+      const exMatches = [...exSection.matchAll(/Exemple\s+de\s+r[ée]ponse\s*(\d+)[^\n]*\n([\s\S]*?)(?=\nExemple\s+de\s+r[ée]ponse|\s*$)/gi)];
+      const examples = exMatches.map(m => m[2].trim().replace(/\(\s*\d+\s*mots?\s*\)\s*$/i, '').trim());
+
+      const clean = s => s.replace(/[ \t]*\n[ \t]*\n[ \t]*/g, '\n\n').trim();
+      stimulus = clean(stimulus);
+      const consigneParts = [];
+      if (stimulus) consigneParts.push('« ' + stimulus.replace(/^[«»"]+|[«»"]+$/g, '').trim() + ' »');
+      if (taskInstruction) consigneParts.push('Votre tâche : ' + taskInstruction.replace(/\s*\n\s*/g, ' '));
+      const consigne = consigneParts.join('\n\n');
+      if (!consigne) throw new Error('Consigne introuvable');
+      if (!examples.length) throw new Error('Aucun exemple de réponse trouvé');
+
+      const task = blk.heading || qLabel;
+      parsed.push({ qLabel, task, consigne, ex1: examples[0] || '', ex2: examples[1] || '' });
+    } catch (err) {
+      failed.push({ qLabel, reason: err.message, excerpt: blk.lines.join(' ').slice(0, 90) });
+    }
+  });
+  return { parsed, failed };
+}
+
+// ── Clé de dédoublonnage : même champ utilisé côté item parsé et côté item déjà en banque ──
+function qbBulkKeyOf(section, obj) {
+  const field = section === 'co' ? 'q' : section === 'ce' ? 'q' : section === 'sl' ? 's' : 'consigne';
+  return String((obj && obj[field]) || '').trim().toLowerCase();
+}
+function qbBulkRunParser(section, raw) {
+  if (section === 'co') return qbParseGeminiCO(raw);
+  if (section === 'ce') return qbParseGeminiCE(raw);
+  if (section === 'sl') return qbParseGeminiSL(raw);
+  if (section === 'ee' || section === 'eo') return qbParseGeminiTask(raw);
+  return { parsed: [], failed: [] };
+}
+function qbBulkFreshItems(section, idPrefix) {
+  idPrefix = idPrefix || section;
+  const raw = qbVal(idPrefix + '-bulk-textarea');
+  const { parsed, failed } = qbBulkRunParser(section, raw);
+  const bank = qbGet(section);
+  const existingKeys = new Set(bank.map(it => qbBulkKeyOf(section, it)));
+  const fresh = []; let dupCount = 0;
+  parsed.forEach(p => { if (existingKeys.has(qbBulkKeyOf(section, p))) dupCount++; else fresh.push(p); });
+  return { fresh, failed, dupCount };
+}
+
+function qbBulkParsePreview(section, idPrefix) {
+  idPrefix = idPrefix || section;
+  const previewEl = document.getElementById(idPrefix + '-bulk-preview');
+  const confirmBtn = document.getElementById(idPrefix + '-bulk-confirm-btn');
+  if (!previewEl) return;
+  const esc = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const { fresh, failed, dupCount } = qbBulkFreshItems(section, idPrefix);
+  const isTask = (section === 'ee' || section === 'eo');
+  const unitWord = isTask ? 'موضوعاً' : 'سؤالاً';
+
+  let html = '';
+  if (fresh.length) {
+    html += `<div style="background:rgba(6,214,160,.1);border:1px solid var(--green);border-radius:8px;padding:.6rem .9rem;font-size:.82rem;margin:.7rem 0;color:var(--green);">✅ ${fresh.length} ${unitWord} جاهز للإضافة${dupCount ? ' (وتم تجاهل ' + dupCount + ' مكرر موجود مسبقاً)' : ''}</div>`;
+  }
+  if (failed.length) {
+    html += `<div style="background:rgba(230,57,70,.08);border:1px solid var(--accent2);border-radius:8px;padding:.6rem .9rem;font-size:.8rem;margin:.7rem 0;color:var(--accent2);">⚠️ تعذّر التعرف على ${failed.length}:
+      <ul style="margin:.4rem 0 0 1.1rem;padding:0;">${failed.map(f => `<li>${esc(f.qLabel)} — ${esc(f.reason)} <span style="opacity:.7;">(${esc(f.excerpt)}…)</span></li>`).join('')}</ul></div>`;
+  }
+  fresh.forEach(p => {
+    if (section === 'co') {
+      html += `<div class="qb-bulk-preview-item">
+        <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem;"><span class="level-badge lvl-${p.level.toLowerCase()}">${p.level}${p.levelGuessed ? ' ⚠️' : ''}</span><strong>${esc(p.qLabel)}</strong></div>
+        <div style="color:var(--text-muted);font-style:italic;margin-bottom:.3rem;">🎧 ${esc(p.text.slice(0, 110))}${p.text.length > 110 ? '…' : ''}</div>
+        <div><strong>${esc(p.q)}</strong></div>
+        <div style="color:var(--text-muted);">✅ ${['A', 'B', 'C', 'D'][p.a]}) ${esc(p.opts[p.a])}${p.justification ? ' · 💡' : ''}</div>
+      </div>`;
+    } else if (section === 'ce') {
+      html += `<div class="qb-bulk-preview-item">
+        <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem;"><span class="level-badge lvl-${p.level.toLowerCase()}">${p.level}${p.levelGuessed ? ' ⚠️' : ''}</span><strong>${esc(p.qLabel)}</strong>${p.title ? ' · <em>' + esc(p.title) + '</em>' : ''}</div>
+        <div style="color:var(--text-muted);font-size:.8rem;margin-bottom:.3rem;">📄 ${esc(p.text.slice(0, 120))}${p.text.length > 120 ? '…' : ''}</div>
+        <div><strong>${esc(p.q)}</strong></div>
+        <div style="color:var(--text-muted);">✅ ${['A', 'B', 'C', 'D'][p.a]}) ${esc(p.opts[p.a])}${p.justification ? ' · 💡' : ''}</div>
+      </div>`;
+    } else if (section === 'sl') {
+      html += `<div class="qb-bulk-preview-item">
+        <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem;"><span class="level-badge lvl-${p.level.toLowerCase()}">${p.level}${p.levelGuessed ? ' ⚠️' : ''}</span><strong>${esc(p.qLabel)}</strong>${p.type ? ' · ' + esc(p.type) : ''}</div>
+        <div><strong>${esc(p.s)}</strong></div>
+        <div style="color:var(--text-muted);">✅ ${['A', 'B', 'C', 'D'][p.a]}) ${esc(p.opts[p.a])}${p.justification ? ' · 💡' : ''}</div>
+      </div>`;
+    } else {
+      html += `<div class="qb-bulk-preview-item">
+        <div style="margin-bottom:.3rem;"><strong>${esc(p.qLabel)} — ${esc(p.task)}</strong></div>
+        <div style="color:var(--text-muted);margin-bottom:.3rem;">${esc(p.consigne.slice(0, 140))}${p.consigne.length > 140 ? '…' : ''}</div>
+        <div style="color:var(--text-muted);">📄 مثال 1${p.ex1 ? ' ✓' : ' ✗'} · 📄 مثال 2${p.ex2 ? ' ✓' : ' ✗'}</div>
+      </div>`;
+    }
+  });
+  if (!fresh.length && !failed.length) {
+    const rawTyped = qbVal(idPrefix + '-bulk-textarea');
+    if (rawTyped) {
+      html = `<div style="background:rgba(230,57,70,.08);border:1px solid var(--accent2);border-radius:8px;padding:.6rem .9rem;font-size:.82rem;margin:.7rem 0;color:var(--accent2);line-height:1.7;">
+        ⚠️ لم يتم التعرف على أي ${unitWord.replace('اً','')} في النص الذي لصقتِه.<br>
+        تأكدي من أن كل ${isTask ? 'موضوع' : 'سؤال'} يبدأ بكلمة <code>Question</code> متبوعة برقم في بداية سطر مستقل (مثال: <code>Question 1</code>)${isTask ? '' : '، وأن به لاحقاً السطر <code>Réponse correcte : A</code> (أو B أو C أو D)'}، تماماً مثل المثال الظاهر داخل الحقل قبل اللصق.
+      </div>`;
+    } else {
+      html = `<p style="color:var(--text-muted);font-size:.82rem;margin-top:.6rem;">الصقي النص أعلاه ثم اضغطي «معاينة» لرؤية النتيجة قبل الإضافة.</p>`;
+    }
+  }
+  previewEl.innerHTML = html;
+  if (confirmBtn) confirmBtn.classList.toggle('hidden', fresh.length === 0);
+}
+
+async function qbBulkConfirmAdd(section) {
+  try {
+    const { fresh } = qbBulkFreshItems(section);
+    if (!fresh.length) { alert('⚠️ لا توجد عناصر صالحة جاهزة للإضافة. اضغطي «معاينة» أولاً وتأكدي من التنسيق.'); return; }
+
+    const bank = qbGet(section);
+    const now = new Date().toLocaleDateString('fr-FR');
+    const exam = (section === 'eo') ? 'canada' : qbVal(section + '-bulk-exam');
+    const isTask = (section === 'ee' || section === 'eo');
+
+    // رقم سيري واحد مشترك لكل عناصر هذه الدفعة
+    const bulkSeriesNum = qbSeriesNumVal(section + '-bulk-seriesNum');
+    fresh.forEach((p, i) => {
+      let item = { id: Date.now() + i, addedAt: now, exam, seriesNum: bulkSeriesNum };
+      if (section === 'co') item = Object.assign(item, { text: p.text, q: p.q, opts: p.opts, a: p.a, level: p.level, justification: p.justification || '' });
+      else if (section === 'ce') item = Object.assign(item, { title: p.title || '', text: p.text, q: p.q, opts: p.opts, a: p.a, level: p.level, justification: p.justification || '' });
+      else if (section === 'sl') item = Object.assign(item, { s: p.s, type: p.type, opts: p.opts, a: p.a, level: p.level, justification: p.justification || '' });
+      else item = Object.assign(item, { task: p.task, consigne: p.consigne, ex1: p.ex1, ex2: p.ex2 });
+      bank.push(item);
+    });
+
+    const count = fresh.length;
+    await qbSave(section, bank);
+    qbLoadAllIntoLiveBanks();
+    qbRenderList(section);
+    qbUpdateCounts();
+    const ta = document.getElementById(section + '-bulk-textarea'); if (ta) ta.value = '';
+    const pv = document.getElementById(section + '-bulk-preview'); if (pv) pv.innerHTML = '';
+    const cb = document.getElementById(section + '-bulk-confirm-btn'); if (cb) cb.classList.add('hidden');
+    alert('✅ تمت إضافة ' + count + (isTask ? ' موضوعاً' : ' سؤالاً') + ' دفعة واحدة في السيري S' + bulkSeriesNum + '! يراها الطلاب الآن فوراً.');
+  } catch (e) {
+    console.error('qbBulkConfirmAdd failed:', section, e);
+    alert('❌ حدث خطأ غير متوقع ولم تتم الإضافة.\n\nتفصيل الخطأ: ' + (e && e.message ? e.message : e));
+  }
 }
 
 // ── Shuffle array (Fisher-Yates) ──
@@ -5533,20 +6032,21 @@ function shuffleArray(arr) {
   return a;
 }
 
-// ── Distribute admin questions randomly across all series ──
+// ── وضع أسئلة الإدارة في السيري المحدد بالضبط (ثابت، بدون عشوائية) ──
+// كل سؤال يحمل seriesNum (مُختار وقت الإضافة) ويبقى فيها دائماً. لا حذف لأي
+// سؤال سابق: نعيد الحساب في كل مرة انطلاقاً من كامل البنك المحفوظ في qbGet(section)،
+// لذا كل سؤال أُضيف سابقاً يظهر من جديد في نفس سيريه بالضبط.
 function qbDistributeAcrossSeries(series, adminQuestions) {
-  if (!series || !series.length || !adminQuestions || !adminQuestions.length) return;
+  if (!series || !series.length) return;
+  // نزيل فقط الحقن السابق (_admin) قبل إعادة البناء، تفادياً لتكراره في كل تحميل
   series.forEach(s => {
-    if (s && s.questions) {
-      s.questions = s.questions.filter(q => !q._admin);
-    }
+    if (s && s.questions) s.questions = s.questions.filter(q => !q._admin);
   });
-  const shuffled = shuffleArray(adminQuestions);
-  shuffled.forEach((q, i) => {
-    const seriesIndex = i % series.length;
-    if (series[seriesIndex] && series[seriesIndex].questions) {
-      series[seriesIndex].questions.push(Object.assign({}, q, { _admin: true }));
-    }
+  if (!adminQuestions || !adminQuestions.length) return;
+  adminQuestions.forEach(q => {
+    const sn = Math.min(Math.max(parseInt(q.seriesNum, 10) || 1, 1), series.length);
+    const target = series[sn - 1];
+    if (target && target.questions) target.questions.push(Object.assign({}, q, { _admin: true }));
   });
 }
 
@@ -5557,7 +6057,7 @@ function qbLoadAllIntoLiveBanks() {
     const coCanadaBank = qbGet('co').filter(i => i.exam === 'canada' || i.exam === 'both');
     if (typeof CO_CANADA_SERIES !== 'undefined') {
       qbDistributeAcrossSeries(CO_CANADA_SERIES, coCanadaBank.map(item => {
-        const q = { level: item.level, text: item.text || '', q: item.q, opts: item.opts, a: item.a };
+        const q = { level: item.level, text: item.text || '', q: item.q, opts: item.opts, a: item.a, seriesNum: item.seriesNum || 1 };
         if (item.fileUri) { q.fileUri = item.fileUri; q.fileType = item.fileType || ''; }
         return q;
       }));
@@ -5566,7 +6066,7 @@ function qbLoadAllIntoLiveBanks() {
     const coSodapBank = qbGet('co').filter(i => i.exam === 'sodap' || i.exam === 'both');
     if (typeof CO_SODAP_SERIES !== 'undefined') {
       qbDistributeAcrossSeries(CO_SODAP_SERIES, coSodapBank.map(item => {
-        const q = { level: item.level, text: item.text || '', q: item.q, opts: item.opts, a: item.a };
+        const q = { level: item.level, text: item.text || '', q: item.q, opts: item.opts, a: item.a, seriesNum: item.seriesNum || 1 };
         if (item.fileUri) { q.fileUri = item.fileUri; q.fileType = item.fileType || ''; }
         return q;
       }));
@@ -5575,7 +6075,7 @@ function qbLoadAllIntoLiveBanks() {
     const ceCanadaBank = qbGet('ce').filter(i => i.exam === 'canada' || i.exam === 'both');
     if (typeof CE_CANADA_SERIES !== 'undefined') {
       qbDistributeAcrossSeries(CE_CANADA_SERIES, ceCanadaBank.map(item => {
-        const q = { level: item.level, title: item.title || '', text: item.text, q: item.q, opts: item.opts, a: item.a };
+        const q = { level: item.level, title: item.title || '', text: item.text, q: item.q, opts: item.opts, a: item.a, seriesNum: item.seriesNum || 1 };
         if (item.fileUri) { q.fileUri = item.fileUri; q.fileType = item.fileType || ''; }
         return q;
       }));
@@ -5584,7 +6084,7 @@ function qbLoadAllIntoLiveBanks() {
     const ceSodapBank = qbGet('ce').filter(i => i.exam === 'sodap' || i.exam === 'both');
     if (typeof CE_SODAP_SERIES !== 'undefined') {
       qbDistributeAcrossSeries(CE_SODAP_SERIES, ceSodapBank.map(item => {
-        const q = { level: item.level, title: item.title || '', text: item.text, q: item.q, opts: item.opts, a: item.a };
+        const q = { level: item.level, title: item.title || '', text: item.text, q: item.q, opts: item.opts, a: item.a, seriesNum: item.seriesNum || 1 };
         if (item.fileUri) { q.fileUri = item.fileUri; q.fileType = item.fileType || ''; }
         return q;
       }));
@@ -5592,13 +6092,13 @@ function qbLoadAllIntoLiveBanks() {
     // SL
     const slBank = qbGet('sl');
     if (typeof SL_SERIES_DATA !== 'undefined') {
-      qbDistributeAcrossSeries(SL_SERIES_DATA, slBank.map(item => ({ level: item.level, s: item.s, type: item.type, opts: item.opts, a: item.a })));
+      qbDistributeAcrossSeries(SL_SERIES_DATA, slBank.map(item => ({ level: item.level, s: item.s, type: item.type, opts: item.opts, a: item.a, seriesNum: item.seriesNum || 1 })));
     }
     // EE – Canada / SO-DAP (كانت الأسئلة تُحفظ لكن لا تظهر أبداً للطالب)
     const eeBank = qbGet('ee');
     if (typeof EE_CANADA_DATA !== 'undefined' && typeof EE_DAP_DATA !== 'undefined') {
       qbInjectTasksIntoSeries(EE_CANADA_DATA, eeBank.filter(i => i.exam === 'canada' || i.exam === 'both'));
-      qbInjectTasksIntoSeries(EE_DAP_DATA, eeBank.filter(i => i.exam === 'dap' || i.exam === 'both'));
+      qbInjectTasksIntoSeries(EE_DAP_DATA, eeBank.filter(i => i.exam === 'sodap' || i.exam === 'both'));
     }
     // EO (كانت الأسئلة تُحفظ لكن لا تظهر أبداً للطالب)
     const eoBank = qbGet('eo');
@@ -5611,19 +6111,20 @@ function qbLoadAllIntoLiveBanks() {
   } catch(e) { /* silent */ }
 }
 
-// ── حقن أسئلة EE/EO المضافة من الأدمين كـ "tâches" إضافية داخل السلاسل الثابتة ──
-// نزيل أولاً أي حقن سابق (يحمل _admin:true) قبل إعادة التوزيع، لتفادي التكرار عند كل تحميل
+// ── حقن أسئلة EE/EO المضافة من الأدمين كـ "tâches" إضافية داخل السيري المحدد بالضبط ──
+// نزيل أولاً أي حقن سابق (يحمل _admin:true) قبل إعادة البناء، لتفادي التكرار عند كل تحميل.
+// كل موضوع يبقى في سيريه (seriesNum) الذي اختير وقت الإضافة — ثابت، لا عشوائي.
 function qbInjectTasksIntoSeries(seriesArr, adminItems) {
   if (!seriesArr || !seriesArr.length) return;
   seriesArr.forEach(s => { if (s && s.taches) s.taches = s.taches.filter(t => !t._admin); });
   if (!adminItems || !adminItems.length) return;
-  const shuffled = shuffleArray(adminItems);
-  shuffled.forEach((item, i) => {
-    const s = seriesArr[i % seriesArr.length];
+  adminItems.forEach(item => {
+    const sn = Math.min(Math.max(parseInt(item.seriesNum, 10) || 1, 1), seriesArr.length);
+    const s = seriesArr[sn - 1];
     if (!s) return;
     if (!s.taches) s.taches = [];
     s.taches.push({
-      type: '✍️ Question ajoutée par l\'admin',
+      type: item.task ? `✍️ Tâche ${item.task} — ajoutée par l'admin` : '✍️ Question ajoutée par l\'admin',
       _admin: true,
       tasks: [{
         consigne: item.consigne || '',
@@ -5633,7 +6134,7 @@ function qbInjectTasksIntoSeries(seriesArr, adminItems) {
   });
 }
 
-// ── Render list of added questions ──
+// ── Render list of added questions (+ جدول السيريات) ──
 function qbRenderList(section) {
   const listEl = document.getElementById(section + '-qlist');
   if (!listEl) return;
@@ -5642,7 +6143,29 @@ function qbRenderList(section) {
     listEl.innerHTML = '<p style="color:var(--text-muted);font-size:.82rem;padding:.5rem;">لا توجد أسئلة مضافة بعد.</p>';
     return;
   }
-  listEl.innerHTML = bank.map((item, i) => {
+
+  // ─── جدول: كم سؤال/موضوع في كل سيري (Canada / SO-DAP) — لمعرفة أين ذهبت إضافاتك بالضبط ───
+  const splitCanadaSodap = (section === 'co' || section === 'ce' || section === 'ee');
+  const allSeriesNums = [...new Set(bank.map(it => it.seriesNum || 1))].sort((a, b) => a - b);
+  let tableHtml = `<table class="qb-series-table" style="margin-bottom:1rem;">
+    <thead><tr><th>السيري</th>${splitCanadaSodap ? '<th>🍁 Canada</th><th>🇫🇷 SO/DAP</th>' : '<th>العدد</th>'}<th>إجراء</th></tr></thead><tbody>`;
+  allSeriesNums.forEach(sn => {
+    const inSeries = bank.filter(it => (it.seriesNum || 1) === sn);
+    tableHtml += `<tr><td style="font-weight:700;">S${sn}</td>`;
+    if (splitCanadaSodap) {
+      const nCanada = inSeries.filter(it => it.exam === 'canada' || it.exam === 'both').length;
+      const nSodap = inSeries.filter(it => it.exam === 'sodap' || it.exam === 'both').length;
+      tableHtml += `<td>${nCanada > 0 ? `<span style="color:var(--green);font-weight:700;">${nCanada}</span>` : '<span style="color:var(--text-muted);">—</span>'}</td>`;
+      tableHtml += `<td>${nSodap > 0 ? `<span style="color:var(--green);font-weight:700;">${nSodap}</span>` : '<span style="color:var(--text-muted);">—</span>'}</td>`;
+    } else {
+      tableHtml += `<td><span style="color:var(--green);font-weight:700;">${inSeries.length}</span></td>`;
+    }
+    tableHtml += `<td><button class="admin-btn danger small" onclick="qbDeleteSeries('${section}',${sn})">🗑️ حذف S${sn}</button></td></tr>`;
+  });
+  tableHtml += `</tbody></table>`;
+
+  // ─── قائمة الأسئلة/المواضيع الفردية ───
+  listEl.innerHTML = tableHtml + bank.map((item, i) => {
     let preview = '';
     if (section === 'co') preview = `<strong>Q:</strong> ${item.q || ''} | <strong>Niveau:</strong> ${item.level || ''} | <strong>Exam:</strong> ${item.exam || ''}`;
     else if (section === 'ce') preview = `<strong>Titre:</strong> ${item.title || ''} | <strong>Q:</strong> ${item.q || ''} | <strong>Niveau:</strong> ${item.level || ''}`;
@@ -5662,7 +6185,7 @@ function qbRenderList(section) {
     return `<div class="qb-item ${i === bank.length-1 ? 'qb-added-flash' : ''}">
       ${mediaHtml}
       <div class="qb-item-text">
-        <strong>${section.toUpperCase()} #${i+1} · ${item.addedAt || ''}</strong><br>
+        <strong>${section.toUpperCase()} #${i+1} · S${item.seriesNum || 1} · ${item.addedAt || ''}</strong><br>
         ${preview}
       </div>
       <span class="qb-item-badge">${item.level || (item.task ? 'Tâche '+item.task : '')}</span>
@@ -5677,6 +6200,19 @@ async function qbDeleteItem(section, idx) {
   const bank = qbGet(section);
   bank.splice(idx, 1);
   await qbSave(section, bank);
+  qbLoadAllIntoLiveBanks();
+  qbRenderList(section);
+  qbUpdateCounts();
+}
+
+// ── Delete a whole series (كل أسئلة/مواضيع هذا السيري في هذا القسم) ──
+async function qbDeleteSeries(section, seriesNum) {
+  const bank = qbGet(section);
+  const toRemove = bank.filter(it => (it.seriesNum || 1) === seriesNum);
+  if (!toRemove.length) return;
+  if (!confirm(`حذف كل محتوى السيري S${seriesNum} في هذا القسم (${toRemove.length} عنصر)؟`)) return;
+  const newBank = bank.filter(it => (it.seriesNum || 1) !== seriesNum);
+  await qbSave(section, newBank);
   qbLoadAllIntoLiveBanks();
   qbRenderList(section);
   qbUpdateCounts();
